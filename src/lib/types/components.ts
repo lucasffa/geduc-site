@@ -1,6 +1,7 @@
 // src/lib/types/components.ts
 import type { Snippet } from 'svelte';
 import type { HTMLAttributes } from 'svelte/elements';
+import type { InitiativeCategory } from './enums';
 
 // ================================
 // TIPOS BASE E UTILITÁRIOS
@@ -9,7 +10,7 @@ import type { HTMLAttributes } from 'svelte/elements';
 /**
  * Tamanhos padrão utilizados em toda a aplicação
  */
-export type Size = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+export type Size = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | '6xl' | '7xl' | '8xl';
 
 /**
  * Variantes de cores semânticas
@@ -240,7 +241,7 @@ export interface HeadingProps extends BaseComponentProps {
 
 export interface TextProps extends BaseComponentProps {
   /** Tag HTML a ser renderizada */
-  as?: 'p' | 'span' | 'div' | 'small' | 'strong' | 'em' | 'mark';
+  as?: 'p' | 'span' | 'div' | 'small' | 'strong' | 'em' | 'mark' | 'blockquote' | 'cite' | 'time';
   
   /** Tamanho do texto */
   size?: Size;
@@ -264,6 +265,38 @@ export interface TextProps extends BaseComponentProps {
   maxLines?: number;
   
   /** Conteúdo do texto */
+  children: Snippet;
+}
+
+export interface AnchorProps extends BaseComponentProps, LinkableProps {
+  /** Tamanho do texto */
+  size?: Size;
+  
+  /** Peso da fonte */
+  weight?: FontWeight;
+  
+  /** Cor do texto */
+  color?: ColorVariant | string;
+  
+  /** Alinhamento do texto */
+  align?: TextAlign;
+  
+  /** Altura da linha */
+  leading?: 'tight' | 'normal' | 'relaxed' | 'loose';
+  
+  /** Se deve truncar o texto */
+  truncate?: boolean;
+  
+  /** Número máximo de linhas */
+  maxLines?: number;
+  
+  /** Variante visual do link */
+  variant?: 'default' | 'underline' | 'button' | 'minimal';
+  
+  /** Se deve mostrar ícone de link externo */
+  showExternalIcon?: boolean;
+  
+  /** Conteúdo do link */
   children: Snippet;
 }
 
@@ -566,6 +599,7 @@ export interface InitiativesSectionProps extends BaseComponentProps {
     id: string;
     title: string;
     description: string;
+    category?: InitiativeCategory | string;
     illustration?: MediaProps;
     href?: string;
     featured?: boolean;
@@ -610,16 +644,16 @@ export interface TestimonialsSectionProps extends BaseComponentProps {
   }>;
   
   /** Layout dos depoimentos */
-  layout?: 'grid' | 'carousel' | 'masonry';
+  layout: 'grid' | 'carousel' | 'masonry';
   
   /** Número de colunas */
-  columns?: 1 | 2 | 3;
+  columns: 1 | 2 | 3;
   
   /** Se deve reproduzir automaticamente (carousel) */
-  autoplay?: boolean;
+  autoplay: boolean;
   
   /** Intervalo do autoplay em ms */
-  autoplayInterval?: number;
+  autoplayInterval: number;
   
   /** Se deve mostrar navegação */
   navigation?: boolean;

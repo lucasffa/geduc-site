@@ -6,6 +6,8 @@ A estrutura segue o fluxo: **Templates → Organismos → Moléculas → Átomos
 
 Tipagens estão em /src/lib/types/components.ts.
 
+É proibido utilizar runas.
+
 ---
 
 ### **1. Átomos (Atoms)**
