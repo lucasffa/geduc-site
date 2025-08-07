@@ -1,10 +1,10 @@
 <!-- src/lib/components/organisms/Navigation.svelte -->
 <script lang="ts">
 	import type { NavigationProps } from '$lib/types/components';
-	import Logo from '../atoms/Logo.svelte';
-	import Button from '../atoms/Button.svelte';
-	import NavItem from '../molecules/NavItem.svelte';
-	import Icon from '../atoms/Icon.svelte';
+	import { Components } from '$lib/components';
+
+	const { Logo, Button, Icon } = Components.Atoms;
+	const { NavItem } = Components.Molecules;
 
 	export let items: NavigationProps['items'];
 	export let logo: NavigationProps['logo'] = undefined;

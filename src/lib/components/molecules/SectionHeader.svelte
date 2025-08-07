@@ -1,8 +1,9 @@
 <!-- src/lib/components/molecules/SectionHeader.svelte -->
 <script lang="ts">
 	import type { SectionHeaderProps } from '$lib/types/components';
-	import Heading from '../atoms/Heading.svelte';
-	import Text from '../atoms/Text.svelte';
+	import { Components } from '$lib/components';
+
+	const { Heading, Text } = Components.Atoms;
 
 	export let title: SectionHeaderProps['title'];
 	export let subtitle: SectionHeaderProps['subtitle'] = undefined;

@@ -1,10 +1,10 @@
 <!-- src/lib/components/organisms/InitiativesSection.svelte -->
 <script lang="ts">
-    import type { InitiativesSectionProps } from '$lib/types/components';
-    import SectionHeader from '../molecules/SectionHeader.svelte';
-    import FeatureCard from '../molecules/FeatureCard.svelte';
-    import Button from '../atoms/Button.svelte';
-    import Text from '../atoms/Text.svelte';
+	import type { InitiativesSectionProps } from '$lib/types/components';
+	import { Components } from '$lib/components';
+
+	const { Button, Text } = Components.Atoms;
+	const { FeatureCard, SectionHeader } = Components.Molecules;
   
     export let title: InitiativesSectionProps['title'] = undefined;
     export let description: InitiativesSectionProps['description'] = undefined;

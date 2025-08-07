@@ -1,11 +1,11 @@
 <!-- src/lib/components/organisms/StatsSection.svelte -->
 <script lang="ts">
-    import type { StatsSectionProps } from '$lib/types/components';
-    import SectionHeader from '../molecules/SectionHeader.svelte';
-    import StatCard from '../molecules/StatCard.svelte';
-    import Text from '../atoms/Text.svelte';
-    import Image from '../atoms/Image.svelte';
-    import { onMount } from 'svelte';
+	import type { StatsSectionProps } from '$lib/types/components';
+	import { Components } from '$lib/components';
+	import { onMount } from 'svelte';
+
+	const { Text, Image } = Components.Atoms;
+	const { StatCard, SectionHeader } = Components.Molecules;
   
     export let title: StatsSectionProps['title'] = undefined;
     export let description: StatsSectionProps['description'] = undefined;

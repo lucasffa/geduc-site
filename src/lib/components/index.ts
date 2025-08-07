@@ -10,6 +10,7 @@ import Heading from './atoms/Heading.svelte';
 import Text from './atoms/Text.svelte';
 import Image from './atoms/Image.svelte';
 import Avatar from './atoms/Avatar.svelte';
+import Anchor from './atoms/Anchor.svelte';
 
 // ================================
 // MOLÉCULAS (MOLECULES)
@@ -41,6 +42,7 @@ export { default as Heading } from './atoms/Heading.svelte';
 export { default as Text } from './atoms/Text.svelte';
 export { default as Image } from './atoms/Image.svelte';
 export { default as Avatar } from './atoms/Avatar.svelte';
+export { default as Anchor } from './atoms/Anchor.svelte';
 
 export { default as NavItem } from './molecules/NavItem.svelte';
 export { default as StatCard } from './molecules/StatCard.svelte';
@@ -62,7 +64,7 @@ export { default as Footer } from './organisms/Footer.svelte';
 export type * from '../types/components';
 
 // ================================
-// EXPORTAÇÕES AGRUPADAS
+// EXPORTAÇÕES AGRUPADAS COM NAMESPACES
 // ================================
 
 // Átomos
@@ -73,7 +75,8 @@ export const Atoms = {
   Heading,
   Text,
   Image,
-  Avatar
+  Avatar,
+  Anchor
 } as const;
 
 // Moléculas
@@ -96,8 +99,32 @@ export const Organisms = {
   Footer
 } as const;
 
-// Todos os componentes
+// Namespace principal Components
+// 
+// USO RECOMENDADO - Abordagem Namespaced (Clean Code):
+// ```typescript
+// import { Components } from '$lib/components';
+// 
+// // Usando namespaces organizados
+// const { Text, Button, Icon } = Components.Atoms;
+// const { NavItem, StatCard } = Components.Molecules;
+// const { Navigation, Footer } = Components.Organisms;
+// 
+// // Ou usando destructuring direto
+// const { Atoms, Molecules, Organisms } = Components;
+// const { Text } = Atoms;
+// const { NavItem } = Molecules;
+// ```
+//
+// USO ALTERNATIVO - Importações individuais (Compatibilidade):
+// ```typescript
+// import { Text, Button, Icon } from '$lib/components';
+// ```
 export const Components = {
+  Atoms,
+  Molecules,
+  Organisms,
+  // Também disponível diretamente para compatibilidade
   ...Atoms,
   ...Molecules,
   ...Organisms

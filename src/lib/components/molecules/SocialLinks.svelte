@@ -1,8 +1,9 @@
 <!-- src/lib/components/molecules/SocialLinks.svelte -->
 <script lang="ts">
 	import type { SocialLinksProps } from '$lib/types/components';
-	import Icon from '../atoms/Icon.svelte';
-	import Text from '../atoms/Text.svelte';
+	import { Components } from '$lib/components';
+
+	const { Icon, Text } = Components.Atoms;
 
 	export let links: SocialLinksProps['links'];
 	export let size: SocialLinksProps['size'] = 'md';

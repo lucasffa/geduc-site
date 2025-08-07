@@ -1,13 +1,10 @@
 <!-- src/lib/components/organisms/Footer.svelte -->
 <script lang="ts">
-    import type { FooterProps } from '$lib/types/components';
-    import Logo from '../atoms/Logo.svelte';
-    import Text from '../atoms/Text.svelte';
-    import Button from '../atoms/Button.svelte';
-    import Icon from '../atoms/Icon.svelte';
-    import Anchor from '../atoms/Anchor.svelte';
-    import Heading from '../atoms/Heading.svelte';
-    import SocialLinks from '../molecules/SocialLinks.svelte';
+	import type { FooterProps } from '$lib/types/components';
+	import { Components } from '$lib/components';
+
+	const { Logo, Text, Button, Icon, Anchor, Heading } = Components.Atoms;
+	const { SocialLinks } = Components.Molecules;
   
     export let logo: FooterProps['logo'] = undefined;
     export let description: FooterProps['description'] = undefined;

@@ -1,10 +1,9 @@
 <!-- src/lib/components/organisms/HeroSection.svelte -->
 <script lang="ts">
 	import type { HeroSectionProps } from '$lib/types/components';
-	import Heading from '../atoms/Heading.svelte';
-	import Text from '../atoms/Text.svelte';
-	import Button from '../atoms/Button.svelte';
-	import Image from '../atoms/Image.svelte';
+	import { Components } from '$lib/components';
+
+	const { Heading, Text, Button, Image } = Components.Atoms;
 
 	export let title: HeroSectionProps['title'];
 	export let subtitle: HeroSectionProps['subtitle'] = undefined;

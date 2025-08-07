@@ -1,9 +1,9 @@
 <!-- src/lib/components/molecules/TestimonialCard.svelte -->
 <script lang="ts">
 	import type { TestimonialCardProps } from '$lib/types/components';
-	import Text from '../atoms/Text.svelte';
-	import Avatar from '../atoms/Avatar.svelte';
-	import Icon from '../atoms/Icon.svelte';
+	import { Components } from '$lib/components';
+
+	const { Text, Avatar, Icon } = Components.Atoms;
 
 	export let quote: TestimonialCardProps['quote'];
 	export let author: TestimonialCardProps['author'];
