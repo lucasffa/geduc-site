@@ -1,10 +1,10 @@
 <!-- src/lib/components/organisms/TestimonialsSection.svelte -->
 <script lang="ts">
 	import type { TestimonialsSectionProps } from '$lib/types/components';
-	import { Components } from '$lib/components';
-
-	const { Button, Icon } = Components.Atoms;
-	const { TestimonialCard, SectionHeader } = Components.Molecules;
+	import Button from '../atoms/Button.svelte';
+	import Icon from '../atoms/Icon.svelte';
+	import TestimonialCard from '../molecules/TestimonialCard.svelte';
+	import SectionHeader from '../molecules/SectionHeader.svelte';
   
     export let title: TestimonialsSectionProps['title'] = undefined;
     export let description: TestimonialsSectionProps['description'] = undefined;

@@ -203,7 +203,7 @@ export const load: PageLoad = async ({ fetch, params }) => {
 
       meta: {
         title: 'Guardiões da Educação - Transformando Vidas Através do Conhecimento',
-        description: 'Projeto educacional nacional dedicado a democratizar o acesso ao ensino superior de qualidade, conectando estudantes brasileiros a oportunidades transformadoras.',
+        description: 'Projeto educacional nacional dedicado a democratizar o acesso ao ensino de qualidade, conectando estudantes brasileiros a oportunidades transformadoras.',
         keywords: [
           'educação',
           'ensino superior',

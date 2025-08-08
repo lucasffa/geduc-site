@@ -1,9 +1,7 @@
 <!-- src/lib/components/atoms/Button.svelte -->
 <script lang="ts">
 	import type { ButtonProps } from '$lib/types/components';
-	import { Components } from '$lib/components';
-
-	const { Icon } = Components.Atoms;
+	import Icon from '$lib/components/atoms/Icon.svelte';
 
 	export let variant: ButtonProps['variant'] = 'primary';
 	export let size: ButtonProps['size'] = 'md';

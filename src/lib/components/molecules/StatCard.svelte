@@ -1,9 +1,10 @@
 <!-- src/lib/components/molecules/StatCard.svelte -->
 <script lang="ts">
 	import type { StatCardProps } from '$lib/types/components';
-	import { Components } from '$lib/components';
-
-	const { Heading, Text, Icon, Image } = Components.Atoms;
+	import Heading from '$lib/components/atoms/Heading.svelte';
+	import Text from '$lib/components/atoms/Text.svelte';
+	import Icon from '$lib/components/atoms/Icon.svelte';
+	import Image from '$lib/components/atoms/Image.svelte';
 
 	export let value: StatCardProps['value'];
 	export let label: StatCardProps['label'];

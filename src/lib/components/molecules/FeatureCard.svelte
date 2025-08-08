@@ -1,9 +1,9 @@
 <!-- src/lib/components/molecules/FeatureCard.svelte -->
 <script lang="ts">
 	import type { FeatureCardProps } from '$lib/types/components';
-	import { Components } from '$lib/components';
-
-	const { Heading, Text, Image } = Components.Atoms;
+	import Heading from '$lib/components/atoms/Heading.svelte';
+	import Text from '$lib/components/atoms/Text.svelte';
+	import Image from '$lib/components/atoms/Image.svelte';
 
 	export let title: FeatureCardProps['title'];
 	export let description: FeatureCardProps['description'];

@@ -1,9 +1,8 @@
 <!-- src/lib/components/molecules/NavItem.svelte -->
 <script lang="ts">
 	import type { NavItemProps } from '$lib/types/components';
-	import { Components } from '$lib/components';
-
-	const { Text, Icon } = Components.Atoms;
+	import Text from '$lib/components/atoms/Text.svelte';
+	import Icon from '$lib/components/atoms/Icon.svelte';
 
 	export let active: NavItemProps['active'] = false;
 	export let disabled: NavItemProps['disabled'] = false;

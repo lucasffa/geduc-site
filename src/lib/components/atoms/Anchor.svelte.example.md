@@ -6,7 +6,7 @@ O componente `Anchor` é um átomo que representa links/âncoras seguindo o padr
 
 ```svelte
 <script>
-  import { Anchor } from '$lib/components';
+  import Anchor from '$lib/components/atoms/Anchor.svelte';
 </script>
 
 <!-- Link básico -->
