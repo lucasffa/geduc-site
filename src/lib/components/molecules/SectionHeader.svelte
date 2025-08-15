@@ -211,7 +211,7 @@
 
 	.section-header-align-left .section-header-decorator-bottom {
 		left: auto;
-		right: -30px;
+		right: -20px;
 	}
 
 	.section-header-align-center .section-header-decorator-bottom {
