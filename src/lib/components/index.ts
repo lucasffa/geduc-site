@@ -21,6 +21,7 @@ import FeatureCard from './molecules/FeatureCard.svelte';
 import TestimonialCard from './molecules/TestimonialCard.svelte';
 import SectionHeader from './molecules/SectionHeader.svelte';
 import SocialLinks from './molecules/SocialLinks.svelte';
+import TextBlock from './molecules/TextBlock.svelte';
 
 // ================================
 // ORGANISMOS (ORGANISMS)
@@ -28,6 +29,7 @@ import SocialLinks from './molecules/SocialLinks.svelte';
 import Navigation from './organisms/Navigation.svelte';
 import HeroSection from './organisms/HeroSection.svelte';
 import StatsSection from './organisms/StatsSection.svelte';
+import OurImpact from './organisms/OurImpact.svelte';
 import InitiativesSection from './organisms/InitiativesSection.svelte';
 import TestimonialsSection from './organisms/TestimonialsSection.svelte';
 import Footer from './organisms/Footer.svelte';
@@ -50,10 +52,12 @@ export { default as FeatureCard } from './molecules/FeatureCard.svelte';
 export { default as TestimonialCard } from './molecules/TestimonialCard.svelte';
 export { default as SectionHeader } from './molecules/SectionHeader.svelte';
 export { default as SocialLinks } from './molecules/SocialLinks.svelte';
+export { default as TextBlock } from './molecules/TextBlock.svelte';
 
 export { default as Navigation } from './organisms/Navigation.svelte';
 export { default as HeroSection } from './organisms/HeroSection.svelte';
 export { default as StatsSection } from './organisms/StatsSection.svelte';
+export { default as OurImpact } from './organisms/OurImpact.svelte';
 export { default as InitiativesSection } from './organisms/InitiativesSection.svelte';
 export { default as TestimonialsSection } from './organisms/TestimonialsSection.svelte';
 export { default as Footer } from './organisms/Footer.svelte';
@@ -86,7 +90,8 @@ export const Molecules = {
   FeatureCard,
   TestimonialCard,
   SectionHeader,
-  SocialLinks
+  SocialLinks,
+  TextBlock
 } as const;
 
 // Organismos
@@ -94,6 +99,7 @@ export const Organisms = {
   Navigation,
   HeroSection,
   StatsSection,
+  OurImpact,
   InitiativesSection,
   TestimonialsSection,
   Footer

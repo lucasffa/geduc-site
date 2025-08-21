@@ -474,6 +474,32 @@ export interface SocialLinksProps extends BaseComponentProps {
   showLabels?: boolean;
 }
 
+export interface TextBlockProps extends BaseComponentProps {
+  /** Conteúdo do texto com quebras de linha */
+  content: string;
+  
+  /** Variante de renderização */
+  variant?: 'paragraphs' | 'list' | 'cards';
+  
+  /** Espaçamento entre elementos */
+  spacing?: 'tight' | 'normal' | 'loose';
+  
+  /** Alinhamento do texto */
+  align?: TextAlign;
+  
+  /** Tamanho do texto */
+  size?: Size;
+  
+  /** Cor do texto */
+  color?: ColorVariant | string;
+  
+  /** Peso da fonte */
+  weight?: FontWeight;
+  
+  /** Altura da linha */
+  leading?: 'tight' | 'normal' | 'relaxed' | 'loose';
+}
+
 // ================================
 // ORGANISMOS
 // ================================
@@ -559,12 +585,6 @@ export interface HeroSectionProps extends BaseComponentProps {
 }
 
 export interface StatsSectionProps extends BaseComponentProps {
-  /** Título da seção */
-  title?: string;
-  
-  /** Descrição da seção */
-  description?: string;
-  
   /** Lista de estatísticas */
   stats: Array<{
     value: string | number;
@@ -585,6 +605,26 @@ export interface StatsSectionProps extends BaseComponentProps {
   
   /** Se deve ter animação de contador */
   animated?: boolean;
+}
+
+export interface OurImpactProps extends BaseComponentProps {
+  /** Título da seção */
+  title?: string;
+  
+  /** Descrição da seção */
+  description?: string;
+  
+  /** Texto específico sobre o impacto */
+  impactText?: string;
+  
+  /** Background da seção */
+  background?: 'none' | 'muted' | 'primary' | 'gradient';
+  
+  /** Layout da seção */
+  layout?: 'default' | 'split';
+  
+  /** Se o componente deve ser renderizado condicionalmente */
+  visible?: boolean;
 }
 
 export interface InitiativesSectionProps extends BaseComponentProps {
