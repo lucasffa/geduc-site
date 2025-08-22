@@ -57,19 +57,17 @@
 	});
 </script>
 
-<section 
-	class={classes} 
-	{id} 
-	{style}
-	aria-label={title ?? "Seção de impacto"}
->
+<section class={classes} {id} {style} aria-label={title ?? 'Seção de impacto'}>
 	<div class="our-impact-container">
 		{#if title}
 			<SectionHeader
-				title={title}
+				{title}
 				align="center"
-				decorative
 				class="our-impact-header"
+				decorativeLetter={true}
+				decoration={true}
+				decorationColor="var(--color-yellow-600)"
+				decorationPosition="bottom"
 			/>
 		{/if}
 
@@ -85,7 +83,6 @@
 				weight="normal"
 				leading="relaxed"
 				class="our-impact-text"
-				on:textRender={(e) => console.log('Texto renderizado:', e.detail)}
 			/>
 		{/if}
 

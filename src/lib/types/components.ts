@@ -235,6 +235,18 @@ export interface HeadingProps extends BaseComponentProps {
   /** Se deve ter efeito gradient */
   gradient?: boolean;
   
+  /** Se deve usar letra decorativa para a primeira letra */
+  decorativeLetter?: boolean;
+  
+  /** Tipo de decoração */
+  decoration?: 'underline' | 'overline' | 'left-line' | 'right-line';
+  
+  /** Cor da decoração */
+  decorationColor?: string;
+  
+  /** Posição da decoração */
+  decorationPosition?: 'top' | 'bottom' | 'left' | 'right';
+  
   /** Conteúdo do heading */
   children: Snippet;
 }

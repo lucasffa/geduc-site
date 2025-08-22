@@ -48,11 +48,13 @@
 
 	// Preload se priority for true
 	$: if (priority && src) {
+		if (typeof window !== 'undefined') {
 		const link = document.createElement('link');
 		link.rel = 'preload';
-		link.as = 'image';
-		link.href = src;
-		document.head.appendChild(link);
+			link.as = 'image';
+			link.href = src;
+			document.head.appendChild(link);
+		}
 	}
 </script>
 
