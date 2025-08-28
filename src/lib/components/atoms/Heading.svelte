@@ -13,7 +13,7 @@
 	export let level: HeadingProps['level'] = 1;
 	export let size: HeadingProps['size'] = undefined;
 	export let weight: HeadingProps['weight'] = undefined;
-	export let color: HeadingProps['color'] = undefined;
+	export let color: HeadingProps['color'] = 'accent';
 	export let align: HeadingProps['align'] = 'left';
 	export let gradient: HeadingProps['gradient'] = false;
 	export let children: HeadingProps['children'];
@@ -23,6 +23,7 @@
 	export let decoration: HeadingProps['decoration'] = undefined;
 	export let decorationColor: HeadingProps['decorationColor'] = undefined;
 	export let decorationPosition: HeadingProps['decorationPosition'] = 'bottom';
+	export let decorationStyle: 'text-width' | 'full-width' = 'text-width';
 
 	// Classes adicionais
 	let className = '';
@@ -133,7 +134,7 @@
 		decorativeLetter && 'heading-decorative',
 		decoration &&
 			decorationPosition &&
-			`heading-decoration ${decorationPositionMap[decorationPosition]}`,
+			`heading-decoration ${decorationPositionMap[decorationPosition]} decoration-${decorationStyle}`,
 		className
 	]
 		.filter(Boolean)
@@ -186,6 +187,10 @@
 	style={customColorStyle}
 	{...$$restProps}
 >
+	{#if decoration}
+		<div class="heading-decoration-line" style={decorationColorStyle}></div>
+	{/if}
+
 	{#if decorativeLetter}
 		<!-- Renderiza com letra decorativa -->
 		<div class="heading-decorative-wrapper">
@@ -193,8 +198,6 @@
 				<Image
 					src={getImagePath(firstLetter || 'n')}
 					alt={`Letra decorativa ${(firstLetter || 'N').toUpperCase()}`}
-					width={48}
-					height={48}
 					objectFit="contain"
 					priority={true}
 					onload={handleDecorativeImageLoad}
@@ -213,10 +216,6 @@
 	{:else}
 		<slot />
 	{/if}
-
-	{#if decoration}
-		<div class="heading-decoration-line" style={decorationColorStyle}></div>
-	{/if}
 </svelte:element>
 
 <style>
@@ -224,6 +223,7 @@
 		margin: 0;
 		line-height: var(--line-height-tight);
 		color: var(--text-color-primary);
+		display: inline-block;
 	}
 
 	/* Tamanhos baseados no nível semântico */
@@ -366,6 +366,8 @@
 		display: flex;
 		align-items: center;
 		gap: var(--spacing-sm);
+		position: relative;
+		z-index: 2;
 	}
 
 	.heading-decorative-letter {
@@ -373,6 +375,11 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		position: relative;
+		z-index: 3;
+		font-size: inherit;
+		width: 2em;
+		height: 2em;
 	}
 
 	.heading-decorative-letter-fallback {
@@ -395,6 +402,11 @@
 
 	.heading-decorative-text {
 		display: inline;
+		position: relative;
+		z-index: 2;
+		background-color: var(--surface-color-primary);
+		padding: 0 var(--spacing-xs);
+		margin-left: calc(-1 * var(--spacing-xs));
 	}
 
 	/* Slot escondido para capturar texto */
@@ -415,25 +427,47 @@
 		position: absolute;
 		background-color: var(--color-yellow-600);
 		transition: all var(--transition-normal) var(--transition-timing-default);
+		z-index: 1;
 	}
 
-	/* Posições de decoração */
-	.heading-decoration.decoration-bottom .heading-decoration-line {
-		bottom: -4px;
-		left: 0;
-		width: 100%;
-		height: 3px;
+	/* Posições de decoração - Text Width (padrão) */
+	.heading-decoration.decoration-bottom.decoration-text-width .heading-decoration-line {
+		top: 35px;
+		left: 0px;
+		right: 0px;
+		height: 15px;
 		border-radius: var(--border-radius-sm);
+		margin: 0 var(--spacing-sm);
 	}
 
-	.heading-decoration.decoration-top .heading-decoration-line {
+	.heading-decoration.decoration-top.decoration-text-width .heading-decoration-line {
 		top: -4px;
 		left: 0;
-		width: 100%;
+		right: 0;
 		height: 3px;
 		border-radius: var(--border-radius-sm);
 	}
 
+	/* Posições de decoração - Full Width */
+	.heading-decoration.decoration-bottom.decoration-full-width .heading-decoration-line {
+		top: 30px;
+		left: 50%;
+		transform: translateX(-50%);
+		width: 100vw;
+		height: 15px;
+		border-radius: 0;
+	}
+
+	.heading-decoration.decoration-top.decoration-full-width .heading-decoration-line {
+		top: -4px;
+		left: 50%;
+		transform: translateX(-50%);
+		width: 100vw;
+		height: 3px;
+		border-radius: 0;
+	}
+
+	/* Posições laterais (mantém comportamento igual para ambos tipos) */
 	.heading-decoration.decoration-left .heading-decoration-line {
 		left: -8px;
 		top: 0;
@@ -457,9 +491,28 @@
 		}
 
 		.heading-decorative-letter {
-			width: 36px;
-			height: 36px;
+			width: 2em;
+			height: 2em;
 		}
+
+		
+	/* Posições de decoração - Text Width (padrão) */
+	.heading-decoration.decoration-bottom.decoration-text-width .heading-decoration-line {
+		top: 35px;
+		left: 0px;
+		right: 0;
+		height: 15px;
+		border-radius: var(--border-radius-sm);
+	}
+
+	}
+
+	/* Conteúdo com decoração */
+	.heading-decoration:not(.heading-decorative) {
+		background-color: var(--surface-color-primary);
+		padding: var(--spacing-xs) var(--spacing-sm);
+		border-radius: var(--border-radius-sm);
+		z-index: 2;
 	}
 
 	/* Dark theme */
@@ -472,5 +525,13 @@
 		-webkit-background-clip: text;
 		-webkit-text-fill-color: transparent;
 		background-clip: text;
+	}
+
+	[data-theme='dark'] .heading-decoration:not(.heading-decorative) {
+		background-color: var(--surface-color-primary);
+	}
+
+	[data-theme='dark'] .heading-decorative-text {
+		background-color: var(--surface-color-primary);
 	}
 </style>

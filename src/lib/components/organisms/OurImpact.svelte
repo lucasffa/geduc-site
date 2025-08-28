@@ -62,7 +62,7 @@
 		{#if title}
 			<SectionHeader
 				{title}
-				align="center"
+				align="left"
 				class="our-impact-header"
 				decorativeLetter={true}
 				decoration={true}

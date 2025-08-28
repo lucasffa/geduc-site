@@ -101,7 +101,6 @@
 		position: relative;
 		display: block;
 		overflow: hidden;
-		background-color: var(--color-neutral-100);
 	}
 
 	.image-element {
