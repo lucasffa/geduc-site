@@ -235,6 +235,18 @@ export interface HeadingProps extends BaseComponentProps {
   /** Se deve ter efeito gradient */
   gradient?: boolean;
   
+  /** Se deve usar letra decorativa para a primeira letra */
+  decorativeLetter?: boolean;
+  
+  /** Tipo de decoração */
+  decoration?: 'underline' | 'overline' | 'left-line' | 'right-line';
+  
+  /** Cor da decoração */
+  decorationColor?: string;
+  
+  /** Posição da decoração */
+  decorationPosition?: 'top' | 'bottom' | 'left' | 'right';
+  
   /** Conteúdo do heading */
   children: Snippet;
 }
@@ -474,6 +486,32 @@ export interface SocialLinksProps extends BaseComponentProps {
   showLabels?: boolean;
 }
 
+export interface TextBlockProps extends BaseComponentProps {
+  /** Conteúdo do texto com quebras de linha */
+  content: string;
+  
+  /** Variante de renderização */
+  variant?: 'paragraphs' | 'list' | 'cards';
+  
+  /** Espaçamento entre elementos */
+  spacing?: 'tight' | 'normal' | 'loose';
+  
+  /** Alinhamento do texto */
+  align?: TextAlign;
+  
+  /** Tamanho do texto */
+  size?: Size;
+  
+  /** Cor do texto */
+  color?: ColorVariant | string;
+  
+  /** Peso da fonte */
+  weight?: FontWeight;
+  
+  /** Altura da linha */
+  leading?: 'tight' | 'normal' | 'relaxed' | 'loose';
+}
+
 // ================================
 // ORGANISMOS
 // ================================
@@ -559,12 +597,6 @@ export interface HeroSectionProps extends BaseComponentProps {
 }
 
 export interface StatsSectionProps extends BaseComponentProps {
-  /** Título da seção */
-  title?: string;
-  
-  /** Descrição da seção */
-  description?: string;
-  
   /** Lista de estatísticas */
   stats: Array<{
     value: string | number;
@@ -585,6 +617,26 @@ export interface StatsSectionProps extends BaseComponentProps {
   
   /** Se deve ter animação de contador */
   animated?: boolean;
+}
+
+export interface OurImpactProps extends BaseComponentProps {
+  /** Título da seção */
+  title?: string;
+  
+  /** Descrição da seção */
+  description?: string;
+  
+  /** Texto específico sobre o impacto */
+  impactText?: string;
+  
+  /** Background da seção */
+  background?: 'none' | 'muted' | 'primary' | 'gradient';
+  
+  /** Layout da seção */
+  layout?: 'default' | 'split';
+  
+  /** Se o componente deve ser renderizado condicionalmente */
+  visible?: boolean;
 }
 
 export interface InitiativesSectionProps extends BaseComponentProps {
@@ -935,4 +987,43 @@ export interface HomePageProps {
     keywords?: string[];
     image?: string;
   };
+}
+
+/**
+ * Props para o organismo AboutUs
+ * Seguindo padrões de acessibilidade e design system
+ */
+export interface AboutUsProps extends BaseComponentProps {
+  /** Título principal da seção */
+  title: string;
+  
+  /** Descrição principal */
+  description: string;
+  
+  /** Configuração de mídia opcional */
+  media?: {
+    src: string;
+    alt: string;
+    aspectRatio?: AspectRatio;
+    objectFit?: 'cover' | 'contain' | 'fill';
+    loading?: 'lazy' | 'eager';
+  };
+  
+  /** Botões de ação */
+  actions?: Array<{
+    label: string;
+    href: string;
+    variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
+    size?: Size;
+    external?: boolean;
+  }>;
+  
+  /** Layout da seção */
+  layout?: 'default' | 'centered' | 'split';
+  
+  /** Orientação do conteúdo */
+  orientation?: 'horizontal' | 'vertical';
+  
+  /** Background da seção */
+  background?: 'none' | 'subtle' | 'accent';
 }

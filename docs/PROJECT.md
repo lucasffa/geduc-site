@@ -74,7 +74,7 @@ O projeto implementa um sistema de design robusto baseado em variáveis CSS com:
 - **Funcionais**: Vermelho, Verde, Azul, Amarelo para feedback
 
 #### Tipografia
-- **Font Family**: Inter como fonte principal
+- **Font Family**: Poppins como fonte principal
 - **Escala Tipográfica**: xs (12px) a 4xl (48px)
 - **Font Weights**: Light (300) a Bold (700)
 - **Line Heights**: Tight (1.25), Normal (1.5), Relaxed (1.75)
