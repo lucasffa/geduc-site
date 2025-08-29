@@ -9,10 +9,11 @@
 	import InitiativesSection from '$lib/components/organisms/InitiativesSection.svelte';
 	import TestimonialsSection from '$lib/components/organisms/TestimonialsSection.svelte';
 	import Footer from '$lib/components/organisms/Footer.svelte';
-	import SectionHeader from '$lib/components/molecules/SectionHeader.svelte';
-	import Text from '$lib/components/atoms/Text.svelte';
-	import Button from '$lib/components/atoms/Button.svelte';
-	import Image from '$lib/components/atoms/Image.svelte';
+import AboutUs from '$lib/components/organisms/AboutUs.svelte';
+import SectionHeader from '$lib/components/molecules/SectionHeader.svelte';
+import Text from '$lib/components/atoms/Text.svelte';
+import Button from '$lib/components/atoms/Button.svelte';
+import Image from '$lib/components/atoms/Image.svelte';
 
 	export let data: PageData;
 
@@ -227,43 +228,26 @@ Confira os estados brasileiros impactados pelas nossas iniciativas no mapa ao la
 
 	<!-- About Section -->
 	<svelte:fragment slot="about" let:dispatch>
-		<div class="section-container section-padding">
-			<SectionHeader
-				title={data.pageData.about.title}
-				description={data.pageData.about.description}
-				align="left"
-				decorative={true}
-			/>
-
-			<div class="about-content">
-				<div class="about-text">
-					<Text as="p" size="lg" color="secondary" class="about-paragraph">
-						{data.pageData.about.description}
-					</Text>
-
-					<div class="about-actions">
-						{#each data.pageData.about.actions || [] as action}
-							<Button href={action.href} variant="primary" size="lg" class="about-action">
-								{action.label}
-							</Button>
-						{/each}
-					</div>
-				</div>
-
-				{#if 'media' in data.pageData.about && data.pageData.about.media}
-					<div class="about-media">
-						<Image
-							src={data.pageData.about.media.src}
-							alt={data.pageData.about.media.alt}
-							aspectRatio={data.pageData.about.media.aspectRatio || 'square'}
-							objectFit={data.pageData.about.media.objectFit || 'contain'}
-							loading={data.pageData.about.media.loading || 'lazy'}
-							class="about-image image-halftone"
-						/>
-					</div>
-				{/if}
-			</div>
-		</div>
+		<AboutUs
+			title={data.pageData.about.title}
+			description={data.pageData.about.description}
+			media={'media' in data.pageData.about && data.pageData.about.media ? {
+				src: data.pageData.about.media.src,
+				alt: data.pageData.about.media.alt,
+				aspectRatio: data.pageData.about.media.aspectRatio,
+				objectFit: (['cover', 'contain', 'fill'].includes(data.pageData.about.media.objectFit || '')) 
+					? data.pageData.about.media.objectFit as 'cover' | 'contain' | 'fill'
+					: 'contain',
+				loading: data.pageData.about.media.loading
+			} : undefined}
+			actions={data.pageData.about.actions || []}
+			layout="default"
+			orientation="horizontal"
+			background="none"
+			id="about-section"
+			on:actionClick
+			on:sectionLoad
+		/>
 	</svelte:fragment>
 
 	<!-- Initiatives Section -->
@@ -339,91 +323,7 @@ Confira os estados brasileiros impactados pelas nossas iniciativas no mapa ao la
 </HomePage>
 
 <style>
-	/* About Section Styles */
-	.about-content {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: var(--spacing-2xl);
-		align-items: center;
-		margin-top: var(--spacing-2xl);
-	}
 
-	.about-text {
-		display: flex;
-		flex-direction: column;
-		gap: var(--spacing-xl);
-	}
-
-	.about-paragraph {
-		line-height: var(--line-height-relaxed);
-		max-width: 600px;
-	}
-
-	.about-actions {
-		display: flex;
-		gap: var(--spacing-md);
-		flex-wrap: wrap;
-	}
-
-	.about-action {
-		min-width: 180px;
-	}
-
-	.about-media {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-	}
-
-	.about-image {
-		max-width: 400px;
-		width: 100%;
-		height: auto;
-		border-radius: var(--border-radius-xl);
-		box-shadow: var(--shadow-lg);
-		transition: transform var(--transition-normal) var(--transition-timing-default);
-	}
-
-	.about-image:hover {
-		transform: scale(1.02) rotate(1deg);
-	}
-
-	/* Responsividade */
-	@media (max-width: 768px) {
-		.about-content {
-			grid-template-columns: 1fr;
-			gap: var(--spacing-xl);
-			text-align: center;
-		}
-
-		.about-text {
-			order: 2;
-		}
-
-		.about-media {
-			order: 1;
-		}
-
-		.about-actions {
-			justify-content: center;
-		}
-
-		.about-action {
-			flex: 1;
-			min-width: auto;
-		}
-	}
-
-	@media (max-width: 480px) {
-		.about-actions {
-			flex-direction: column;
-		}
-	}
-
-	/* Efeitos decorativos */
-	.about-content {
-		animation: fadeInUp 0.8s ease-out;
-	}
 
 	@keyframes fadeInUp {
 		from {

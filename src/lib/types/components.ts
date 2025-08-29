@@ -988,3 +988,42 @@ export interface HomePageProps {
     image?: string;
   };
 }
+
+/**
+ * Props para o organismo AboutUs
+ * Seguindo padrões de acessibilidade e design system
+ */
+export interface AboutUsProps extends BaseComponentProps {
+  /** Título principal da seção */
+  title: string;
+  
+  /** Descrição principal */
+  description: string;
+  
+  /** Configuração de mídia opcional */
+  media?: {
+    src: string;
+    alt: string;
+    aspectRatio?: AspectRatio;
+    objectFit?: 'cover' | 'contain' | 'fill';
+    loading?: 'lazy' | 'eager';
+  };
+  
+  /** Botões de ação */
+  actions?: Array<{
+    label: string;
+    href: string;
+    variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
+    size?: Size;
+    external?: boolean;
+  }>;
+  
+  /** Layout da seção */
+  layout?: 'default' | 'centered' | 'split';
+  
+  /** Orientação do conteúdo */
+  orientation?: 'horizontal' | 'vertical';
+  
+  /** Background da seção */
+  background?: 'none' | 'subtle' | 'accent';
+}

@@ -9,6 +9,7 @@
 	} from '$lib/types/components';
 	import Image from './Image.svelte';
 	import { onMount } from 'svelte';
+	import { logger } from '$lib/utils/logger';
 
 	export let level: HeadingProps['level'] = 1;
 	export let size: HeadingProps['size'] = undefined;
@@ -45,7 +46,7 @@
 			firstLetter = fullText.charAt(0).toLowerCase();
 			textWithoutFirstLetter = fullText.substring(1);
 
-			console.log('🔤 Texto processado:', {
+			logger.info('🔤 Texto processado:', {
 				fullText,
 				firstLetter,
 				textWithoutFirstLetter
@@ -56,6 +57,17 @@
 	// Função para gerar o caminho da imagem
 	function getImagePath(letter: string): string {
 		return `/images/decorative-letters/letter-${letter}.png`;
+	}
+	
+	// Handlers para imagem decorativa
+	function handleDecorativeImageLoad() {
+		decorativeImageLoaded = true;
+		logger.info('✅ Imagem decorativa carregada');
+	}
+
+	function handleDecorativeImageError() {
+		decorativeImageError = true;
+		logger.error('❌ Erro ao carregar imagem decorativa');
 	}
 
 	// Mapeamento de níveis para tags HTML
@@ -141,23 +153,12 @@
 		.join(' ');
 
 	// Debug: verificar props
-	$: console.log('🎯 Heading Props:', {
+	$: logger.info('🎯 Heading Props:', {
 		level,
 		decorativeLetter,
 		children: typeof children,
 		classes
 	});
-
-	// Handlers para imagem decorativa
-	function handleDecorativeImageLoad() {
-		decorativeImageLoaded = true;
-		console.log('✅ Imagem decorativa carregada');
-	}
-
-	function handleDecorativeImageError() {
-		decorativeImageError = true;
-		console.log('❌ Erro ao carregar imagem decorativa');
-	}
 
 	// Processa o texto após a montagem
 	onMount(() => {
@@ -176,19 +177,22 @@
 	$: tag = tagMap[level];
 
 	// Estilos inline para cores customizadas
-	$: customColorStyle = color && !colorMap[color as ColorVariant] ? `color: ${color};` : '';
-	$: decorationColorStyle = decorationColor ? `background-color: ${decorationColor};` : '';
+	$: customColor = color;
+	$: decorationColor = decorationColor;
+
+	// Caminho da imagem da letra decorativa
+	$: imagePath = getImagePath(firstLetter || 'n');
 </script>
 
 <svelte:element
 	this={tag}
 	bind:this={headingElement}
 	class={classes}
-	style={customColorStyle}
+	style:color={customColor}
 	{...$$restProps}
 >
 	{#if decoration}
-		<div class="heading-decoration-line" style={decorationColorStyle}></div>
+		<div class="heading-decoration-line" style:background-color={decorationColor}></div>
 	{/if}
 
 	{#if decorativeLetter}
@@ -196,7 +200,7 @@
 		<div class="heading-decorative-wrapper">
 			<div class="heading-decorative-letter">
 				<Image
-					src={getImagePath(firstLetter || 'n')}
+					src={imagePath}
 					alt={`Letra decorativa ${(firstLetter || 'N').toUpperCase()}`}
 					objectFit="contain"
 					priority={true}
@@ -519,7 +523,7 @@
 	[data-theme='dark'] .heading {
 		color: var(--text-color-primary);
 	}
-
+	
 	[data-theme='dark'] .heading-gradient {
 		background: linear-gradient(135deg, var(--color-primary-400), var(--color-secondary-400));
 		-webkit-background-clip: text;
