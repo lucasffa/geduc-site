@@ -2,11 +2,12 @@
 <script lang="ts">
 	import type { AboutUsProps } from '$lib/types/components';
 	import { createEventDispatcher } from 'svelte';
-	
-	// Componentes atômicos e moleculares
+
+	// Componentes atômicos
 	import Text from '../atoms/Text.svelte';
 	import Image from '../atoms/Image.svelte';
 	import Button from '../atoms/Button.svelte';
+	import Heading from '../atoms/Heading.svelte';
 	import SectionHeader from '../molecules/SectionHeader.svelte';
 
 	// Props principais
@@ -80,21 +81,26 @@
 	<div class="about-us-container">
 		<!-- Cabeçalho da seção -->
 		<div class="about-us-header">
-			<SectionHeader
-				{title}
-				{description}
-				align={layout === 'centered' ? 'center' : 'left'}
-				decorative={true}
-			/>
+			{#if title}
+				<SectionHeader
+					{title}
+					align="left"
+					class="our-impact-header"
+					decorativeLetter={true}
+					decoration={true}
+					decorationColor="var(--color-yellow-600)"
+					decorationPosition="bottom"
+				/>
+			{/if}
 		</div>
 
-		<!-- Conteúdo principal -->
+		<!-- Conteúdo principal Add mais texto -->
 		<div class="about-us-content">
 			<!-- Texto principal -->
 			<div class="about-us-text">
 				<Text
 					as="p"
-					size="lg"
+					size="md"
 					color="secondary"
 					class="about-us-paragraph"
 					aria-describedby={id ? `${id}-heading` : undefined}
@@ -109,7 +115,7 @@
 							<Button
 								href={action.href}
 								variant={action.variant || 'primary'}
-								size={action.size || 'lg'}
+								size={action.size || 'md'}
 								class="about-us-action"
 								external={action.external}
 								on:click={() => handleActionClick(action)}
@@ -133,6 +139,11 @@
 						class="about-us-image image-halftone"
 					/>
 				</div>
+			{:else}
+				<!-- Elemento decorativo quando não há mídia -->
+				<div class="about-us-decorative">
+					<div class="decorative-shape"></div>
+				</div>
 			{/if}
 		</div>
 	</div>
@@ -143,18 +154,41 @@
 	.about-us {
 		width: 100%;
 		position: relative;
+		padding: var(--spacing-4xl) 0;
 	}
 
 	/* Container responsivo */
 	.about-us-container {
 		max-width: var(--container-max-width-xl);
 		margin: 0 auto;
-		padding: var(--spacing-xl) var(--spacing-md);
+		padding: 0 var(--spacing-md);
 	}
 
 	/* Header da seção */
 	.about-us-header {
 		margin-bottom: var(--spacing-xl);
+	}
+
+	/* Título principal */
+	:global(.about-us-title) {
+		font-size: var(--heading-2-font-size);
+		font-weight: var(--heading-2-font-weight);
+		line-height: var(--heading-2-line-height);
+		color: var(--text-color-primary);
+		position: relative;
+		display: inline-block;
+	}
+
+	/* Decoração do título */
+	:global(.about-us-title)::after {
+		content: '';
+		position: absolute;
+		bottom: -8px;
+		left: 0;
+		width: 100%;
+		height: 4px;
+		background: var(--color-primary-300);
+		border-radius: var(--border-radius-sm);
 	}
 
 	/* Layout base do conteúdo */
@@ -175,6 +209,8 @@
 	/* Parágrafo principal */
 	:global(.about-us-paragraph) {
 		line-height: var(--line-height-relaxed);
+		color: var(--text-color-secondary);
+		font-size: var(--font-size-lg);
 	}
 
 	/* Container dos botões */
@@ -211,6 +247,27 @@
 		box-shadow: var(--shadow-xl);
 	}
 
+	/* Elemento decorativo */
+	.about-us-decorative {
+		flex: 0 0 auto;
+		width: 100%;
+		max-width: 400px;
+		height: 300px;
+		position: relative;
+	}
+
+	.decorative-shape {
+		position: absolute;
+		top: 0;
+		right: 0;
+		width: 100%;
+		height: 100%;
+		background: var(--color-primary-900);
+		border-radius: 50% 30% 70% 40%;
+		opacity: 0.8;
+		transform: rotate(15deg);
+	}
+
 	/* Estados de visibilidade */
 	.about-us-hidden {
 		display: none;
@@ -233,13 +290,19 @@
 		justify-content: center;
 	}
 
+	.about-us-layout-centered .about-us-title::after {
+		left: 50%;
+		transform: translateX(-50%);
+	}
+
 	/* Layout dividido (split) */
 	.about-us-layout-split .about-us-content {
 		align-items: stretch;
 	}
 
 	.about-us-layout-split .about-us-text,
-	.about-us-layout-split .about-us-media {
+	.about-us-layout-split .about-us-media,
+	.about-us-layout-split .about-us-decorative {
 		flex: 1;
 	}
 
@@ -256,6 +319,11 @@
 		justify-content: center;
 	}
 
+	.about-us-orientation-vertical .about-us-title::after {
+		left: 50%;
+		transform: translateX(-50%);
+	}
+
 	/* ========== VARIAÇÕES DE BACKGROUND ========== */
 
 	/* Background sutil */
@@ -265,19 +333,19 @@
 
 	/* Background com acento */
 	.about-us-background-accent {
-		background: linear-gradient(
-			135deg,
-			var(--color-primary-50) 0%,
-			var(--color-accent-100) 100%
-		);
+		background: linear-gradient(135deg, var(--color-primary-50) 0%, var(--color-accent-100) 100%);
 	}
 
 	/* ========== RESPONSIVIDADE ========== */
 
 	/* Tablet */
 	@media (max-width: 768px) {
+		.about-us {
+			padding: var(--spacing-3xl) 0;
+		}
+
 		.about-us-container {
-			padding: var(--spacing-lg) var(--spacing-md);
+			padding: 0 var(--spacing-md);
 		}
 
 		.about-us-content {
@@ -286,19 +354,29 @@
 			text-align: center;
 		}
 
-		.about-us-media {
+		.about-us-media,
+		.about-us-decorative {
 			max-width: 300px;
 		}
 
 		.about-us-actions {
 			justify-content: center;
 		}
+
+		.about-us-title::after {
+			left: 50%;
+			transform: translateX(-50%);
+		}
 	}
 
 	/* Mobile */
 	@media (max-width: 480px) {
+		.about-us {
+			padding: var(--spacing-2xl) 0;
+		}
+
 		.about-us-container {
-			padding: var(--spacing-md) var(--spacing-sm);
+			padding: 0 var(--spacing-sm);
 		}
 
 		.about-us-header {
@@ -322,7 +400,8 @@
 			width: 100%;
 		}
 
-		.about-us-media {
+		.about-us-media,
+		.about-us-decorative {
 			max-width: 250px;
 		}
 	}
@@ -354,11 +433,7 @@
 	}
 
 	/* Dark theme específicos */
-	:global([data-theme="dark"]) .about-us-background-accent {
-		background: linear-gradient(
-			135deg,
-			var(--color-primary-900) 0%,
-			var(--color-accent-dark) 100%
-		);
+	:global([data-theme='dark']) .about-us-background-accent {
+		background: linear-gradient(135deg, var(--color-primary-900) 0%, var(--color-accent-dark) 100%);
 	}
 </style>
