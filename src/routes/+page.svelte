@@ -206,12 +206,10 @@
 	<!-- Our Impact Section -->
 	<svelte:fragment slot="ourImpact" let:dispatch>
 		<OurImpact
-			title="Nosso Impacto"
-			impactText="Nosso projeto já alcançou mais de **100 cidades** em 20 estados brasileiros, impactando diretamente 25 mil pessoas e conectando uma rede de mais de 30 voluntários comprometidos com a transformação.
-			De Manaus a Porto Alegre, somos prova viva de que a Educação, quando é humana e acessível, rompe fronteiras, une realidades e cria futuros.
-Confira os estados brasileiros impactados pelas nossas iniciativas no mapa ao lado!!"
-			background="gradient"
-			layout="split-2-1"
+			title={data.pageData.ourImpact.title}
+			impactText={data.pageData.ourImpact.impactText}
+			background={data.pageData.ourImpact.background}
+			layout={data.pageData.ourImpact.layout}
 		/>
 	</svelte:fragment>
 

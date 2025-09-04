@@ -973,6 +973,9 @@ export interface HomePageProps {
   /** Dados do hero */
   hero: HeroSectionProps;
   
+  /** Dados da seção de impacto */
+  ourImpact: OurImpactProps;
+  
   /** Dados das estatísticas */
   stats: StatsSectionProps;
   
