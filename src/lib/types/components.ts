@@ -56,6 +56,16 @@ export type Orientation = 'horizontal' | 'vertical';
 export type Position = 'top' | 'bottom' | 'left' | 'right';
 
 /**
+ * Layouts split reutilizáveis para componentes
+ * - default: layout vertical padrão
+ * - split: 50% / 50% horizontal  
+ * - split-2-1: 66.6% esquerda / 33.3% direita
+ * - split-1-2: 33.3% esquerda / 66.6% direita
+ * - split-reverse: layout vertical invertido
+ */
+export type SplitLayout = 'default' | 'split' | 'split-2-1' | 'split-1-2' | 'split-reverse';
+
+/**
  * Proporções de aspecto para mídia
  */
 export type AspectRatio = 'square' | '16/9' | '4/3' | '3/2' | 'auto';
@@ -269,6 +279,9 @@ export interface TextProps extends BaseComponentProps {
   
   /** Altura da linha */
   leading?: 'tight' | 'normal' | 'relaxed' | 'loose';
+  
+  /** Altura específica da linha */
+  lineHeight?: 'normal' | 'tight' | 'relaxed' | 'loose';
   
   /** Se deve truncar o texto */
   truncate?: boolean;
@@ -623,9 +636,6 @@ export interface OurImpactProps extends BaseComponentProps {
   /** Título da seção */
   title?: string;
   
-  /** Descrição da seção */
-  description?: string;
-  
   /** Texto específico sobre o impacto */
   impactText?: string;
   
@@ -633,7 +643,7 @@ export interface OurImpactProps extends BaseComponentProps {
   background?: 'none' | 'muted' | 'primary' | 'gradient';
   
   /** Layout da seção */
-  layout?: 'default' | 'split';
+  layout?: SplitLayout;
   
   /** Se o componente deve ser renderizado condicionalmente */
   visible?: boolean;
@@ -963,6 +973,9 @@ export interface HomePageProps {
   /** Dados do hero */
   hero: HeroSectionProps;
   
+  /** Dados da seção de impacto */
+  ourImpact: OurImpactProps;
+  
   /** Dados das estatísticas */
   stats: StatsSectionProps;
   
@@ -1019,7 +1032,7 @@ export interface AboutUsProps extends BaseComponentProps {
   }>;
   
   /** Layout da seção */
-  layout?: 'default' | 'centered' | 'split';
+  layout?: SplitLayout | 'centered';
   
   /** Orientação do conteúdo */
   orientation?: 'horizontal' | 'vertical';

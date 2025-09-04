@@ -10,6 +10,7 @@
 	export let leading: TextProps['leading'] = 'normal';
 	export let truncate: TextProps['truncate'] = false;
 	export let maxLines: TextProps['maxLines'] = undefined;
+	export let lineHeight: TextProps['lineHeight'] = 'normal';
 
 	// Classes adicionais
 	let className = '';
@@ -23,6 +24,7 @@
 		`text-color-${typeof color === 'string' && color.startsWith('#') ? 'custom' : color}`,
 		`text-align-${align}`,
 		`text-leading-${leading}`,
+		`text-lineheight-${lineHeight}`,
 		truncate && 'text-truncate',
 		maxLines && 'text-clamp',
 		className
@@ -172,6 +174,23 @@
 		line-height: 2;
 	}
 
+	/* Line Height específicos */
+	.text-lineheight-normal {
+		line-height: var(--line-height-normal);
+	}
+
+	.text-lineheight-tight {
+		line-height: var(--line-height-tight);
+	}
+
+	.text-lineheight-relaxed {
+		line-height: var(--line-height-relaxed);
+	}
+
+	.text-lineheight-loose {
+		line-height: var(--line-height-loose);
+	}
+
 	/* Truncate */
 	.text-truncate {
 		overflow: hidden;
@@ -208,5 +227,49 @@
 		color: var(--text-color-primary);
 		padding: 0 0.2em;
 		border-radius: var(--border-radius-sm);
+	}
+
+	/* Estilos para elementos HTML renderizados via markdown */
+	.text :global(strong) {
+		font-weight: var(--font-weight-bold);
+	}
+
+	.text :global(em) {
+		font-style: italic;
+	}
+
+	.text :global(u) {
+		text-decoration: underline;
+	}
+
+	.text :global(s) {
+		text-decoration: line-through;
+	}
+
+	.text :global(code) {
+		background-color: var(--color-neutral-100);
+		color: var(--color-neutral-800);
+		padding: 0.125rem 0.25rem;
+		border-radius: var(--border-radius-sm);
+		font-family: var(--font-family-mono);
+		font-size: 0.875em;
+	}
+
+	.text :global(a) {
+		color: var(--color-primary-500);
+		text-decoration: underline;
+		text-decoration-color: var(--color-primary-200);
+		transition: all var(--transition-fast);
+	}
+
+	.text :global(a:hover) {
+		color: var(--color-primary-600);
+		text-decoration-color: var(--color-primary-400);
+	}
+
+	/* Dark theme para markdown */
+	[data-theme='dark'] .text :global(code) {
+		background-color: var(--color-neutral-800);
+		color: var(--color-neutral-200);
 	}
 </style>

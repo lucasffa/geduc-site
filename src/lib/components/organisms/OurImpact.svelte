@@ -9,7 +9,6 @@
 
 	// Props principais
 	export let title: OurImpactProps['title'] = undefined;
-	export let description: OurImpactProps['description'] = undefined;
 	export let impactText: OurImpactProps['impactText'] = undefined;
 	export let background: OurImpactProps['background'] = 'none';
 	export let layout: OurImpactProps['layout'] = 'default';
@@ -35,10 +34,17 @@
 	// Classes CSS baseadas nas props
 	$: classes = [
 		'our-impact',
-		`our-impact-layout-${layout}`,
 		`our-impact-background-${background}`,
 		visible ? '' : 'our-impact-hidden',
 		className
+	]
+		.filter(Boolean)
+		.join(' ');
+
+	// Classes para o container baseadas no layout
+	$: containerClasses = [
+		'our-impact-container',
+		layout !== 'default' ? `layout-${layout}` : ''
 	]
 		.filter(Boolean)
 		.join(' ');
@@ -58,33 +64,36 @@
 </script>
 
 <section class={classes} {id} {style} aria-label={title ?? 'Seção de impacto'}>
-	<div class="our-impact-container">
-		{#if title}
-			<SectionHeader
-				{title}
-				align="left"
-				class="our-impact-header"
-				decorativeLetter={true}
-				decoration={true}
-				decorationColor="var(--color-yellow-600)"
-				decorationPosition="bottom"
-			/>
-		{/if}
+	<div class={containerClasses}>
+		<!-- Conteúdo textual (titulo e texto) -->
+		<div class="our-impact-content">
+			{#if title}
+				<SectionHeader
+					{title}
+					align="left"
+					class="our-impact-header"
+					decorativeLetter={true}
+					decoration={true}
+					decorationColor="var(--color-yellow-600)"
+					decorationPosition="bottom"
+				/>
+			{/if}
 
-		<!-- Texto sobre o impacto -->
-		{#if impactText}
-			<TextBlock
-				content={impactText}
-				variant="paragraphs"
-				spacing="normal"
-				align="center"
-				size="lg"
-				color="secondary"
-				weight="normal"
-				leading="relaxed"
-				class="our-impact-text"
-			/>
-		{/if}
+			<!-- Texto sobre o impacto -->
+			{#if impactText}
+				<TextBlock
+					content={impactText}
+					variant="paragraphs"
+					spacing="normal"
+					align="left"
+					size="lg"
+					color="secondary"
+					weight="normal"
+					leading="relaxed"
+					class="our-impact-text"
+				/>
+			{/if}
+		</div>
 
 		<!-- Mapa do Brasil -->
 		<div class="our-impact-map">
@@ -95,11 +104,11 @@
 				aria-label="Visualizar alcance nacional no mapa do Brasil"
 			>
 				<Image
-					src="/images/illustrations/brazil-map.svg"
+					src="/images/illustrations/brazil-map.png"
 					alt="Mapa do Brasil mostrando alcance nacional"
 					aspectRatio="auto"
 					loading="lazy"
-					class="impact-map-image image-halftone"
+					class="impact-map-image"
 				/>
 			</button>
 		</div>
@@ -126,10 +135,22 @@
 		max-width: var(--container-max-width-xl);
 		margin: 0 auto;
 		padding: 0 var(--spacing-lg);
+		/* Layout padrão (vertical) */
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-2xl);
+		gap: var(--spacing-lg);
 		align-items: center;
+		text-align: center;
+	}
+
+	/* Ajustes de alinhamento para layouts split */
+	.our-impact-container.layout-split,
+	.our-impact-container.layout-split-2-1,
+	.our-impact-container.layout-split-1-2 {
+		text-align: left;
+	}
+
+	.our-impact-container.layout-split-reverse {
 		text-align: center;
 	}
 
@@ -215,24 +236,26 @@
 		transform: scale(0.98);
 	}
 
-	/* Layouts */
-
-	.our-impact-layout-split .our-impact-container {
-		flex-direction: row;
-		align-items: center;
-		text-align: left;
-		gap: var(--spacing-3xl);
+	/* Conteúdo textual */
+	.our-impact-content {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-lg);
 	}
 
-	.our-impact-layout-split .our-impact-header,
-	.our-impact-layout-split .our-impact-text {
-		text-align: left;
-		flex: 1;
-	}
-
-	.our-impact-layout-split .our-impact-map {
-		flex: 1;
+	/* Ajustes específicos do componente dentro dos layouts */
+	.layout-split .our-impact-map {
 		justify-content: flex-end;
+	}
+
+	.layout-split-2-1 .our-impact-map,
+	.layout-split-1-2 .our-impact-map {
+		justify-content: center;
+	}
+
+	.layout-split-reverse .our-impact-map {
+		justify-content: center;
+		margin: 0 0 var(--spacing-xl) 0;
 	}
 
 	/* Responsividade */
@@ -246,17 +269,16 @@
 			gap: var(--spacing-xl);
 		}
 
-		.our-impact-layout-split .our-impact-container {
-			flex-direction: column;
+		/* Ajustes mobile para layouts split (regras globais já aplicam display: flex) */
+		.our-impact-container.layout-split,
+		.our-impact-container.layout-split-2-1,
+		.our-impact-container.layout-split-1-2 {
 			text-align: center;
 		}
 
-		.our-impact-layout-split .our-impact-header,
-		.our-impact-layout-split .our-impact-text {
-			text-align: center;
-		}
-
-		.our-impact-layout-split .our-impact-map {
+		.layout-split .our-impact-map,
+		.layout-split-2-1 .our-impact-map,
+		.layout-split-1-2 .our-impact-map {
 			justify-content: center;
 		}
 

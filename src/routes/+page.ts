@@ -38,9 +38,15 @@ export const load: PageLoad = async ({ fetch, params }) => {
         decorative: true
       },
 
-      stats: {
+      ourImpact: {
         title: 'Nosso Impacto',
-        description: 'Nosso projeto já alcançou estudantes em todo o Brasil, criando uma rede nacional de apoio educacional que transforma vidas através de oportunidades.',
+        impactText: 'Nosso projeto já alcançou mais de **100 cidades** em **20 estados brasileiros**, impactando diretamente **25 mil pessoas** e conectando uma rede de mais de 30 voluntários comprometidos com a transformação.\nDe Manaus a Porto Alegre, somos prova viva de que a Educação, quando é humana e acessível, rompe fronteiras, une realidades e cria futuros.\nConfira os estados brasileiros impactados pelas nossas iniciativas no mapa ao lado!!',
+        background: 'gradient' as const,
+        layout: 'split-2-1' as const
+      },
+
+      stats: {
+        title: 'Estatísticas',
         stats: [
           {
             value: '100+',
@@ -239,6 +245,12 @@ export const load: PageLoad = async ({ fetch, params }) => {
           actions: [],
           layout: 'centered' as const,
           size: 'lg' as const
+        },
+        ourImpact: {
+          title: 'Nosso Impacto',
+          impactText: 'Transformando vidas através da educação.',
+          background: 'none' as const,
+          layout: 'default' as const
         },
         stats: {
           stats: [],

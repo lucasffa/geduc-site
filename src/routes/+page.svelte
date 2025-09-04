@@ -9,11 +9,11 @@
 	import InitiativesSection from '$lib/components/organisms/InitiativesSection.svelte';
 	import TestimonialsSection from '$lib/components/organisms/TestimonialsSection.svelte';
 	import Footer from '$lib/components/organisms/Footer.svelte';
-import AboutUs from '$lib/components/organisms/AboutUs.svelte';
-import SectionHeader from '$lib/components/molecules/SectionHeader.svelte';
-import Text from '$lib/components/atoms/Text.svelte';
-import Button from '$lib/components/atoms/Button.svelte';
-import Image from '$lib/components/atoms/Image.svelte';
+	import AboutUs from '$lib/components/organisms/AboutUs.svelte';
+	import SectionHeader from '$lib/components/molecules/SectionHeader.svelte';
+	import Text from '$lib/components/atoms/Text.svelte';
+	import Button from '$lib/components/atoms/Button.svelte';
+	import Image from '$lib/components/atoms/Image.svelte';
 
 	export let data: PageData;
 
@@ -206,12 +206,10 @@ import Image from '$lib/components/atoms/Image.svelte';
 	<!-- Our Impact Section -->
 	<svelte:fragment slot="ourImpact" let:dispatch>
 		<OurImpact
-			title="Nosso Impacto"
-			impactText="Nosso projeto já alcançou mais de 100 cidades em 20 estados brasileiros, impactando diretamente 25 mil pessoas e conectando uma rede de mais de 30 voluntários comprometidos com a transformação.
-De Manaus a Porto Alegre, somos prova viva de que a Educação, quando é humana e acessível, rompe fronteiras, une realidades e cria futuros.
-Confira os estados brasileiros impactados pelas nossas iniciativas no mapa ao lado!"
-			background="gradient"
-			layout="default"
+			title={data.pageData.ourImpact.title}
+			impactText={data.pageData.ourImpact.impactText}
+			background={data.pageData.ourImpact.background}
+			layout={data.pageData.ourImpact.layout}
 		/>
 	</svelte:fragment>
 
@@ -231,15 +229,19 @@ Confira os estados brasileiros impactados pelas nossas iniciativas no mapa ao la
 		<AboutUs
 			title={data.pageData.about.title}
 			description={data.pageData.about.description}
-			media={'media' in data.pageData.about && data.pageData.about.media ? {
-				src: data.pageData.about.media.src,
-				alt: data.pageData.about.media.alt,
-				aspectRatio: data.pageData.about.media.aspectRatio,
-				objectFit: (['cover', 'contain', 'fill'].includes(data.pageData.about.media.objectFit || '')) 
-					? data.pageData.about.media.objectFit as 'cover' | 'contain' | 'fill'
-					: 'contain',
-				loading: data.pageData.about.media.loading
-			} : undefined}
+			media={'media' in data.pageData.about && data.pageData.about.media
+				? {
+						src: data.pageData.about.media.src,
+						alt: data.pageData.about.media.alt,
+						aspectRatio: data.pageData.about.media.aspectRatio,
+						objectFit: ['cover', 'contain', 'fill'].includes(
+							data.pageData.about.media.objectFit || ''
+						)
+							? (data.pageData.about.media.objectFit as 'cover' | 'contain' | 'fill')
+							: 'contain',
+						loading: data.pageData.about.media.loading
+					}
+				: undefined}
 			actions={data.pageData.about.actions || []}
 			layout="default"
 			orientation="horizontal"
@@ -323,8 +325,6 @@ Confira os estados brasileiros impactados pelas nossas iniciativas no mapa ao la
 </HomePage>
 
 <style>
-
-
 	@keyframes fadeInUp {
 		from {
 			opacity: 0;
