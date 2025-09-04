@@ -136,23 +136,21 @@
 		margin: 0 auto;
 		padding: 0 var(--spacing-lg);
 		/* Layout padrão (vertical) */
-á 		display: flex;
+		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-lg);
 		align-items: center;
 		text-align: center;
 	}
 
-	/* As classes utilitárias .layout-* sobrescrevem o layout padrão */
+	/* Ajustes de alinhamento para layouts split */
 	.our-impact-container.layout-split,
 	.our-impact-container.layout-split-2-1,
 	.our-impact-container.layout-split-1-2 {
-		/* Classes globais do app.css já aplicam display: grid */
 		text-align: left;
 	}
 
 	.our-impact-container.layout-split-reverse {
-		/* Classe global já aplica flex-direction: column-reverse */
 		text-align: center;
 	}
 
