@@ -26,6 +26,7 @@
 	export let decorationPosition: HeadingProps['decorationPosition'] = 'bottom';
 	export let decorationStyle: 'text-width' | 'full-width' = 'text-width';
 
+
 	// Classes adicionais
 	let className = '';
 	export { className as class };
@@ -115,7 +116,8 @@
 		success: 'text-success',
 		warning: 'text-warning',
 		error: 'text-error',
-		info: 'text-info'
+		info: 'text-info',
+		white: 'text-white'
 	} as const;
 
 	// Mapeamento de alinhamentos para classes CSS
@@ -326,6 +328,11 @@
 	.text-neutral {
 		color: var(--color-neutral-700);
 	}
+
+	.text-white {
+		color: var(--color-neutral-0);
+	}
+
 	.text-success {
 		color: var(--color-success);
 	}

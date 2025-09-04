@@ -94,6 +94,7 @@ export const load: PageLoad = async ({ fetch, params }) => {
 
 			about: {
 				title: 'Sobre Nós',
+				titleColor: 'secondary',
 				description:
 					'Fundado em 2020, nascemos como uma proposta alternativa à educação formal: uma resposta ao distanciamento escolar, à rotina engessada e à falta de engajamento dos estudantes. Começamos com a ideia de oferecer atividades diferentes que estimulassem o pensamento crítico, a empatia e o prazer de aprender nos alunos.',
 				media: {
@@ -106,9 +107,11 @@ export const load: PageLoad = async ({ fetch, params }) => {
 				actions: [
 					{
 						label: 'Saiba Mais',
-						href: '/sobre'
+						href: '/sobre',
+						variant: 'secondary'
 					}
-				]
+				],
+				background: 'accent'
 			},
 
 			initiatives: {

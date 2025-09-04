@@ -9,9 +9,11 @@
 	import Button from '../atoms/Button.svelte';
 	import Heading from '../atoms/Heading.svelte';
 	import SectionHeader from '../molecules/SectionHeader.svelte';
+	import { logger } from '$lib/utils';
 
 	// Props principais
 	export let title: AboutUsProps['title'];
+	export let titleColor: AboutUsProps['titleColor'] = 'primary';
 	export let description: AboutUsProps['description'];
 	export let media: AboutUsProps['media'] = undefined;
 	export let actions: AboutUsProps['actions'] = [];
@@ -69,6 +71,8 @@
 			console.warn('AboutUs: título e descrição são obrigatórios');
 		}
 	}
+
+	$: logger.info('AboutUs', { title, description, media, actions, layout, orientation, background });
 </script>
 
 <section
@@ -88,8 +92,10 @@
 					class="our-impact-header"
 					decorativeLetter={true}
 					decoration={true}
-					decorationColor="var(--color-yellow-600)"
+					decorationColor="var(--color-blue-500)"
 					decorationPosition="bottom"
+					{titleColor}
+
 				/>
 			{/if}
 		</div>
@@ -101,7 +107,7 @@
 				<Text
 					as="p"
 					size="md"
-					color="secondary"
+					color="white"
 					class="about-us-paragraph"
 					aria-describedby={id ? `${id}-heading` : undefined}
 				>
@@ -333,7 +339,7 @@
 
 	/* Background com acento */
 	.about-us-background-accent {
-		background: linear-gradient(135deg, var(--color-primary-50) 0%, var(--color-accent-100) 100%);
+		background: linear-gradient(135deg, var(--color-primary-700) 0%, var(--color-primary-800) 100%);
 	}
 
 	/* ========== RESPONSIVIDADE ========== */

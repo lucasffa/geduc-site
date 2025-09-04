@@ -35,7 +35,8 @@ export type ColorVariant =
 	| 'success'
 	| 'warning'
 	| 'error'
-	| 'info';
+	| 'info'
+	| 'white';
 
 /**
  * Pesos de fonte disponíveis
@@ -475,6 +476,9 @@ export interface SectionHeaderProps extends BaseComponentProps {
 
 	/** Ações adicionais (botões, links) */
 	actions?: Snippet;
+
+	/** Cor do titulo principal */
+	titleColor?: 'primary' | 'secondary' | 'accent' | 'neutral' | 'success' | 'warning' | 'error' | 'info';
 }
 
 export interface SocialLinksProps extends BaseComponentProps {
@@ -979,12 +983,7 @@ export interface HomePageProps {
 	stats: StatsSectionProps;
 
 	/** Dados da seção sobre */
-	about: {
-		title: string;
-		description: string;
-		media?: MediaProps;
-		actions?: Array<{ label: string; href: string; variant?: ButtonProps['variant']; size?: Size }>;
-	};
+	about: AboutUsProps;
 
 	/** Dados das iniciativas */
 	initiatives: InitiativesSectionProps;
@@ -1008,6 +1007,9 @@ export interface HomePageProps {
 export interface AboutUsProps extends BaseComponentProps {
 	/** Título principal da seção */
 	title: string;
+
+	/** Cor do titulo principal da seção */
+	titleColor: 'primary' | 'secondary' | 'accent' | 'neutral' | 'success' | 'warning' | 'error' | 'info';
 
 	/** Descrição principal */
 	description: string;
