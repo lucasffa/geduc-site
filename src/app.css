@@ -238,7 +238,7 @@ h6 {
     --color-neutral-800:
         #424242;
     --color-neutral-900:
-        #212121;
+        #2a2a2a;
 }
 
 /* -----------------------------------------------------------------------------
@@ -343,9 +343,12 @@ h6 {
     --font-weight-bold: 700;
 
     /* Line Heights */
-    --line-height-tight: 1.25;
-    --line-height-normal: 1.5;
-    --line-height-relaxed: 1.75;
+    /* Valores unitless (sem unidade) que multiplicam o font-size atual */
+    /* Ex: font-size 16px + line-height 1.5 = 24px de altura total da linha */
+    --line-height-tight: 1.25;     /* 25% maior que o font-size - para títulos */
+    --line-height-normal: 1.5;     /* 50% maior - padrão recomendado para leitura */
+    --line-height-relaxed: 1.75;   /* 75% maior - para textos longos */
+    --line-height-loose: 2;        /* 100% maior - máximo espaçamento */
 
     /* Variáveis Semânticas de Tipografia */
     --heading-1-font-size: var(--font-size-3xl);

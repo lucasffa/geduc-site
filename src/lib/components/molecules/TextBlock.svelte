@@ -2,6 +2,7 @@
 <script lang="ts">
 	import type { TextBlockProps } from '$lib/types/components';
 	import { createEventDispatcher } from 'svelte';
+	import { marked } from 'marked';
 	import Text from '../atoms/Text.svelte';
 
 	// Props principais
@@ -47,6 +48,7 @@
 		.filter(Boolean)
 		.join(' ');
 
+
 	// Processa o conteúdo e divide em parágrafos
 	$: paragraphs = content
 		? content
@@ -59,65 +61,52 @@
 	import { onMount } from 'svelte';
 	onMount(() => {
 		if (paragraphs.length > 0) {
-			const wordCount = paragraphs.reduce((total: number, p: string) => total + p.split(' ').length, 0);
+			const wordCount = paragraphs.reduce(
+				(total: number, p: string) => total + p.split(' ').length,
+				0
+			);
 			dispatch('textRender', { paragraphs: paragraphs.length, wordCount });
 		}
 	});
 </script>
 
-<div 
-	class={classes} 
-	{id} 
-	{style}
-	role="text"
-	aria-label="Bloco de texto com múltiplos parágrafos"
->
+<div class={classes} {id} {style} role="text" aria-label="Bloco de texto com múltiplos parágrafos">
 	{#if variant === 'paragraphs'}
 		<!-- Renderiza como parágrafos HTML semânticos -->
-		{#each paragraphs as paragraph, index}
-			<Text
-				as="p"
-				{size}
-				{color}
-				{align}
-				{weight}
-				{leading}
-				class="text-block-paragraph"
-				style="animation-delay: {index * 0.1}s"
-			>
-				{paragraph}
-			</Text>
-		{/each}
+		<div class="text-block-paragraphs-container">
+			{#each paragraphs as paragraph, index}
+				<Text
+					as="p"
+					{size}
+					{color}
+					{align}
+					{weight}
+					{leading}
+					class="text-block-paragraph"
+					style="animation-delay: {index * 0.1}s"
+				>
+					{@html marked(paragraph)}
+				</Text>
+			{/each}
+		</div>
 	{:else if variant === 'list'}
 		<!-- Renderiza como lista ordenada -->
-		<ol class="text-block-list">
+		<ol class="text-block-list-container">
 			{#each paragraphs as paragraph, index}
 				<li class="text-block-list-item">
-					<Text
-						{size}
-						{color}
-						{align}
-						{weight}
-						{leading}
-					>
-						{paragraph}
+					<Text {size} {color} {align} {weight} {leading} class="text-block-list-item-text">
+						{@html marked(paragraph)}
 					</Text>
 				</li>
 			{/each}
 		</ol>
 	{:else if variant === 'cards'}
 		<!-- Renderiza como cards individuais -->
-		<div class="text-block-cards">
+		<div class="text-block-cards-container">
 			{#each paragraphs as paragraph, index}
 				<div class="text-block-card">
-					<Text
-						{size}
-						{color}
-						{align}
-						{weight}
-						{leading}
-					>
-						{paragraph}
+					<Text {size} {color} {align} {weight} {leading} class="text-block-card-text">
+						{@html marked(paragraph)}
 					</Text>
 				</div>
 			{/each}
@@ -140,41 +129,24 @@
 	}
 
 	/* Variantes de renderização */
-	.text-block-variant-paragraphs {
-		/* Layout padrão de parágrafos */
+	.text-block-paragraphs-container {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-xl);
 	}
 
-	.text-block-variant-list {
-		/* Layout de lista */
+	.text-block-list-container {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-xl);
+		list-style: none;
+		padding: 0;
+		margin: 0;
 	}
 
-	.text-block-variant-cards {
-		/* Layout de cards */
-	}
-
-	/* Espaçamento entre elementos */
-	.text-block-spacing-tight .text-block-paragraph,
-	.text-block-spacing-tight .text-block-list-item,
-	.text-block-spacing-tight .text-block-card {
-		margin-bottom: var(--spacing-sm);
-	}
-
-	.text-block-spacing-normal .text-block-paragraph,
-	.text-block-spacing-normal .text-block-list-item,
-	.text-block-spacing-normal .text-block-card {
-		margin-bottom: var(--spacing-md);
-	}
-
-	.text-block-spacing-loose .text-block-paragraph,
-	.text-block-spacing-loose .text-block-list-item,
-	.text-block-spacing-loose .text-block-card {
-		margin-bottom: var(--spacing-lg);
-	}
-
-	.text-block-paragraph:last-child,
-	.text-block-list-item:last-child,
-	.text-block-card:last-child {
-		margin-bottom: 0;
+	.text-block-cards-container {
+		display: grid;
+		gap: var(--spacing-xl);
 	}
 
 	/* Alinhamento */
@@ -195,12 +167,6 @@
 	}
 
 	/* Lista */
-	.text-block-list {
-		list-style: none;
-		padding: 0;
-		margin: 0;
-	}
-
 	.text-block-list-item {
 		position: relative;
 		padding-left: var(--spacing-lg);
@@ -213,12 +179,6 @@
 		top: 0;
 		color: var(--color-primary-500);
 		font-weight: bold;
-	}
-
-	/* Cards */
-	.text-block-cards {
-		display: grid;
-		gap: var(--spacing-md);
 	}
 
 	.text-block-card {
@@ -251,14 +211,8 @@
 
 	/* Responsividade */
 	@media (max-width: 768px) {
-		.text-block-cards {
+		.text-block-cards-container {
 			grid-template-columns: 1fr;
-		}
-
-		.text-block-spacing-loose .text-block-paragraph,
-		.text-block-spacing-loose .text-block-list-item,
-		.text-block-spacing-loose .text-block-card {
-			margin-bottom: var(--spacing-md);
 		}
 	}
 

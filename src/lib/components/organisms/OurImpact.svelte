@@ -77,7 +77,7 @@
 				content={impactText}
 				variant="paragraphs"
 				spacing="normal"
-				align="center"
+				align="left"
 				size="lg"
 				color="secondary"
 				weight="normal"
@@ -128,7 +128,7 @@
 		padding: 0 var(--spacing-lg);
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-2xl);
+		gap: var(--spacing-lg);
 		align-items: center;
 		text-align: center;
 	}

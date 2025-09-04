@@ -99,7 +99,7 @@
 <style>
 	.section-header {
 		width: 100%;
-		margin-bottom: var(--spacing-xl);
+		margin-bottom: 0;
 	}
 
 	/* Alinhamentos */

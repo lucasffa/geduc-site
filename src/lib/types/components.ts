@@ -270,6 +270,9 @@ export interface TextProps extends BaseComponentProps {
   /** Altura da linha */
   leading?: 'tight' | 'normal' | 'relaxed' | 'loose';
   
+  /** Altura específica da linha */
+  lineHeight?: 'normal' | 'tight' | 'relaxed' | 'loose';
+  
   /** Se deve truncar o texto */
   truncate?: boolean;
   
