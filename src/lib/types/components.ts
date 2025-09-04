@@ -56,6 +56,16 @@ export type Orientation = 'horizontal' | 'vertical';
 export type Position = 'top' | 'bottom' | 'left' | 'right';
 
 /**
+ * Layouts split reutilizáveis para componentes
+ * - default: layout vertical padrão
+ * - split: 50% / 50% horizontal  
+ * - split-2-1: 66.6% esquerda / 33.3% direita
+ * - split-1-2: 33.3% esquerda / 66.6% direita
+ * - split-reverse: layout vertical invertido
+ */
+export type SplitLayout = 'default' | 'split' | 'split-2-1' | 'split-1-2' | 'split-reverse';
+
+/**
  * Proporções de aspecto para mídia
  */
 export type AspectRatio = 'square' | '16/9' | '4/3' | '3/2' | 'auto';
@@ -633,13 +643,7 @@ export interface OurImpactProps extends BaseComponentProps {
   background?: 'none' | 'muted' | 'primary' | 'gradient';
   
   /** Layout da seção */
-  /** split-2-1: 2 partes à esquerda e 1 parte à direita
-   * split-1-2: 1 parte à esquerda e 2 partes à direita
-   * split-reverse: normal vertical invertido
-   * split: normal horizontal
-   * default: normal vertical
-   */
-  layout?: 'default' | 'split' | 'split-reverse' | 'split-2-1' | 'split-1-2';
+  layout?: SplitLayout;
   
   /** Se o componente deve ser renderizado condicionalmente */
   visible?: boolean;
@@ -1025,7 +1029,7 @@ export interface AboutUsProps extends BaseComponentProps {
   }>;
   
   /** Layout da seção */
-  layout?: 'default' | 'centered' | 'split';
+  layout?: SplitLayout | 'centered';
   
   /** Orientação do conteúdo */
   orientation?: 'horizontal' | 'vertical';

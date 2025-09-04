@@ -34,10 +34,17 @@
 	// Classes CSS baseadas nas props
 	$: classes = [
 		'our-impact',
-		`our-impact-layout-${layout}`,
 		`our-impact-background-${background}`,
 		visible ? '' : 'our-impact-hidden',
 		className
+	]
+		.filter(Boolean)
+		.join(' ');
+
+	// Classes para o container baseadas no layout
+	$: containerClasses = [
+		'our-impact-container',
+		layout !== 'default' ? `layout-${layout}` : ''
 	]
 		.filter(Boolean)
 		.join(' ');
@@ -57,7 +64,7 @@
 </script>
 
 <section class={classes} {id} {style} aria-label={title ?? 'Seção de impacto'}>
-	<div class="our-impact-container">
+	<div class={containerClasses}>
 		<!-- Conteúdo textual (titulo e texto) -->
 		<div class="our-impact-content">
 			{#if title}
@@ -128,10 +135,24 @@
 		max-width: var(--container-max-width-xl);
 		margin: 0 auto;
 		padding: 0 var(--spacing-lg);
-		display: flex;
+		/* Layout padrão (vertical) */
+á 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-lg);
 		align-items: center;
+		text-align: center;
+	}
+
+	/* As classes utilitárias .layout-* sobrescrevem o layout padrão */
+	.our-impact-container.layout-split,
+	.our-impact-container.layout-split-2-1,
+	.our-impact-container.layout-split-1-2 {
+		/* Classes globais do app.css já aplicam display: grid */
+		text-align: left;
+	}
+
+	.our-impact-container.layout-split-reverse {
+		/* Classe global já aplica flex-direction: column-reverse */
 		text-align: center;
 	}
 
@@ -217,8 +238,6 @@
 		transform: scale(0.98);
 	}
 
-	/* Layouts */
-
 	/* Conteúdo textual */
 	.our-impact-content {
 		display: flex;
@@ -226,64 +245,17 @@
 		gap: var(--spacing-lg);
 	}
 
-	/* Layout Split (50/50) */
-	.our-impact-layout-split .our-impact-container {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		align-items: center;
-		gap: var(--spacing-3xl);
-	}
-
-	.our-impact-layout-split .our-impact-content {
-		text-align: left;
-	}
-
-	.our-impact-layout-split .our-impact-map {
+	/* Ajustes específicos do componente dentro dos layouts */
+	.layout-split .our-impact-map {
 		justify-content: flex-end;
 	}
 
-	/* Layout Split 2-1 (66.6% esquerda / 33.3% direita) */
-	.our-impact-layout-split-2-1 .our-impact-container {
-		display: grid;
-		grid-template-columns: 2fr 1fr;
-		align-items: center;
-		gap: var(--spacing-3xl);
-	}
-
-	.our-impact-layout-split-2-1 .our-impact-content {
-		text-align: left;
-	}
-
-	.our-impact-layout-split-2-1 .our-impact-map {
+	.layout-split-2-1 .our-impact-map,
+	.layout-split-1-2 .our-impact-map {
 		justify-content: center;
 	}
 
-	/* Layout Split 1-2 (33.3% esquerda / 66.6% direita) */
-	.our-impact-layout-split-1-2 .our-impact-container {
-		display: grid;
-		grid-template-columns: 1fr 2fr;
-		align-items: center;
-		gap: var(--spacing-3xl);
-	}
-
-	.our-impact-layout-split-1-2 .our-impact-content {
-		text-align: left;
-	}
-
-	.our-impact-layout-split-1-2 .our-impact-map {
-		justify-content: center;
-	}
-
-	/* Layout Split Reverse (vertical invertido) */
-	.our-impact-layout-split-reverse .our-impact-container {
-		flex-direction: column-reverse;
-	}
-
-	.our-impact-layout-split-reverse .our-impact-content {
-		text-align: center;
-	}
-
-	.our-impact-layout-split-reverse .our-impact-map {
+	.layout-split-reverse .our-impact-map {
 		justify-content: center;
 		margin: 0 0 var(--spacing-xl) 0;
 	}
@@ -299,23 +271,16 @@
 			gap: var(--spacing-xl);
 		}
 
-		/* Todos os layouts split ficam empilhados verticalmente em mobile */
-		.our-impact-layout-split .our-impact-container,
-		.our-impact-layout-split-2-1 .our-impact-container,
-		.our-impact-layout-split-1-2 .our-impact-container {
-			display: flex;
-			flex-direction: column;
-		}
-
-		.our-impact-layout-split .our-impact-content,
-		.our-impact-layout-split-2-1 .our-impact-content,
-		.our-impact-layout-split-1-2 .our-impact-content {
+		/* Ajustes mobile para layouts split (regras globais já aplicam display: flex) */
+		.our-impact-container.layout-split,
+		.our-impact-container.layout-split-2-1,
+		.our-impact-container.layout-split-1-2 {
 			text-align: center;
 		}
 
-		.our-impact-layout-split .our-impact-map,
-		.our-impact-layout-split-2-1 .our-impact-map,
-		.our-impact-layout-split-1-2 .our-impact-map {
+		.layout-split .our-impact-map,
+		.layout-split-2-1 .our-impact-map,
+		.layout-split-1-2 .our-impact-map {
 			justify-content: center;
 		}
 
