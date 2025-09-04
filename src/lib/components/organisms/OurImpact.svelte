@@ -104,11 +104,11 @@
 				aria-label="Visualizar alcance nacional no mapa do Brasil"
 			>
 				<Image
-					src="/images/illustrations/brazil-map.svg"
+					src="/images/illustrations/brazil-map.png"
 					alt="Mapa do Brasil mostrando alcance nacional"
 					aspectRatio="auto"
 					loading="lazy"
-					class="impact-map-image image-halftone"
+					class="impact-map-image"
 				/>
 			</button>
 		</div>
