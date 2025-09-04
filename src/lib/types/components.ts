@@ -626,9 +626,6 @@ export interface OurImpactProps extends BaseComponentProps {
   /** Título da seção */
   title?: string;
   
-  /** Descrição da seção */
-  description?: string;
-  
   /** Texto específico sobre o impacto */
   impactText?: string;
   
@@ -636,7 +633,13 @@ export interface OurImpactProps extends BaseComponentProps {
   background?: 'none' | 'muted' | 'primary' | 'gradient';
   
   /** Layout da seção */
-  layout?: 'default' | 'split';
+  /** split-2-1: 2 partes à esquerda e 1 parte à direita
+   * split-1-2: 1 parte à esquerda e 2 partes à direita
+   * split-reverse: normal vertical invertido
+   * split: normal horizontal
+   * default: normal vertical
+   */
+  layout?: 'default' | 'split' | 'split-reverse' | 'split-2-1' | 'split-1-2';
   
   /** Se o componente deve ser renderizado condicionalmente */
   visible?: boolean;

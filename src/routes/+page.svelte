@@ -211,7 +211,7 @@
 			De Manaus a Porto Alegre, somos prova viva de que a Educação, quando é humana e acessível, rompe fronteiras, une realidades e cria futuros.
 Confira os estados brasileiros impactados pelas nossas iniciativas no mapa ao lado!!"
 			background="gradient"
-			layout="default"
+			layout="split-2-1"
 		/>
 	</svelte:fragment>
 

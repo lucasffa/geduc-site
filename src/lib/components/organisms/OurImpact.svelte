@@ -9,7 +9,6 @@
 
 	// Props principais
 	export let title: OurImpactProps['title'] = undefined;
-	export let description: OurImpactProps['description'] = undefined;
 	export let impactText: OurImpactProps['impactText'] = undefined;
 	export let background: OurImpactProps['background'] = 'none';
 	export let layout: OurImpactProps['layout'] = 'default';
@@ -59,32 +58,35 @@
 
 <section class={classes} {id} {style} aria-label={title ?? 'Seção de impacto'}>
 	<div class="our-impact-container">
-		{#if title}
-			<SectionHeader
-				{title}
-				align="left"
-				class="our-impact-header"
-				decorativeLetter={true}
-				decoration={true}
-				decorationColor="var(--color-yellow-600)"
-				decorationPosition="bottom"
-			/>
-		{/if}
+		<!-- Conteúdo textual (titulo e texto) -->
+		<div class="our-impact-content">
+			{#if title}
+				<SectionHeader
+					{title}
+					align="left"
+					class="our-impact-header"
+					decorativeLetter={true}
+					decoration={true}
+					decorationColor="var(--color-yellow-600)"
+					decorationPosition="bottom"
+				/>
+			{/if}
 
-		<!-- Texto sobre o impacto -->
-		{#if impactText}
-			<TextBlock
-				content={impactText}
-				variant="paragraphs"
-				spacing="normal"
-				align="left"
-				size="lg"
-				color="secondary"
-				weight="normal"
-				leading="relaxed"
-				class="our-impact-text"
-			/>
-		{/if}
+			<!-- Texto sobre o impacto -->
+			{#if impactText}
+				<TextBlock
+					content={impactText}
+					variant="paragraphs"
+					spacing="normal"
+					align="left"
+					size="lg"
+					color="secondary"
+					weight="normal"
+					leading="relaxed"
+					class="our-impact-text"
+				/>
+			{/if}
+		</div>
 
 		<!-- Mapa do Brasil -->
 		<div class="our-impact-map">
@@ -217,22 +219,73 @@
 
 	/* Layouts */
 
+	/* Conteúdo textual */
+	.our-impact-content {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-lg);
+	}
+
+	/* Layout Split (50/50) */
 	.our-impact-layout-split .our-impact-container {
-		flex-direction: row;
+		display: grid;
+		grid-template-columns: 1fr 1fr;
 		align-items: center;
-		text-align: left;
 		gap: var(--spacing-3xl);
 	}
 
-	.our-impact-layout-split .our-impact-header,
-	.our-impact-layout-split .our-impact-text {
+	.our-impact-layout-split .our-impact-content {
 		text-align: left;
-		flex: 1;
 	}
 
 	.our-impact-layout-split .our-impact-map {
-		flex: 1;
 		justify-content: flex-end;
+	}
+
+	/* Layout Split 2-1 (66.6% esquerda / 33.3% direita) */
+	.our-impact-layout-split-2-1 .our-impact-container {
+		display: grid;
+		grid-template-columns: 2fr 1fr;
+		align-items: center;
+		gap: var(--spacing-3xl);
+	}
+
+	.our-impact-layout-split-2-1 .our-impact-content {
+		text-align: left;
+	}
+
+	.our-impact-layout-split-2-1 .our-impact-map {
+		justify-content: center;
+	}
+
+	/* Layout Split 1-2 (33.3% esquerda / 66.6% direita) */
+	.our-impact-layout-split-1-2 .our-impact-container {
+		display: grid;
+		grid-template-columns: 1fr 2fr;
+		align-items: center;
+		gap: var(--spacing-3xl);
+	}
+
+	.our-impact-layout-split-1-2 .our-impact-content {
+		text-align: left;
+	}
+
+	.our-impact-layout-split-1-2 .our-impact-map {
+		justify-content: center;
+	}
+
+	/* Layout Split Reverse (vertical invertido) */
+	.our-impact-layout-split-reverse .our-impact-container {
+		flex-direction: column-reverse;
+	}
+
+	.our-impact-layout-split-reverse .our-impact-content {
+		text-align: center;
+	}
+
+	.our-impact-layout-split-reverse .our-impact-map {
+		justify-content: center;
+		margin: 0 0 var(--spacing-xl) 0;
 	}
 
 	/* Responsividade */
@@ -246,17 +299,23 @@
 			gap: var(--spacing-xl);
 		}
 
-		.our-impact-layout-split .our-impact-container {
+		/* Todos os layouts split ficam empilhados verticalmente em mobile */
+		.our-impact-layout-split .our-impact-container,
+		.our-impact-layout-split-2-1 .our-impact-container,
+		.our-impact-layout-split-1-2 .our-impact-container {
+			display: flex;
 			flex-direction: column;
+		}
+
+		.our-impact-layout-split .our-impact-content,
+		.our-impact-layout-split-2-1 .our-impact-content,
+		.our-impact-layout-split-1-2 .our-impact-content {
 			text-align: center;
 		}
 
-		.our-impact-layout-split .our-impact-header,
-		.our-impact-layout-split .our-impact-text {
-			text-align: center;
-		}
-
-		.our-impact-layout-split .our-impact-map {
+		.our-impact-layout-split .our-impact-map,
+		.our-impact-layout-split-2-1 .our-impact-map,
+		.our-impact-layout-split-1-2 .our-impact-map {
 			justify-content: center;
 		}
 
