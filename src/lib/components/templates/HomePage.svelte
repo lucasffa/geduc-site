@@ -120,32 +120,26 @@
   /* Seções */
   .home-page-hero {
     position: relative;
-    z-index: 1;
   }
 
   .home-page-our-impact {
     position: relative;
-    z-index: 2;
   }
 
   .home-page-stats {
     position: relative;
-    z-index: 3;
   }
 
   .home-page-about {
     position: relative;
-    z-index: 4;
   }
 
   .home-page-initiatives {
     position: relative;
-    z-index: 5;
   }
 
   .home-page-testimonials {
     position: relative;
-    z-index: 6;
   }
 
   /* Responsividade */

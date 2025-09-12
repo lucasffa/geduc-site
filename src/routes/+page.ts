@@ -33,7 +33,7 @@ export const load: PageLoad = async ({ fetch, params }) => {
           type: 'gradient',
           value: 'linear-gradient(135deg, var(--color-primary-50) 0%, var(--color-secondary-50) 50%, var(--color-accent-50) 100%)'
         },
-        layout: 'split',
+        layout: 'centered', // #TODO: Mudar para centered, perguntar se posso. Estava split
         size: 'xl',
         decorative: true
       },

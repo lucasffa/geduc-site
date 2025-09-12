@@ -210,6 +210,9 @@ export interface ButtonProps extends BaseComponentProps, Partial<LinkableProps> 
   
   /** Conteúdo do botão */
   children: Snippet;
+
+  /** Função passada */
+  onclick?: (event:MouseEvent) => void;
 }
 
 export interface LogoProps extends BaseComponentProps, Partial<LinkableProps> {
