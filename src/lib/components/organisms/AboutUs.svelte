@@ -239,6 +239,7 @@
 		flex: 0 0 auto;
 		width: 100%;
 		max-width: 400px;
+		order: -1; /* Move a mídia para a esquerda */
 	}
 
 	/* Imagem */
@@ -357,7 +358,6 @@
 			flex-direction: column;
 			gap: var(--spacing-xl);
 			text-align: center;
-
 		}
 
 		.about-us-media,
