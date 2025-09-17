@@ -58,7 +58,7 @@
 	function getImagePath(letter: string): string {
 		return `/images/decorative-letters/letter-${letter}.png`;
 	}
-	
+
 	// Handlers para imagem decorativa
 	function handleDecorativeImageLoad() {
 		decorativeImageLoaded = true;
@@ -115,7 +115,8 @@
 		success: 'text-success',
 		warning: 'text-warning',
 		error: 'text-error',
-		info: 'text-info'
+		info: 'text-info',
+		white: 'text-white'
 	} as const;
 
 	// Mapeamento de alinhamentos para classes CSS
@@ -326,6 +327,9 @@
 	.text-neutral {
 		color: var(--color-neutral-700);
 	}
+	.text-white {
+		color: var(--color-neutral-0);
+	}
 	.text-success {
 		color: var(--color-success);
 	}
@@ -499,16 +503,14 @@
 			height: 2em;
 		}
 
-		
-	/* Posições de decoração - Text Width (padrão) */
-	.heading-decoration.decoration-bottom.decoration-text-width .heading-decoration-line {
-		top: 35px;
-		left: 0px;
-		right: 0;
-		height: 15px;
-		border-radius: var(--border-radius-sm);
-	}
-
+		/* Posições de decoração - Text Width (padrão) */
+		.heading-decoration.decoration-bottom.decoration-text-width .heading-decoration-line {
+			top: 35px;
+			left: 0px;
+			right: 0;
+			height: 15px;
+			border-radius: var(--border-radius-sm);
+		}
 	}
 
 	/* Conteúdo com decoração */
@@ -523,7 +525,7 @@
 	[data-theme='dark'] .heading {
 		color: var(--text-color-primary);
 	}
-	
+
 	[data-theme='dark'] .heading-gradient {
 		background: linear-gradient(135deg, var(--color-primary-400), var(--color-secondary-400));
 		-webkit-background-clip: text;

@@ -115,7 +115,9 @@
 	.text-color-neutral {
 		color: var(--text-color-subtle);
 	}
-
+	.text-color-white {
+		color: var(--color-neutral-0);
+	}
 	.text-color-success {
 		color: var(--color-success);
 	}

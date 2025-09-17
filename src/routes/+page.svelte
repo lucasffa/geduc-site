@@ -228,6 +228,7 @@
 	<svelte:fragment slot="about" let:dispatch>
 		<AboutUs
 			title={data.pageData.about.title}
+			{...'titleColor' in data.pageData.about ? { titleColor: data.pageData.about.titleColor } : {}}
 			description={data.pageData.about.description}
 			media={'media' in data.pageData.about && data.pageData.about.media
 				? {
@@ -243,9 +244,11 @@
 					}
 				: undefined}
 			actions={data.pageData.about.actions || []}
-			layout="default"
+			layout="split"
 			orientation="horizontal"
-			background="none"
+			background={'background' in data.pageData.about && data.pageData.about.background
+				? data.pageData.about.background
+				: 'accent'}
 			id="about-section"
 			on:actionClick
 			on:sectionLoad
