@@ -360,6 +360,23 @@ h6 {
 	--container-max-width-md: 768px;
 	--container-max-width-lg: 1024px;
 	--container-max-width-xl: 1280px;
+
+	/* Button width in 40px increments from xxs to 10xl*/
+	--button-width-xxs: 40px;
+	--button-width-xs: 80px;
+	--button-width-sm: 120px;
+	--button-width-md: 160px;
+	--button-width-lg: 200px;
+	--button-width-xl: 240px;
+	--button-width-2xl: 280px;
+	--button-width-3xl: 320px;
+	--button-width-4xl: 360px;
+	--button-width-5xl: 400px;
+	--button-width-6xl: 440px;
+	--button-width-7xl: 480px;
+	--button-width-8xl: 520px;
+	--button-width-9xl: 560px;
+	--button-width-10xl: 600px;
 }
 
 /* -----------------------------------------------------------------------------

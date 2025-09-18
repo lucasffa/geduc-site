@@ -125,7 +125,7 @@
 								size={action.size || 'md'}
 								class="about-us-action"
 								external={action.external}
-								on:click={() => handleActionClick(action)}
+								onclick={() => handleActionClick(action)}
 							>
 								{action.label}
 							</Button>

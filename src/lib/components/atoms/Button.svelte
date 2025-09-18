@@ -128,8 +128,10 @@
 	}
 
 	.button-size-lg {
-		padding: var(--spacing-md) var(--spacing-3xl);
+		padding: var(--spacing-md) 0;
 		font-size: var(--font-size-base);
+		min-width: var(--button-width-2xl);
+		max-width: var(--button-width-2xl);
 	}
 
 	.button-size-xl {
@@ -162,7 +164,6 @@
 		color: var(--color-primary-900);
 		font-weight: var(--font-weight-bold);
 		border-color: var(--color-secondary-600);
-		/* Adicionando espaçamento entre as letras */
 		letter-spacing: var(--spacing-xxxs);
 	}
 
