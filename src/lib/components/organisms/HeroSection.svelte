@@ -80,7 +80,7 @@
 				</div>
 				<div class="hero-illustration hero-illustration-lamp">
 					<Image
-						src="/images/illustrations/lamp.svg"
+						src="/images/illustrations/lamp.png"
 						alt="Ilustração de lâmpada representando ideias"
 						class="image-halftone"
 					/>
@@ -98,7 +98,7 @@
 			<!-- Verificar se essa gambiara vai funcionar ou devo fazer de outra maneira -->
 			{#if subtitle}
 				<div class="hero-subtitle-wrapper">
-					<Text as="span" size="md" weight="semibold" color="primary" class="hero-section-subtitle">
+					<Text as="span" size="xl" weight="semibold" color="inverse" class="hero-section-subtitle">
 						{subtitle}
 					</Text>
 					<img src="/images/decorative-icon.svg" alt="" class="hero-subtitle-icon" />
@@ -290,12 +290,14 @@
 		margin: 0;
 		width: 100%;
 		text-align: inherit;
+		color: white;
+		text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 	}
 
 	.hero-subtitle-wrapper {
 		position: relative;
 		display: inline-block; /* para não ocupar largura toda */
-		background-color: var(--color-secondary-400); /* ou secondary-500, depende do design */
+		background-color: var(--color-secondary-500); /* ou secondary-500, depende do design */
 		padding: 0.5rem 1.5rem; /* espaço interno */
 		border-radius: 8px; /* opcional */
 		margin: 1rem 0;
@@ -303,7 +305,7 @@
 
 	.hero-subtitle {
 		margin: 0;
-		font-weight: 600;
+		font-weight: 800;
 		color: var(--color-neutral-900); /* contraste */
 	}
 
@@ -427,8 +429,8 @@
 
 	.hero-illustration {
 		position: absolute;
-		max-width: 200px;
-		max-height: 200px;
+		max-width: 300px;
+		max-height: 300px;
 		animation: float 6s ease-in-out infinite;
 	}
 
@@ -446,17 +448,17 @@
 
 	/* Background illustrations positioning */
 	.hero-section-media-background .hero-illustration-brain {
-		top: 45%;
+		top: 40%;
 		left: 7%;
-		max-width: 250px;
-		max-height: 250px;
+		max-width: 350px;
+		max-height: 350px;
 	}
 
 	.hero-section-media-background .hero-illustration-lamp {
-		bottom: 30%;
+		bottom: 27%;
 		right: 7%;
-		max-width: 250px;
-		max-height: 250px;
+		max-width: 380px;
+		max-height: 380px;
 	}
 
 	@keyframes float {
@@ -555,8 +557,8 @@
 		}
 
 		.hero-illustration {
-			max-width: 120px;
-			max-height: 120px;
+			max-width: 180px;
+			max-height: 180px;
 		}
 
 		.hero-section-media-background .hero-section-illustrations {
@@ -569,8 +571,8 @@
 		}
 
 		.hero-section-media-background .hero-illustration {
-			max-width: 150px;
-			max-height: 150px;
+			max-width: 220px;
+			max-height: 220px;
 		}
 	}
 
