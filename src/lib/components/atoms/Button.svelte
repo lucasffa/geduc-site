@@ -109,7 +109,7 @@
 	}
 
 	.button-size-md {
-		padding: var(--spacing-md) var(--spacing-lg);
+		padding: var(--spacing-md) var(--spacing-sm);
 		font-size: var(--font-size-base);
 	}
 
