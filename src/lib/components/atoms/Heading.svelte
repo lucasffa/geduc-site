@@ -325,7 +325,7 @@
 		color: var(--color-accent-500);
 	}
 	.text-neutral {
-		color: var(--color-secondary-500);
+		color: var(--color-secondary-600);
 	}
 	.text-white {
 		color: var(--color-neutral-0);

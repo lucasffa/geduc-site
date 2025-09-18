@@ -207,6 +207,7 @@
 	<svelte:fragment slot="ourImpact" let:dispatch>
 		<OurImpact
 			title={data.pageData.ourImpact.title}
+			titleColor={data.pageData.ourImpact.titleColor}	
 			impactText={data.pageData.ourImpact.impactText}
 			background={data.pageData.ourImpact.background}
 			layout={data.pageData.ourImpact.layout}

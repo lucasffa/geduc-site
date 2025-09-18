@@ -79,15 +79,15 @@ h6 {
 	--color-primary-dark: var(--color-primary-800);
 
 	/* Secundárias - Verde */
-	--color-secondary-100: #e8f5e9;
-	--color-secondary-200: #c8e6c9;
-	--color-secondary-300: #a5d6a7;
-	--color-secondary-400: #81c784;
-	--color-secondary-500: #f6cb5a;
-	--color-secondary-600: #4caf50;
-	--color-secondary-700: #43a047;
-	--color-secondary-800: #2e7d32;
-	--color-secondary-900: #1b5e20;
+	--color-secondary-100: var(--color-yellow-100);
+	--color-secondary-200: var(--color-yellow-200);
+	--color-secondary-300: var(--color-yellow-300);
+	--color-secondary-400: var(--color-yellow-400);
+	--color-secondary-500: var(--color-yellow-500);
+	--color-secondary-600: var(--color-yellow-600);
+	--color-secondary-700: var(--color-yellow-700);
+	--color-secondary-800: var(--color-yellow-800);
+	--color-secondary-900: var(--color-yellow-900);
 
 	/* Variações semânticas de secundária */
 	--color-secondary-light: var(--color-secondary-300);
@@ -201,7 +201,7 @@ h6 {
  * -------------------------------------------------------------------------- */
 :root {
 	/* Cores de texto */
-	--text-color-primary: var(--color-neutral-900);
+	--text-color-primary: var(--color-primary-900);
 	--text-color-secondary: var(--color-neutral-700);
 	--text-color-subtle: var(--color-neutral-600);
 	--text-color-disabled: var(--color-neutral-500);
@@ -333,8 +333,11 @@ h6 {
 	/* Unidade base de espaçamento */
 	--spacing-unit: 0.25rem;
 	/* 4px em 16px base font */
-
 	/* Escala de espaçamento */
+	--spacing-xxxs: calc(0.25 * var(--spacing-unit));
+	/* 1px */
+	--spacing-xxs: calc(0.5 * var(--spacing-unit));
+	/* 2px */
 	--spacing-xs: calc(1 * var(--spacing-unit));
 	/* 4px */
 	--spacing-sm: calc(2 * var(--spacing-unit));

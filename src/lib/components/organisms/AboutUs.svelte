@@ -9,6 +9,7 @@
 	import Button from '../atoms/Button.svelte';
 	import Heading from '../atoms/Heading.svelte';
 	import SectionHeader from '../molecules/SectionHeader.svelte';
+	import TextBlock from '../molecules/TextBlock.svelte';
 
 	// Props principais
 	export let title: AboutUsProps['title'];
@@ -100,16 +101,18 @@
 		<div class="about-us-content">
 			<!-- Texto principal -->
 			<div class="about-us-text">
-				<Text
-					as="p"
-					size="md"
-					color="white"
+				
+				<TextBlock
+					content={description}
+					variant="paragraphs"
+					spacing="normal"
 					align="right"
-					class="about-us-paragraph"
-					aria-describedby={id ? `${id}-heading` : undefined}
-				>
-					{description}
-				</Text>
+					size="lg"
+					color="white"
+					weight="normal"
+					leading="relaxed"
+					class="about-us-text"
+				/>
 
 				<!-- Botões de ação -->
 				{#if actions && actions.length > 0}

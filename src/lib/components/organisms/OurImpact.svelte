@@ -9,6 +9,7 @@
 
 	// Props principais
 	export let title: OurImpactProps['title'] = undefined;
+	export let titleColor: OurImpactProps['titleColor'] = 'primary';
 	export let impactText: OurImpactProps['impactText'] = undefined;
 	export let background: OurImpactProps['background'] = 'none';
 	export let layout: OurImpactProps['layout'] = 'default';
@@ -70,6 +71,7 @@
 			{#if title}
 				<SectionHeader
 					{title}
+					{titleColor}
 					align="left"
 					class="our-impact-header"
 					decorativeLetter={true}

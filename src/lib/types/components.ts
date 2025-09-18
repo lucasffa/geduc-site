@@ -660,6 +660,17 @@ export interface OurImpactProps extends BaseComponentProps {
 	/** Título da seção */
 	title?: string;
 
+	/** Cor do titulo principal da seção */
+	titleColor?:
+		| 'primary'
+		| 'secondary'
+		| 'accent'
+		| 'neutral'
+		| 'success'
+		| 'warning'
+		| 'error'
+		| 'info';
+
 	/** Texto específico sobre o impacto */
 	impactText?: string;
 

@@ -42,6 +42,7 @@ export const load: PageLoad = async ({ fetch, params }) => {
 
 			ourImpact: {
 				title: 'Nosso Impacto',
+				titleColor: 'primary',
 				impactText:
 					'Nosso projeto já alcançou mais de **100 cidades** em **20 estados brasileiros**, impactando diretamente **25 mil pessoas** e conectando uma rede de mais de 30 voluntários comprometidos com a transformação.\nDe Manaus a Porto Alegre, somos prova viva de que a Educação, quando é humana e acessível, rompe fronteiras, une realidades e cria futuros.\nConfira os estados brasileiros impactados pelas nossas iniciativas no mapa ao lado!!',
 				background: 'gradient' as const,
@@ -114,7 +115,8 @@ export const load: PageLoad = async ({ fetch, params }) => {
 					{
 						label: 'Saiba Mais',
 						href: '/sobre',
-						variant: 'secondary'
+						variant: 'secondary',
+						size: 'lg'
 					}
 				],
 				background: 'accent',
@@ -261,6 +263,7 @@ export const load: PageLoad = async ({ fetch, params }) => {
 				},
 				ourImpact: {
 					title: 'Nosso Impacto',
+					titleColor: 'primary' as const,
 					impactText: 'Transformando vidas através da educação.',
 					background: 'none' as const,
 					layout: 'default' as const
