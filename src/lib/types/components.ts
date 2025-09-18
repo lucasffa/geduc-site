@@ -197,32 +197,35 @@ export interface IconProps extends BaseComponentProps {
 }
 
 export interface ButtonProps extends BaseComponentProps, Partial<LinkableProps> {
-	/** Variante visual do botão */
-	variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
+  /** Variante visual do botão */
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
+  
+  /** Tamanho do botão */
+  size?: Size;
+  
+  /** Se está desabilitado */
+  disabled?: boolean;
+  
+  /** Se está em estado de carregamento */
+  loading?: boolean;
+  
+  /** Tipo do botão (quando usado como button) */
+  type?: 'button' | 'submit' | 'reset';
+  
+  /** Ícone do botão */
+  icon?: string;
+  
+  /** Posição do ícone */
+  iconPosition?: 'left' | 'right';
+  
+  /** Se deve ocupar toda a largura disponível */
+  fullWidth?: boolean;
+  
+  /** Conteúdo do botão */
+  children: Snippet;
 
-	/** Tamanho do botão */
-	size?: Size;
-
-	/** Se está desabilitado */
-	disabled?: boolean;
-
-	/** Se está em estado de carregamento */
-	loading?: boolean;
-
-	/** Tipo do botão (quando usado como button) */
-	type?: 'button' | 'submit' | 'reset';
-
-	/** Ícone do botão */
-	icon?: string;
-
-	/** Posição do ícone */
-	iconPosition?: 'left' | 'right';
-
-	/** Se deve ocupar toda a largura disponível */
-	fullWidth?: boolean;
-
-	/** Conteúdo do botão */
-	children: Snippet;
+  /** Função passada */
+  onclick?: (event:MouseEvent) => void;
 }
 
 export interface LogoProps extends BaseComponentProps, Partial<LinkableProps> {

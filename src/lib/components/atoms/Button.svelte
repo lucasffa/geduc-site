@@ -3,6 +3,7 @@
 	import type { ButtonProps } from '$lib/types/components';
 	import Icon from '$lib/components/atoms/Icon.svelte';
 
+	export let onclick: ButtonProps['onclick'] = undefined;
 	export let variant: ButtonProps['variant'] = 'primary';
 	export let size: ButtonProps['size'] = 'md';
 	export let disabled: ButtonProps['disabled'] = false;
@@ -20,6 +21,12 @@
 	// Classes adicionais
 	let className = '';
 	export { className as class };
+
+	function handleClick(event: MouseEvent) {
+		if (onclick) {
+			onclick(event);
+		}
+	}
 
 	// Determina qual elemento usar
 	$: element = href ? 'a' : 'button';
@@ -56,7 +63,14 @@
 		: {};
 </script>
 
-<svelte:element this={element} class={classes} {...linkProps} {...buttonProps} {...$$restProps}>
+<svelte:element
+	this={element}
+	class={classes}
+	{...linkProps}
+	{...buttonProps}
+	{...$$restProps}
+	on:click={handleClick}
+>
 	{#if loading}
 		<Icon name="loader" size="sm" class="button-spinner" animated />
 	{:else if icon && iconPosition === 'left'}
