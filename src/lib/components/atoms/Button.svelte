@@ -93,7 +93,7 @@
 		justify-content: center;
 		gap: var(--spacing-sm);
 		padding: var(--spacing-md) var(--spacing-lg);
-		border-radius: var(--border-radius-md);
+		border-radius: var(--border-radius-full);
 		border: var(--border-width-default) solid transparent;
 		font-family: var(--font-family-sans);
 		font-weight: var(--font-weight-medium);
@@ -123,13 +123,13 @@
 	}
 
 	.button-size-md {
-		padding: var(--spacing-md) var(--spacing-lg);
+		padding: var(--spacing-md) var(--spacing-sm);
 		font-size: var(--font-size-base);
 	}
 
 	.button-size-lg {
-		padding: var(--spacing-lg) var(--spacing-xl);
-		font-size: var(--font-size-lg);
+		padding: var(--spacing-md) var(--spacing-3xl);
+		font-size: var(--font-size-base);
 	}
 
 	.button-size-xl {
@@ -158,14 +158,17 @@
 	}
 
 	.button-secondary {
-		background-color: var(--color-secondary-500);
-		color: var(--color-neutral-0);
-		border-color: var(--color-secondary-500);
+		background-color: var(--color-secondary-600);
+		color: var(--color-primary-900);
+		font-weight: var(--font-weight-bold);
+		border-color: var(--color-secondary-600);
+		/* Adicionando espaçamento entre as letras */
+		letter-spacing: var(--spacing-xxxs);
 	}
 
 	.button-secondary:hover:not(.button-disabled) {
-		background-color: var(--color-secondary-600);
-		border-color: var(--color-secondary-600);
+		background-color: var(--color-secondary-700);
+		border-color: var(--color-secondary-700);
 		transform: translateY(-1px);
 		box-shadow: var(--shadow-md);
 	}

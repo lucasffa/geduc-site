@@ -11,6 +11,7 @@
 	export let spacing: SectionHeaderProps['spacing'] = 'normal';
 	export let decorative: SectionHeaderProps['decorative'] = false;
 	export let actions: SectionHeaderProps['actions'] = undefined;
+	export let titleColor: SectionHeaderProps['titleColor'] = 'primary';
 
 	// Novas props para funcionalidades avançadas
 	export let decorativeLetter: boolean = false;
@@ -55,36 +56,25 @@
 	{#if title}
 		<Heading
 			level={headingLevel}
-			align={align}
-			decorativeLetter={decorativeLetter}
+			{align}
+			{decorativeLetter}
 			decoration={decoration ? 'underline' : undefined}
-			decorationColor={decorationColor}
-			decorationPosition={decorationPosition}
+			{decorationColor}
+			{decorationPosition}
+			color={titleColor}
 		>
 			{title}
 		</Heading>
 	{/if}
 
 	{#if subtitle}
-		<Text
-			as="p"
-			size="lg"
-			color="secondary"
-			align={align}
-			class="section-header-subtitle"
-		>
+		<Text as="p" size="lg" color="secondary" {align} class="section-header-subtitle">
 			{subtitle}
 		</Text>
 	{/if}
 
 	{#if description}
-		<Text
-			as="p"
-			size="md"
-			color="subtle"
-			align={align}
-			class="section-header-description"
-		>
+		<Text as="p" size="md" color="subtle" {align} class="section-header-description">
 			{description}
 		</Text>
 	{/if}
