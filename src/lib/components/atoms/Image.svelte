@@ -11,6 +11,8 @@
 	export let loading: ImageProps['loading'] = 'lazy';
 	export let priority: ImageProps['priority'] = false;
 	export let placeholder: ImageProps['placeholder'] = undefined;
+	export let blendMode: ImageProps['blendMode'] = undefined;
+	// Eventos
 	export let onload: ImageProps['onload'] = undefined;
 	export let onerror: ImageProps['onerror'] = undefined;
 
@@ -28,6 +30,7 @@
 		'image',
 		`image-aspect-${aspectRatio}`,
 		`image-fit-${objectFit}`,
+		blendMode && `blend-mode-${blendMode}`,
 		!loaded && 'image-loading',
 		error && 'image-error',
 		className
@@ -49,8 +52,8 @@
 	// Preload se priority for true
 	$: if (priority && src) {
 		if (typeof window !== 'undefined') {
-		const link = document.createElement('link');
-		link.rel = 'preload';
+			const link = document.createElement('link');
+			link.rel = 'preload';
 			link.as = 'image';
 			link.href = src;
 			document.head.appendChild(link);
@@ -150,6 +153,66 @@
 
 	.image-fit-none .image-element {
 		object-fit: none;
+	}
+
+	.blend-mode-screen {
+		mix-blend-mode: screen;
+	}
+
+	.blend-mode-multiply {
+		mix-blend-mode: multiply;
+	}
+
+	.blend-mode-overlay {
+		mix-blend-mode: overlay;
+	}
+
+	.blend-mode-darken {
+		mix-blend-mode: darken;
+	}
+
+	.blend-mode-lighten {
+		mix-blend-mode: lighten;
+	}
+
+	.blend-mode-color-dodge {
+		mix-blend-mode: color-dodge;
+	}
+
+	.blend-mode-color-burn {
+		mix-blend-mode: color-burn;
+	}
+
+	.blend-mode-hard-light {
+		mix-blend-mode: hard-light;
+	}
+
+	.blend-mode-soft-light {
+		mix-blend-mode: soft-light;
+	}
+
+	.blend-mode-difference {
+		mix-blend-mode: difference;
+	}
+
+	.blend-mode-exclusion {
+		mix-blend-mode: exclusion;
+	}
+
+	.blend-mode-hue {
+		mix-blend-mode: hue;
+	}
+
+	.blend-mode-saturation {
+		mix-blend-mode: saturation;
+	}
+
+	.blend-mode-color {
+		mix-blend-mode: color;
+	}
+
+	.blend-mode-luminosity {
+		mix-blend-mode: luminosity;
 	}
 
 	/* Estados de carregamento */
