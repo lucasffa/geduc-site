@@ -6,38 +6,37 @@ export const load: PageLoad = async ({ fetch, params }) => {
 	try {
 		// Dados podem vir de APIs, CMS, arquivos JSON, etc.
 		// Aqui estamos simulando carregamento de dados
-		const pageData: HomePageProps = {
-			hero: {
-				title: 'Guardiões da Educação: Transformando Vidas Através do Conhecimento',
-				subtitle: 'Projeto Educacional Nacional',
-				description:
-					'Somos um projeto educacional dedicado a democratizar o acesso ao ensino superior de qualidade, conectando estudantes a oportunidades transformadoras em todo o Brasil.',
-				actions: [
-					{
-						label: 'Saiba Mais',
-						href: '/sobre',
-						variant: 'primary'
-					},
-					{
-						label: 'Assista o Vídeo',
-						href: '/video',
-						variant: 'outline'
-					}
-				],
-				media: {
-					type: 'illustration',
-					src: '/images/hero-illustration.svg',
-					alt: 'Ilustração representando educação e conhecimento'
-				},
-				background: {
-					type: 'gradient',
-					value:
-						'linear-gradient(135deg, var(--color-primary-50) 0%, var(--color-secondary-50) 50%, var(--color-accent-50) 100%)'
-				},
-				layout: 'centered', // #TODO: Mudar para centered, perguntar se posso. Estava split
-				size: 'xl',
-				decorative: true
-			},
+    const pageData: HomePageProps = {
+      hero: {
+        title: 'Guardiões da Educação',
+        subtitle: 'Maior organização brasileira de',
+        highlight: 'Educação Humanizada',
+        description: 'Somos um projeto educacional sem fins lucrativos que acredita em uma educação de forma humanizada, plural e acessível. Atuamos em todas as regiões do Brasil, conectados por um mesmo sonho: tornar o aprendizado uma jornada viva, que vai além da sala de aula e se entrelaça com as experiências de cada indivíduo.',
+        actions: [
+          {
+            label: 'Saiba Mais',
+            href: '/sobre',
+            variant: 'secondary'
+          },
+          {
+            label: 'Assista o Vídeo',
+            href: '/video',
+            variant: 'outline'
+          }
+        ],
+        media: {
+          type: 'illustration',
+          src: '/images/hero-illustration.svg',
+          alt: 'Ilustração representando educação e conhecimento'
+        },
+        background: {
+          type: 'gradient',
+          value: 'radial-gradient(circle at center, var(--color-primary-600) 0%, var(--color-primary-700) 100%)'
+        },
+        layout: 'centered',
+        size: 'xl',
+        decorative: true
+      },
 			ourImpact: {
 				title: 'Nosso Impacto',
 				titleColor: 'primary',
@@ -254,6 +253,7 @@ export const load: PageLoad = async ({ fetch, params }) => {
 			pageData: {
 				hero: {
 					title: 'Guardiões da Educação',
+          highlight: 'Só de brincadeira',
 					description: 'Transformando vidas através do conhecimento.',
 					actions: [],
 					layout: 'centered' as const,

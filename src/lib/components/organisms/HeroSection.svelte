@@ -9,6 +9,7 @@
 
 	export let title: HeroSectionProps['title'];
 	export let subtitle: HeroSectionProps['subtitle'] = undefined;
+	export let highlight: HeroSectionProps['highlight'] = undefined;
 	export let description: HeroSectionProps['description'] = undefined;
 	export let actions: HeroSectionProps['actions'] = [];
 	export let media: HeroSectionProps['media'] = undefined;
@@ -23,10 +24,10 @@
 
 	let isVideoModalOpen = false;
 
- 	function openVideoModal() {
+	function openVideoModal() {
 		isVideoModalOpen = true;
 		console.log('Modal abrido');
-	};
+	}
 	const closeVideoModal = () => (isVideoModalOpen = false);
 
 	// Classes CSS baseadas nas props
@@ -92,21 +93,29 @@
 	<div class="hero-section-container">
 		<div class="hero-section-content">
 			<!-- Perguntar como colocar o nome em destaque. Somente o "Guardiões da Educação" em cor diferente -->
-			<Heading level={1} size="4xl" weight="bold" class="hero-section-title">
-				{title}
-			</Heading>
-			<!-- Verificar se essa gambiara vai funcionar ou devo fazer de outra maneira -->
-			{#if subtitle}
-				<div class="hero-subtitle-wrapper">
-					<Text as="span" size="xl" weight="semibold" color="inverse" class="hero-section-subtitle">
-						{subtitle}
-					</Text>
-					<img src="/images/decorative-icon.svg" alt="" class="hero-subtitle-icon" />
-				</div>
-			{/if}
-
+			<div class="hero-headings-container">
+				<Heading level={1} size="4xl" weight="bold" color="neutral" class="hero-section-title">
+					{title}
+				</Heading>
+				{#if subtitle}
+					<div class="hero-subtitle-wrapper">
+						<Heading level={1} size="3xl" weight="bold" color="white" class="hero-section-subtitle">
+							{subtitle}
+						</Heading>
+					</div>
+				{/if}
+				{#if highlight}
+					<div class="hero-highlight-wrapper">
+						<Heading level={1} size="4xl" weight="bold" shadow="drop" color="white" class="hero-section-highlight">
+							{highlight}
+						</Heading>
+						<!-- #TODO: USAR O ATOMO de ICONE LINHA 83 REFERENCIA -->
+					</div>
+				{/if}
+	
+			</div>
 			{#if description}
-				<Text as="p" size="lg" color="secondary" class="hero-section-description">
+				<Text as="p" size="lg" color="white" align="center" class="hero-section-description">
 					{description}
 				</Text>
 			{/if}
@@ -114,28 +123,27 @@
 			{#if actions && actions.length > 0}
 				<div class="hero-section-actions">
 					{#each actions as action}
-					{#if action.label === 'Assista o Vídeo'}
-						<Button
-							variant={action.variant || 'primary'}
-							size="lg"
-							onclick={(event) => {
-								openVideoModal();
-							}}
-							class="hero-section-action"
-						>
-							{action.label}
-						</Button>
+						{#if action.label === 'Assista o Vídeo'}
+							<Button
+								variant={action.variant || 'primary'}
+								size="lg"
+								onclick={(event) => {
+									openVideoModal();
+								}}
+								class="hero-section-action"
+							>
+								{action.label}
+							</Button>
 						{:else}
-						<Button
-							href={action.href || '#'}
-							variant={action.variant || 'primary'}
-							size="lg"
-							class="hero-section-action"
-						>
-							{action.label}
-						</Button>
-					{/if}
-
+							<Button
+								href={action.href || '#'}
+								variant={action.variant || 'primary'}
+								size="lg"
+								class="hero-section-action"
+							>
+								{action.label}
+							</Button>
+						{/if}
 					{/each}
 				</div>
 			{/if}
@@ -194,12 +202,6 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		background: linear-gradient(
-			135deg,
-			var(--color-primary-50) 0%,
-			var(--color-secondary-50) 50%,
-			var(--color-accent-50) 100%
-		);
 		overflow: hidden;
 	}
 
@@ -213,6 +215,14 @@
 		gap: var(--spacing-2xl);
 		position: relative;
 		z-index: 3;
+	}
+
+	.hero-headings-container {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		gap: var(--spacing-sm);
 	}
 
 	/* Tamanhos */
@@ -286,21 +296,11 @@
 
 	.hero-section-subtitle {
 		text-transform: uppercase;
-		letter-spacing: 1px;
+		letter-spacing: var(--spacing-xxxs);
 		margin: 0;
 		width: 100%;
 		text-align: inherit;
-		color: white;
-		text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-	}
-
-	.hero-subtitle-wrapper {
-		position: relative;
-		display: inline-block; /* para não ocupar largura toda */
-		background-color: var(--color-secondary-500); /* ou secondary-500, depende do design */
-		padding: 0.5rem 1.5rem; /* espaço interno */
-		border-radius: 8px; /* opcional */
-		margin: 1rem 0;
+		text-shadow: var(--shadow-md);
 	}
 
 	.hero-subtitle {
@@ -316,6 +316,23 @@
 		width: 20px; /* ajusta o tamanho */
 		height: 20px;
 		pointer-events: none; /* não atrapalha clique */
+	}
+
+	.hero-section-highlight {
+		text-transform: uppercase;
+		letter-spacing: var(--spacing-xxxs);
+		margin: 0;
+		width: 100%;
+		text-align: inherit;
+	}
+
+	.hero-highlight-wrapper {
+		position: relative;
+		display: inline-block;
+		background-color: var(--color-yellow-600);
+		padding: var(--spacing-sm) var(--spacing-lg);
+		border-radius: var(--border-radius-xl);
+		margin: var(--spacing-md) 0;
 	}
 
 	.hero-section-title {
@@ -416,6 +433,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		
 	}
 
 	.hero-section-media-background .hero-section-illustrations {

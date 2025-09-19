@@ -182,12 +182,13 @@
 
 	.button-outline {
 		background-color: transparent;
-		color: var(--color-primary-500);
-		border-color: var(--color-primary-500);
+		color: var(--color-secondary-600);
+		border-color: var(--color-secondary-600);
+		border-width: var(--border-width-thick);
 	}
 
 	.button-outline:hover:not(.button-disabled) {
-		background-color: var(--color-primary-500);
+		background-color: var(--color-secondary-700);
 		color: var(--color-neutral-0);
 		transform: translateY(-1px);
 		box-shadow: var(--shadow-md);
