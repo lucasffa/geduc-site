@@ -5,13 +5,15 @@
 		Size,
 		FontWeight,
 		ColorVariant,
-		TextAlign
+		TextAlign,
+		ShadowType
 	} from '$lib/types/components';
 	import Image from './Image.svelte';
 	import { onMount } from 'svelte';
 	import { logger } from '$lib/utils/logger';
 
 	export let level: HeadingProps['level'] = 1;
+	export let shadow: HeadingProps['shadow'] = undefined;
 	export let size: HeadingProps['size'] = undefined;
 	export let weight: HeadingProps['weight'] = undefined;
 	export let color: HeadingProps['color'] = 'accent';
@@ -127,6 +129,18 @@
 		justify: 'text-justify'
 	} as const;
 
+	// Mapeamento de shadows para classes CSS
+	const shadowMap: Record<ShadowType, string> = {
+		sm: 'heading-shadow-sm',
+		md: 'heading-shadow-md',
+		lg: 'heading-shadow-lg',
+		xl: 'heading-shadow-xl',
+		inner: 'heading-shadow-inner',
+		outline: 'heading-shadow-outline',
+		drop: 'heading-shadow-drop',
+		none: 'heading-shadow-none'
+	} as const;
+
 	// Mapeamento de posições de decoração para classes CSS
 	const decorationPositionMap: Record<string, string> = {
 		top: 'decoration-top',
@@ -145,6 +159,7 @@
 		align && alignMap[align],
 		gradient && 'heading-gradient',
 		decorativeLetter && 'heading-decorative',
+		shadow && shadowMap[shadow],
 		decoration &&
 			decorationPosition &&
 			`heading-decoration ${decorationPositionMap[decorationPosition]} decoration-${decorationStyle}`,
@@ -153,12 +168,20 @@
 		.filter(Boolean)
 		.join(' ');
 
+	// Estilos inline calculados reativamente
+	$: customStyles = {
+		color: color && !colorMap[color as ColorVariant] ? color : undefined,
+		textShadow: shadow && !shadowMap[shadow] ? shadow : undefined
+	};
+
 	// Debug: verificar props
 	$: logger.info('🎯 Heading Props:', {
 		level,
+		shadow,
 		decorativeLetter,
 		children: typeof children,
-		classes
+		classes,
+		customStyles
 	});
 
 	// Processa o texto após a montagem
@@ -178,7 +201,6 @@
 	$: tag = tagMap[level];
 
 	// Estilos inline para cores customizadas
-	$: customColor = color;
 	$: decorationColor = decorationColor;
 
 	// Caminho da imagem da letra decorativa
@@ -189,7 +211,8 @@
 	this={tag}
 	bind:this={headingElement}
 	class={classes}
-	style:color={customColor}
+	style:color={customStyles.color}
+	style:text-shadow={customStyles.textShadow}
 	{...$$restProps}
 >
 	{#if decoration}
@@ -355,6 +378,43 @@
 	}
 	.text-justify {
 		text-align: justify;
+	}
+
+	/* Shadows do texto usando CSS Variables */
+	.heading-shadow-sm {
+		text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+	}
+
+	.heading-shadow-md {
+		text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+	}
+
+	.heading-shadow-lg {
+		text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+	}
+
+	.heading-shadow-xl {
+		text-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+	}
+
+	.heading-shadow-inner {
+		text-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+	}
+
+	.heading-shadow-drop {
+		filter: var(--shadow-drop);
+	}
+
+	.heading-shadow-outline {
+		text-shadow: 
+			-1px -1px 0 rgba(0, 0, 0, 0.3),
+			1px -1px 0 rgba(0, 0, 0, 0.3),
+			-1px 1px 0 rgba(0, 0, 0, 0.3),
+			1px 1px 0 rgba(0, 0, 0, 0.3);
+	}
+
+	.heading-shadow-none {
+		text-shadow: none;
 	}
 
 	/* Gradiente */

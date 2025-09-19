@@ -8,14 +8,15 @@ export const load: PageLoad = async ({ fetch, params }) => {
 		// Aqui estamos simulando carregamento de dados
     const pageData: HomePageProps = {
       hero: {
-        title: 'Guardiões da Educação: Transformando Vidas Através do Conhecimento',
-        subtitle: 'Projeto Educacional Nacional',
+        title: 'Guardiões da Educação',
+        subtitle: 'Maior organização brasileira de',
+        highlight: 'Educação Humanizada',
         description: 'Somos um projeto educacional dedicado a democratizar o acesso ao ensino superior de qualidade, conectando estudantes a oportunidades transformadoras em todo o Brasil.',
         actions: [
           {
             label: 'Saiba Mais',
             href: '/sobre',
-            variant: 'primary'
+            variant: 'secondary'
           },
           {
             label: 'Assista o Vídeo',
@@ -30,9 +31,9 @@ export const load: PageLoad = async ({ fetch, params }) => {
         },
         background: {
           type: 'gradient',
-          value: 'linear-gradient(135deg, var(--color-primary-50) 0%, var(--color-secondary-50) 50%, var(--color-accent-50) 100%)'
+          value: 'linear-gradient(135deg, var(--color-primary-600) 0%, var(--color-primary-700) 50%, var(--color-primary-600) 100%)'
         },
-        layout: 'centered', // #TODO: Mudar para centered, perguntar se posso. Estava split
+        layout: 'centered',
         size: 'xl',
         decorative: true
       },
@@ -252,6 +253,7 @@ export const load: PageLoad = async ({ fetch, params }) => {
 			pageData: {
 				hero: {
 					title: 'Guardiões da Educação',
+          highlight: 'Só de brincadeira',
 					description: 'Transformando vidas através do conhecimento.',
 					actions: [],
 					layout: 'centered' as const,

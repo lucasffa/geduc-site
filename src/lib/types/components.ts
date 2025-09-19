@@ -53,6 +53,8 @@ export type TextAlign = 'left' | 'center' | 'right' | 'justify';
  */
 export type HeadingLevel = 1 | 2 | 3 | 4 | 5 | 6;
 
+export type ShadowType = 'sm' | 'md' | 'lg' | 'xl' | 'none' | 'outline' | 'inner' | 'drop';
+
 /**
  * Temas de cor disponíveis
  */
@@ -245,6 +247,9 @@ export interface LogoProps extends BaseComponentProps, Partial<LinkableProps> {
 export interface HeadingProps extends BaseComponentProps {
 	/** Nível semântico do heading */
 	level: HeadingLevel;
+
+	/** Nível semântico do heading */
+	shadow: ShadowType | undefined;
 
 	/** Tamanho visual (pode diferir do nível semântico) */
 	size?: Size;
@@ -600,6 +605,9 @@ export interface HeroSectionProps extends BaseComponentProps {
 
 	/** Subtítulo */
 	subtitle?: string;
+
+	/** highlight */
+	highlight?: string;
 
 	/** Descrição */
 	description?: string;

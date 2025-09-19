@@ -69,8 +69,8 @@ h6 {
 	--color-primary-300: #90caf9;
 	--color-primary-400: #64b5f6;
 	--color-primary-500: #42a5f5;
-	--color-primary-600: #2196f3;
-	--color-primary-700: #152db5;
+	--color-primary-600: #324ACB;
+	--color-primary-700: #161AA3;
 	--color-primary-800: #191ea6;
 	--color-primary-900: #152db5;
 
@@ -405,6 +405,7 @@ h6 {
 	--shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 	--shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
 	--shadow-outline: 0 0 0 3px rgba(66, 153, 225, 0.5);
+	--shadow-drop: drop-shadow(4px 4px 0px rgba(27, 33, 171, 0.8));
 }
 
 /* -----------------------------------------------------------------------------

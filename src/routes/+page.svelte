@@ -188,6 +188,7 @@
 		<HeroSection
 			title={data.pageData.hero.title}
 			subtitle={'subtitle' in data.pageData.hero ? data.pageData.hero.subtitle : undefined}
+			highlight={'highlight' in data.pageData.hero ? data.pageData.hero.highlight : 'Bom Dia'}
 			description={data.pageData.hero.description}
 			actions={data.pageData.hero.actions}
 			media={'media' in data.pageData.hero ? data.pageData.hero.media : undefined}
