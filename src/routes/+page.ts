@@ -11,7 +11,7 @@ export const load: PageLoad = async ({ fetch, params }) => {
         title: 'Guardiões da Educação',
         subtitle: 'Maior organização brasileira de',
         highlight: 'Educação Humanizada',
-        description: 'Somos um projeto educacional dedicado a democratizar o acesso ao ensino superior de qualidade, conectando estudantes a oportunidades transformadoras em todo o Brasil.',
+        description: 'Somos um projeto educacional sem fins lucrativos que acredita em uma educação de forma humanizada, plural e acessível. Atuamos em todas as regiões do Brasil, conectados por um mesmo sonho: tornar o aprendizado uma jornada viva, que vai além da sala de aula e se entrelaça com as experiências de cada indivíduo.',
         actions: [
           {
             label: 'Saiba Mais',
@@ -31,7 +31,7 @@ export const load: PageLoad = async ({ fetch, params }) => {
         },
         background: {
           type: 'gradient',
-          value: 'linear-gradient(135deg, var(--color-primary-600) 0%, var(--color-primary-700) 50%, var(--color-primary-600) 100%)'
+          value: 'radial-gradient(circle at center, var(--color-primary-600) 0%, var(--color-primary-700) 100%)'
         },
         layout: 'centered',
         size: 'xl',

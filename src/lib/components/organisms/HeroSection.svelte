@@ -93,25 +93,27 @@
 	<div class="hero-section-container">
 		<div class="hero-section-content">
 			<!-- Perguntar como colocar o nome em destaque. Somente o "Guardiões da Educação" em cor diferente -->
-			<Heading level={1} size="4xl" weight="bold" color="neutral" class="hero-section-title">
-				{title}
-			</Heading>
-			{#if subtitle}
-				<div class="hero-subtitle-wrapper">
-					<Heading level={1} size="3xl" weight="bold" color="white" class="hero-section-subtitle">
-						{subtitle}
-					</Heading>
-				</div>
-			{/if}
-			{#if highlight}
-				<div class="hero-highlight-wrapper">
-					<Heading level={1} size="4xl" weight="bold" shadow="drop" color="white" class="hero-section-highlight">
-						{highlight}
-					</Heading>
-					<!-- #TODO: USAR O ATOMO de ICONE LINHA 83 REFERENCIA -->
-				</div>
-			{/if}
-
+			<div class="hero-headings-container">
+				<Heading level={1} size="4xl" weight="bold" color="neutral" class="hero-section-title">
+					{title}
+				</Heading>
+				{#if subtitle}
+					<div class="hero-subtitle-wrapper">
+						<Heading level={1} size="3xl" weight="bold" color="white" class="hero-section-subtitle">
+							{subtitle}
+						</Heading>
+					</div>
+				{/if}
+				{#if highlight}
+					<div class="hero-highlight-wrapper">
+						<Heading level={1} size="4xl" weight="bold" shadow="drop" color="white" class="hero-section-highlight">
+							{highlight}
+						</Heading>
+						<!-- #TODO: USAR O ATOMO de ICONE LINHA 83 REFERENCIA -->
+					</div>
+				{/if}
+	
+			</div>
 			{#if description}
 				<Text as="p" size="lg" color="white" align="center" class="hero-section-description">
 					{description}
@@ -200,12 +202,6 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		background: linear-gradient(
-			135deg,
-			var(--color-primary-50) 0%,
-			var(--color-secondary-50) 50%,
-			var(--color-accent-50) 100%
-		);
 		overflow: hidden;
 	}
 
@@ -219,6 +215,14 @@
 		gap: var(--spacing-2xl);
 		position: relative;
 		z-index: 3;
+	}
+
+	.hero-headings-container {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		gap: var(--spacing-sm);
 	}
 
 	/* Tamanhos */
