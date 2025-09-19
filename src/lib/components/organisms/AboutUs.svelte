@@ -101,7 +101,6 @@
 		<div class="about-us-content">
 			<!-- Texto principal -->
 			<div class="about-us-text">
-				
 				<TextBlock
 					content={description}
 					variant="paragraphs"
@@ -144,6 +143,7 @@
 						objectFit={media.objectFit || 'contain'}
 						loading={media.loading || 'lazy'}
 						class="about-us-image image-halftone"
+						blendMode="screen"
 					/>
 				</div>
 			{:else}

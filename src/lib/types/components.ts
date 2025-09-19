@@ -38,6 +38,22 @@ export type ColorVariant =
 	| 'info'
 	| 'white';
 
+export type BlendType =
+	| 'multiply'
+	| 'screen'
+	| 'overlay'
+	| 'darken'
+	| 'lighten'
+	| 'color-dodge'
+	| 'color-burn'
+	| 'hard-light'
+	| 'soft-light'
+	| 'difference'
+	| 'exclusion'
+	| 'hue'
+	| 'saturation'
+	| 'color'
+	| 'luminosity';
 /**
  * Pesos de fonte disponíveis
  */
@@ -167,6 +183,9 @@ export interface MediaProps {
 
 	/** Placeholder durante carregamento */
 	placeholder?: string;
+
+	/** Se deve aplicar blend mode*/
+	blendMode?: BlendType;
 }
 
 // ================================
@@ -197,35 +216,35 @@ export interface IconProps extends BaseComponentProps {
 }
 
 export interface ButtonProps extends BaseComponentProps, Partial<LinkableProps> {
-  /** Variante visual do botão */
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
-  
-  /** Tamanho do botão */
-  size?: Size;
-  
-  /** Se está desabilitado */
-  disabled?: boolean;
-  
-  /** Se está em estado de carregamento */
-  loading?: boolean;
-  
-  /** Tipo do botão (quando usado como button) */
-  type?: 'button' | 'submit' | 'reset';
-  
-  /** Ícone do botão */
-  icon?: string;
-  
-  /** Posição do ícone */
-  iconPosition?: 'left' | 'right';
-  
-  /** Se deve ocupar toda a largura disponível */
-  fullWidth?: boolean;
-  
-  /** Conteúdo do botão */
-  children: Snippet;
+	/** Variante visual do botão */
+	variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
 
-  /** Função passada */
-  onclick?: (event:MouseEvent) => void;
+	/** Tamanho do botão */
+	size?: Size;
+
+	/** Se está desabilitado */
+	disabled?: boolean;
+
+	/** Se está em estado de carregamento */
+	loading?: boolean;
+
+	/** Tipo do botão (quando usado como button) */
+	type?: 'button' | 'submit' | 'reset';
+
+	/** Ícone do botão */
+	icon?: string;
+
+	/** Posição do ícone */
+	iconPosition?: 'left' | 'right';
+
+	/** Se deve ocupar toda a largura disponível */
+	fullWidth?: boolean;
+
+	/** Conteúdo do botão */
+	children: Snippet;
+
+	/** Função passada */
+	onclick?: (event: MouseEvent) => void;
 }
 
 export interface LogoProps extends BaseComponentProps, Partial<LinkableProps> {
