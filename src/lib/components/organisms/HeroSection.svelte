@@ -76,14 +76,14 @@
 					<Image
 						src="/images/illustrations/brain.svg"
 						alt="Ilustração de cérebro representando conhecimento"
-						class="image-halftone"
+						blendMode="screen"
 					/>
 				</div>
 				<div class="hero-illustration hero-illustration-lamp">
 					<Image
 						src="/images/illustrations/lamp.png"
 						alt="Ilustração de lâmpada representando ideias"
-						class="image-halftone"
+						blendMode="screen"
 					/>
 				</div>
 			</div>
@@ -106,13 +106,19 @@
 				{/if}
 				{#if highlight}
 					<div class="hero-highlight-wrapper">
-						<Heading level={1} size="4xl" weight="bold" shadow="drop" color="white" class="hero-section-highlight">
+						<Heading
+							level={1}
+							size="4xl"
+							weight="bold"
+							shadow="drop"
+							color="white"
+							class="hero-section-highlight"
+						>
 							{highlight}
 						</Heading>
 						<!-- #TODO: USAR O ATOMO de ICONE LINHA 83 REFERENCIA -->
 					</div>
 				{/if}
-	
 			</div>
 			{#if description}
 				<Text as="p" size="lg" color="white" align="center" class="hero-section-description">
@@ -408,7 +414,19 @@
 		bottom: 0;
 		z-index: 1;
 		pointer-events: none;
-		opacity: 0.3;
+		/* Backdrop mais luminoso para o mix-blend-mode: screen */
+		background:
+			/* halo claro central */
+			radial-gradient(40% 40% at 25% 35%, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0) 60%),
+			/* halo claro secundário */
+				radial-gradient(
+					35% 35% at 75% 65%,
+					rgba(255, 255, 255, 0.35) 0%,
+					rgba(255, 255, 255, 0) 60%
+				),
+			/* cores temáticas para enriquecer a mistura */
+				radial-gradient(60% 60% at 30% 30%, rgba(50, 74, 203, 0.35) 0%, rgba(50, 74, 203, 0) 60%),
+			radial-gradient(50% 50% at 70% 70%, rgba(246, 203, 90, 0.35) 0%, rgba(246, 203, 90, 0) 60%);
 	}
 
 	.hero-section-layout-centered .hero-section-media {
@@ -433,7 +451,6 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		
 	}
 
 	.hero-section-media-background .hero-section-illustrations {
