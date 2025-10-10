@@ -76,14 +76,12 @@
 					<Image
 						src="/images/illustrations/brain.svg"
 						alt="Ilustração de cérebro representando conhecimento"
-						class="image-halftone"
 					/>
 				</div>
 				<div class="hero-illustration hero-illustration-lamp">
 					<Image
 						src="/images/illustrations/lamp.png"
 						alt="Ilustração de lâmpada representando ideias"
-						class="image-halftone"
 					/>
 				</div>
 			</div>
@@ -106,13 +104,19 @@
 				{/if}
 				{#if highlight}
 					<div class="hero-highlight-wrapper">
-						<Heading level={1} size="4xl" weight="bold" shadow="drop" color="white" class="hero-section-highlight">
+						<Heading
+							level={1}
+							size="4xl"
+							weight="bold"
+							shadow="drop"
+							color="white"
+							class="hero-section-highlight"
+						>
 							{highlight}
 						</Heading>
 						<!-- #TODO: USAR O ATOMO de ICONE LINHA 83 REFERENCIA -->
 					</div>
 				{/if}
-	
 			</div>
 			{#if description}
 				<Text as="p" size="lg" color="white" align="center" class="hero-section-description">
@@ -408,8 +412,8 @@
 		bottom: 0;
 		z-index: 1;
 		pointer-events: none;
-		opacity: 0.3;
-	}
+		/* Backdrop mais luminoso para o mix-blend-mode: screen */
+		}
 
 	.hero-section-layout-centered .hero-section-media {
 		width: 100%;
@@ -433,7 +437,6 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		
 	}
 
 	.hero-section-media-background .hero-section-illustrations {
