@@ -54,6 +54,16 @@ export type BlendType =
 	| 'saturation'
 	| 'color'
 	| 'luminosity';
+
+/**
+ * Tipos de máscara para imagens raster (PNG, JPG, WEBP, AVIF)
+ */
+export type MaskMode = 'alpha' | 'luminance' | 'match-source';
+
+/**
+ * Modos de blend para background das imagens mascaradas
+ */
+export type MaskBlendMode = 'multiply' | 'screen' | 'overlay' | 'darken' | 'lighten' | 'luminosity';
 /**
  * Pesos de fonte disponíveis
  */
@@ -186,8 +196,17 @@ export interface MediaProps {
 	/** Placeholder durante carregamento */
 	placeholder?: string;
 
-	/** Se deve aplicar blend mode*/
+	/** Se deve aplicar blend mode (apenas para SVGs) */
 	blendMode?: BlendType;
+
+	/** Modo de máscara para imagens raster (PNG, JPG, WEBP, AVIF) */
+	maskMode?: MaskMode;
+
+	/** Modo de blend para o background da máscara */
+	maskBlendMode?: MaskBlendMode;
+
+	/** Cor para aplicar na máscara */
+	maskColor?: string;
 }
 
 // ================================

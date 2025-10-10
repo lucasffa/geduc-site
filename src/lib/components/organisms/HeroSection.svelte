@@ -71,19 +71,17 @@
 	{#if media && media.type === 'illustration'}
 		<div class="hero-section-media hero-section-media-background">
 			<div class="hero-section-illustrations">
-				<!-- Ilustrações específicas mencionadas na hierarquia -->
-				<div class="hero-illustration hero-illustration-brain">
-					<Image
-						src="/images/illustrations/brain.svg"
-						alt="Ilustração de cérebro representando conhecimento"
-						blendMode="screen"
-					/>
-				</div>
+			<!-- Ilustrações específicas mencionadas na hierarquia -->
+			<div class="hero-illustration hero-illustration-brain">
+				<Image
+					src="/images/illustrations/brain.png"
+					alt="Ilustração de cérebro representando conhecimento"
+				/>
+			</div>
 				<div class="hero-illustration hero-illustration-lamp">
 					<Image
 						src="/images/illustrations/lamp.png"
 						alt="Ilustração de lâmpada representando ideias"
-						blendMode="screen"
 					/>
 				</div>
 			</div>
@@ -415,19 +413,7 @@
 		z-index: 1;
 		pointer-events: none;
 		/* Backdrop mais luminoso para o mix-blend-mode: screen */
-		background:
-			/* halo claro central */
-			radial-gradient(40% 40% at 25% 35%, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0) 60%),
-			/* halo claro secundário */
-				radial-gradient(
-					35% 35% at 75% 65%,
-					rgba(255, 255, 255, 0.35) 0%,
-					rgba(255, 255, 255, 0) 60%
-				),
-			/* cores temáticas para enriquecer a mistura */
-				radial-gradient(60% 60% at 30% 30%, rgba(50, 74, 203, 0.35) 0%, rgba(50, 74, 203, 0) 60%),
-			radial-gradient(50% 50% at 70% 70%, rgba(246, 203, 90, 0.35) 0%, rgba(246, 203, 90, 0) 60%);
-	}
+		}
 
 	.hero-section-layout-centered .hero-section-media {
 		width: 100%;
