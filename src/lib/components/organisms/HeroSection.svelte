@@ -71,13 +71,13 @@
 	{#if media && media.type === 'illustration'}
 		<div class="hero-section-media hero-section-media-background">
 			<div class="hero-section-illustrations">
-			<!-- Ilustrações específicas mencionadas na hierarquia -->
-			<div class="hero-illustration hero-illustration-brain">
-				<Image
-					src="/images/illustrations/brain.png"
-					alt="Ilustração de cérebro representando conhecimento"
-				/>
-			</div>
+				<!-- Ilustrações específicas mencionadas na hierarquia -->
+				<div class="hero-illustration hero-illustration-brain">
+					<Image
+						src="/images/illustrations/brain.svg"
+						alt="Ilustração de cérebro representando conhecimento"
+					/>
+				</div>
 				<div class="hero-illustration hero-illustration-lamp">
 					<Image
 						src="/images/illustrations/lamp.png"

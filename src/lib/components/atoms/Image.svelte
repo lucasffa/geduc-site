@@ -12,9 +12,6 @@
 	export let priority: ImageProps['priority'] = false;
 	export let placeholder: ImageProps['placeholder'] = undefined;
 	export let blendMode: ImageProps['blendMode'] = undefined;
-	export let maskMode: ImageProps['maskMode'] = undefined;
-	export let maskBlendMode: ImageProps['maskBlendMode'] = 'luminosity';
-	export let maskColor: ImageProps['maskColor'] = undefined;
 	// Eventos
 	export let onload: ImageProps['onload'] = undefined;
 	export let onerror: ImageProps['onerror'] = undefined;
@@ -27,38 +24,19 @@
 	let loaded = false;
 	let error = false;
 	let imageElement: HTMLImageElement;
-	
-	// Detecta se a imagem é SVG
-	$: isSVG = src?.toLowerCase().endsWith('.svg') || src?.includes('data:image/svg+xml');
-	
-	// Determina se deve usar blend ou mask
-	$: useBlendMode = isSVG && blendMode;
-	$: useMaskMode = !isSVG && maskMode && maskColor;
-	
-	// Debug
-	$: if (useMaskMode) {
-		console.log('🎭 Mask Mode ativado:', { src, maskMode, maskColor, maskBlendMode });
-	}
 
 	// Classes CSS baseadas nas props
 	$: classes = [
 		'image',
 		`image-aspect-${aspectRatio}`,
 		`image-fit-${objectFit}`,
-		useBlendMode && `blend-mode-${blendMode}`,
-		useMaskMode && `mask-mode-${maskMode}`,
-		useMaskMode && maskBlendMode && `mask-blend-${maskBlendMode}`,
+		blendMode && `blend-mode-${blendMode}`,
 		!loaded && 'image-loading',
 		error && 'image-error',
 		className
 	]
 		.filter(Boolean)
 		.join(' ');
-		
-	// CSS Custom Properties para máscara - idiomático Svelte
-	$: inlineStyles = useMaskMode 
-		? `background-image: url("${src}"); background-color: ${maskColor}; -webkit-mask-image: url("${src}"); mask-image: url("${src}");`
-		: '';
 
 	// Handlers de eventos
 	function handleLoad() {
@@ -83,7 +61,7 @@
 	}
 </script>
 
-<div class="image-container">
+<div class="image-container {classes}">
 	{#if placeholder && !loaded && !error}
 		<div class="image-placeholder">
 			{#if placeholder.startsWith('data:') || placeholder.startsWith('http')}
@@ -94,42 +72,18 @@
 		</div>
 	{/if}
 
-	{#if useMaskMode}
-		<!-- Para imagens raster com máscara - usa background-image -->
-		<div 
-			class="image-element-masked {classes}"
-			style={inlineStyles}
-			role="img"
-			aria-label={alt}
-		>
-			<!-- Imagem invisível para carregar e manter acessibilidade -->
-			<img
-				bind:this={imageElement}
-				{src}
-				{alt}
-				{width}
-				{height}
-				loading={priority ? 'eager' : loading}
-				class="image-loader"
-				on:load={handleLoad}
-				on:error={handleError}
-			/>
-		</div>
-	{:else}
-		<!-- Para SVGs e imagens normais -->
-		<img
-			bind:this={imageElement}
-			{src}
-			{alt}
-			{width}
-			{height}
-			loading={priority ? 'eager' : loading}
-			class="image-element {classes}"
-			on:load={handleLoad}
-			on:error={handleError}
-			{...$$restProps}
-		/>
-	{/if}
+	<img
+		bind:this={imageElement}
+		{src}
+		{alt}
+		{width}
+		{height}
+		loading={priority ? 'eager' : loading}
+		class="image-element"
+		on:load={handleLoad}
+		on:error={handleError}
+		{...$$restProps}
+	/>
 
 	{#if error}
 		<div class="image-error-state">
@@ -159,48 +113,24 @@
 		transition: opacity var(--transition-normal) var(--transition-timing-default);
 	}
 
-	/* Elemento mascarado - usa background-image com mask */
-	.image-element-masked {
-		width: 100%;
-		height: 100%;
-		/* background-image e background-color vêm do inline style */
-		background-size: cover;
-		background-position: center;
-		background-repeat: no-repeat;
-	}
-
-	/* Imagem loader invisível */
-	.image-loader {
-		position: absolute;
-		width: 0;
-		height: 0;
-		opacity: 0;
-		pointer-events: none;
-	}
-
 	/* Aspect Ratios */
-	.image-aspect-square,
-	.image-aspect-square.image-element-masked {
+	.image-aspect-square {
 		aspect-ratio: 1 / 1;
 	}
 
-	.image-aspect-16\/9,
-	.image-aspect-16\/9.image-element-masked {
+	.image-aspect-16\/9 {
 		aspect-ratio: 16 / 9;
 	}
 
-	.image-aspect-4\/3,
-	.image-aspect-4\/3.image-element-masked {
+	.image-aspect-4\/3 {
 		aspect-ratio: 4 / 3;
 	}
 
-	.image-aspect-3\/2,
-	.image-aspect-3\/2.image-element-masked {
+	.image-aspect-3\/2 {
 		aspect-ratio: 3 / 2;
 	}
 
-	.image-aspect-auto,
-	.image-aspect-auto.image-element-masked {
+	.image-aspect-auto {
 		aspect-ratio: auto;
 	}
 
@@ -224,68 +154,6 @@
 	.image-fit-none .image-element {
 		object-fit: none;
 	}
-
-	/* Mask Modes - para imagens raster (PNG, JPG, WEBP, AVIF) */
-	/* O mask-image vem do inline style, aqui só configuramos o modo e tamanho */
-	.mask-mode-alpha.image-element-masked {
-		-webkit-mask-mode: alpha;
-		-webkit-mask-size: cover;
-		-webkit-mask-position: center;
-		-webkit-mask-repeat: no-repeat;
-		mask-mode: alpha;
-		mask-size: cover;
-		mask-position: center;
-		mask-repeat: no-repeat;
-	}
-
-	.mask-mode-luminance.image-element-masked {
-		-webkit-mask-mode: luminance;
-		-webkit-mask-size: cover;
-		-webkit-mask-position: center;
-		-webkit-mask-repeat: no-repeat;
-		mask-mode: luminance;
-		mask-size: cover;
-		mask-position: center;
-		mask-repeat: no-repeat;
-	}
-
-	.mask-mode-match-source.image-element-masked {
-		-webkit-mask-mode: match-source;
-		-webkit-mask-size: cover;
-		-webkit-mask-position: center;
-		-webkit-mask-repeat: no-repeat;
-		mask-mode: match-source;
-		mask-size: cover;
-		mask-position: center;
-		mask-repeat: no-repeat;
-	}
-
-	/* Blend modes para máscaras */
-	.mask-blend-multiply.image-element-masked {
-		background-blend-mode: multiply;
-	}
-
-	.mask-blend-screen.image-element-masked {
-		background-blend-mode: screen;
-	}
-
-	.mask-blend-overlay.image-element-masked {
-		background-blend-mode: overlay;
-	}
-
-	.mask-blend-darken.image-element-masked {
-		background-blend-mode: darken;
-	}
-
-	.mask-blend-lighten.image-element-masked {
-		background-blend-mode: lighten;
-	}
-
-	.mask-blend-luminosity.image-element-masked {
-		background-blend-mode: luminosity;
-	}
-
-	/* Blend Modes - apenas para SVGs */
 
 	.blend-mode-screen .image-element {
 		mix-blend-mode: screen;
