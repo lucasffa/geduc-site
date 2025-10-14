@@ -19,7 +19,11 @@
 		facebook: 'M12 12m-10 0a10 10 0 1 0 20 0a10 10 0 1 0 -20 0',
 		linkedin: 'M12 12m-10 0a10 10 0 1 0 20 0a10 10 0 1 0 -20 0',
 		instagram: 'M12 12m-10 0a10 10 0 1 0 20 0a10 10 0 1 0 -20 0',
-		'arrow-up': 'M12 12m-10 0a10 10 0 1 0 20 0a10 10 0 1 0 -20 0'
+		'arrow-up': 'M12 12m-10 0a10 10 0 1 0 20 0a10 10 0 1 0 -20 0',
+		'quote': 'M3.57725 6.296H0.02525L2.61725 0.248H4.94525L3.57725 6.296ZM8.42525 6.296H4.87325L7.46525 0.248H9.79325L8.42525 6.296Z',
+		'star': 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z',
+		'chevron-left': 'M15 18l-6-6 6-6',
+		'chevron-right': 'M9 18l6-6-6-6'
 	};
 
 	// Determina o tamanho em pixels
@@ -67,8 +71,8 @@
 	width={iconSize}
 	height={iconSize}
 	viewBox="0 0 24 24"
-	fill="none"
-	stroke={iconColor}
+	fill={name === 'star' ? iconColor : 'none'}
+	stroke={name === 'star' ? 'none' : iconColor}
 	stroke-width="2"
 	stroke-linecap="round"
 	stroke-linejoin="round"
