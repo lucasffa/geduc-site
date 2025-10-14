@@ -323,6 +323,9 @@ export interface TextProps extends BaseComponentProps {
 	/** Altura específica da linha */
 	lineHeight?: 'normal' | 'tight' | 'relaxed' | 'loose';
 
+	/** Estilo da fonte */
+	fontStyle?: 'italic' | 'normal' | 'bold' | 'underline' | 'line-through';
+
 	/** Se deve truncar o texto */
 	truncate?: boolean;
 
@@ -493,6 +496,12 @@ export interface TestimonialCardProps extends BaseComponentProps {
 
 	/** Data do depoimento */
 	date?: string;
+
+	/** Raio da borda */
+	borderRadius?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | 'none';
+
+	/** Tamanho fixo do card (largura e altura definidas) */
+	size?: Extract<Size, 'xs' | 'sm' | 'md' | 'lg' | 'xl'>;
 }
 
 export interface SectionHeaderProps extends BaseComponentProps {
@@ -787,6 +796,9 @@ export interface TestimonialsSectionProps extends BaseComponentProps {
 
 	/** Se deve mostrar indicadores */
 	indicators?: boolean;
+
+	/** Se deve mostrar avaliação */
+	showRating?: boolean | undefined;
 }
 
 export interface FooterProps extends BaseComponentProps {

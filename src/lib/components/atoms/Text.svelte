@@ -5,12 +5,13 @@
 	export let as: TextProps['as'] = 'p';
 	export let size: TextProps['size'] = 'md';
 	export let weight: TextProps['weight'] = 'normal';
-	export let color: TextProps['color'] = 'primary';
+	export let color: TextProps['color'] = 'neutral';
 	export let align: TextProps['align'] = 'left';
 	export let leading: TextProps['leading'] = 'normal';
 	export let truncate: TextProps['truncate'] = false;
 	export let maxLines: TextProps['maxLines'] = undefined;
 	export let lineHeight: TextProps['lineHeight'] = 'normal';
+	export let fontStyle: TextProps['fontStyle'] = undefined;
 
 	// Classes adicionais
 	let className = '';
@@ -25,6 +26,7 @@
 		`text-align-${align}`,
 		`text-leading-${leading}`,
 		`text-lineheight-${lineHeight}`,
+		`text-style-${fontStyle}`,
 		truncate && 'text-truncate',
 		maxLines && 'text-clamp',
 		className
@@ -53,6 +55,26 @@
 		font-family: var(--font-family-sans);
 	}
 
+	.text-style-italic {
+		font-style: italic;
+	}
+	
+	.text-style-normal {
+		font-style: normal;
+	}
+
+	.text-style-bold {
+		font-weight: var(--font-weight-bold);
+	}
+	
+	.text-style-underline {
+		text-decoration: underline;
+	}
+	
+	.text-style-line-through {
+		text-decoration: line-through;
+	}
+
 	/* Tamanhos */
 	.text-size-xs {
 		font-size: var(--font-size-xs);
@@ -76,6 +98,14 @@
 
 	.text-size-2xl {
 		font-size: var(--font-size-2xl);
+	}
+
+	.text-size-3xl {
+		font-size: var(--font-size-3xl);
+	}
+	
+	.text-size-4xl {
+		font-size: var(--font-size-4xl);
 	}
 
 	/* Pesos */
@@ -113,7 +143,7 @@
 	}
 
 	.text-color-neutral {
-		color: var(--text-color-subtle);
+		color: var(--text-color-neutral);
 	}
 	.text-color-white {
 		color: var(--color-neutral-0);

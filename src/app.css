@@ -212,11 +212,12 @@ h6 {
 :root {
 	/* Cores de texto */
 	--text-color-primary: var(--color-primary-900);
-	--text-color-secondary: var(--color-neutral-700);
+	--text-color-secondary: var(--color-neutral-900);
 	--text-color-subtle: var(--color-neutral-600);
 	--text-color-disabled: var(--color-neutral-500);
 	--text-color-inverse: var(--color-neutral-0);
 	--text-color-accent: var(--color-accent-500);
+	--text-color-neutral: var(--color-neutral-900);
 
 	/* Cores de fundo */
 	--background-color-page: var(--color-neutral-50);
@@ -371,6 +372,31 @@ h6 {
 	--container-max-width-lg: 1024px;
 	--container-max-width-xl: 1280px;
 
+	/* Card dimensions - Sistema de tamanhos baseado em Size */
+	/* Extra Small */
+	--card-width-xs: calc(60 * var(--spacing-unit)); /* 240px */
+	--card-height-xs: calc(40 * var(--spacing-unit)); /* 160px */
+	
+	/* Small */
+	--card-width-sm: calc(75 * var(--spacing-unit)); /* 300px */
+	--card-height-sm: calc(50 * var(--spacing-unit)); /* 200px */
+	
+	/* Medium - padrão */
+	--card-width-md: calc(100 * var(--spacing-unit)); /* 400px */
+	--card-height-md: calc(60 * var(--spacing-unit)); /* 240px */
+	
+	/* Large */
+	--card-width-lg: calc(125 * var(--spacing-unit)); /* 500px */
+	--card-height-lg: calc(75 * var(--spacing-unit)); /* 300px */
+	
+	/* Extra Large */
+	--card-width-xl: calc(150 * var(--spacing-unit)); /* 600px */
+	--card-height-xl: calc(100 * var(--spacing-unit)); /* 400px */
+	
+	/* Dimensões flexíveis para fallback */
+	--card-min-height: calc(40 * var(--spacing-unit)); /* 160px */
+	--card-max-height: calc(100 * var(--spacing-unit)); /* 400px */
+
 	/* Button width in 40px increments from xxs to 10xl*/
 	--button-width-xxs: 40px;
 	--button-width-xs: 80px;
@@ -401,7 +427,15 @@ h6 {
 	--border-radius-lg: 0.5rem;
 	/* 8px */
 	--border-radius-xl: 1rem;
-	/* 16px */
+	/* 16px */	
+	--border-radius-2xl: 1.5rem;
+	/* 24px */
+	--border-radius-3xl: 2rem;
+	/* 32px */
+	--border-radius-4xl: 2.5rem;
+	/* 40px */
+	--border-radius-none: 0;
+	/* 0px */
 	--border-radius-full: 9999px;
 
 	/* Border Width */

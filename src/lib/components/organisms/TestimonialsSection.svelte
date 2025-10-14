@@ -15,6 +15,7 @@
     export let autoplayInterval: TestimonialsSectionProps['autoplayInterval'] = 5000;
     export let navigation: TestimonialsSectionProps['navigation'] = false;
     export let indicators: TestimonialsSectionProps['indicators'] = false;
+    export let showRating: TestimonialsSectionProps['showRating'] = false;
   
     // Classes adicionais
     let className = '';
@@ -102,7 +103,10 @@
         title={title || ''}
         description={description || ''}
         align="center"
-        decorative
+					decorativeLetter={true}
+					decoration={true}
+					decorationColor="var(--color-yellow-600)"
+					decorationPosition="bottom"
         class="testimonials-section-header"
       />
     {/if}
@@ -136,10 +140,11 @@
                     <TestimonialCard
                       quote={testimonial.quote}
                       author={testimonial.author}
-                      rating={testimonial.rating && testimonial.rating >= 1 && testimonial.rating <= 5 ? testimonial.rating as 1 | 2 | 3 | 4 | 5 : undefined}
+                      rating={showRating && testimonial.rating && testimonial.rating >= 1 && testimonial.rating <= 5 ? testimonial.rating as 1 | 2 | 3 | 4 | 5 : undefined}
                       featured={testimonial.featured}
                       variant="card"
                       date={testimonial.date}
+                      size="md"
                       class="testimonials-section-card"
                     />
                   </div>
@@ -178,10 +183,11 @@
                 <TestimonialCard
                   quote={testimonial.quote}
                   author={testimonial.author}
-                  rating={testimonial.rating && testimonial.rating >= 1 && testimonial.rating <= 5 ? testimonial.rating as 1 | 2 | 3 | 4 | 5 : undefined}
+                  rating={showRating && testimonial.rating && testimonial.rating >= 1 && testimonial.rating <= 5 ? testimonial.rating as 1 | 2 | 3 | 4 | 5 : undefined}
                   featured={testimonial.featured}
                   variant="card"
                   date={testimonial.date}
+                  size="md"
                   class="testimonials-section-card"
                 />
               </div>
@@ -228,24 +234,34 @@
       display: grid;
       gap: var(--spacing-lg);
       align-items: start;
+      justify-items: center;
+      width: 100%;
     }
 
     .testimonials-section-card-wrapper {
       animation: fadeInUp 0.6s ease-out both;
+      width: 100%;
+      display: flex;
+      justify-content: center;
     }
   
+    /* Grid com 1 coluna - cards centralizados */
     .testimonials-section-layout-grid.testimonials-section-columns-1 .testimonials-section-grid {
       grid-template-columns: 1fr;
       max-width: 800px;
       margin: 0 auto;
     }
   
+    /* Grid com 2 colunas - auto-fit responsivo */
     .testimonials-section-layout-grid.testimonials-section-columns-2 .testimonials-section-grid {
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(auto-fit, minmax(min(400px, 100%), 1fr));
+      justify-items: center;
     }
   
+    /* Grid com 3 colunas - auto-fit responsivo */
     .testimonials-section-layout-grid.testimonials-section-columns-3 .testimonials-section-grid {
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(auto-fit, minmax(min(350px, 100%), 1fr));
+      justify-items: center;
     }
   
     /* Masonry Layout */
@@ -362,6 +378,13 @@
     }
   
     /* Responsividade */
+    @media (max-width: 1400px) {
+      /* Em telas menores, 3 colunas viram 2 */
+      .testimonials-section-layout-grid.testimonials-section-columns-3 .testimonials-section-grid {
+        grid-template-columns: repeat(auto-fit, minmax(min(400px, 100%), 1fr));
+      }
+    }
+
     @media (max-width: 768px) {
       .testimonials-section {
         padding: var(--spacing-3xl) 0;

@@ -171,50 +171,93 @@ export const load: PageLoad = async ({ fetch, params }) => {
 					'Histórias reais de transformação e sucesso de estudantes que tiveram suas vidas mudadas através dos nossos programas.',
 				testimonials: [
 					{
-						id: 'testimonial-gabriela',
+						id: 'testimonial-gabriela-1',
 						quote:
-							'O programa mudou completamente minha perspectiva sobre educação e possibilidades. Através das mentorias especializadas, consegui ingressar na universidade dos meus sonhos e desenvolver habilidades que nunca imaginei possuir. A rede de apoio é incomparável.',
+							'Participar do programa foi um divisor de águas na minha trajetória. As mentorias me ajudaram a entender meu potencial e a traçar metas claras para o futuro.',
 						author: {
 							name: 'Gabriela Saito Pereira',
 							title: 'Estudante de Ciências Atuariais',
-							avatar: '/images/testimonials/gabriela-saito.jpg',
+							avatar: '/images/testimonials/gabriela-saito.png',
+							company: ''
+						},
+						rating: 5,
+						featured: false,
+						date: '2025-11-15'
+					},
+					{
+						id: 'testimonial-gabriela-2',
+						quote:
+							'Antes do GEDUC, eu não sabia por onde começar minha preparação. Hoje, além de estar na universidade, tenho uma rede de amigos e mentores que levo para a vida.',
+						author: {
+							name: 'Gabriela Saito Pereira',
+							title: 'Estudante de Ciências Atuariais',
+							avatar: '/images/testimonials/gabriela-saito.png',
+							company: ''
+						},
+						rating: 5,
+						featured: false,
+						date: '2025-10-02'
+					},
+					{
+						id: 'testimonial-gabriela-3',
+						quote:
+							'O acompanhamento individual fez toda a diferença. Eu me sentia acolhida e desafiada ao mesmo tempo. Foi assim que alcancei resultados que nem eu acreditava serem possíveis.',
+						author: {
+							name: 'Gabriela Saito Pereira',
+							title: 'Estudante de Ciências Atuariais',
+							avatar: '/images/testimonials/gabriela-saito.png',
+							company: ''
+						},
+						rating: 5,
+						featured: false,
+						date: '2025-09-18'
+					},
+					{
+						id: 'testimonial-gabriela-4',
+						quote:
+							'Os simulados, os encontros e o apoio psicológico foram essenciais para manter minha motivação. O programa vai muito além do ensino tradicional.',
+						author: {
+							name: 'Gabriela Saito Pereira',
+							title: 'Estudante de Ciências Atuariais',
+							avatar: '/images/testimonials/gabriela-saito.png',
+							company: ''
+						},
+						rating: 5,
+						featured: false,
+						date: '2025-08-25'
+					},
+					{
+						id: 'testimonial-gabriela-5',
+						quote:
+							'Aprendi a acreditar em mim. Cada mentor que passou pelo meu caminho me ensinou algo valioso. Hoje me sinto preparada para encarar qualquer desafio.',
+						author: {
+							name: 'Gabriela Saito Pereira',
+							title: 'Estudante de Ciências Atuariais',
+							avatar: '/images/testimonials/gabriela-saito.png',
 							company: 'UFRJ - Universidade Federal do Rio de Janeiro'
 						},
 						rating: 5,
-						featured: true,
-						date: '2023-11-15'
+						featured: false,
+						date: '2025-07-11'
 					},
 					{
-						id: 'testimonial-marcus',
+						id: 'testimonial-gabriela-6',
 						quote:
-							'A experiência foi transformadora. Os voluntários realmente se importam com nosso crescimento pessoal e profissional. Além do suporte acadêmico, encontrei uma comunidade que me inspirou a sonhar mais alto.',
+							'Eu nunca imaginei que teria acesso a tantas oportunidades. O programa abriu portas que mudaram completamente minha perspectiva de futuro.',
 						author: {
-							name: 'Marcus Silva Santos',
-							title: 'Estudante de Engenharia Mecânica',
-							avatar: '/images/testimonials/marcus-silva.jpg',
-							company: 'USP - Universidade de São Paulo'
+							name: 'Gabriela Saito Pereira',
+							title: 'Estudante de Ciências Atuariais',
+							avatar: '/images/testimonials/gabriela-saito.png',
+							company: 'UFRJ - Universidade Federal do Rio de Janeiro'
 						},
 						rating: 5,
 						featured: false,
-						date: '2023-10-22'
-					},
-					{
-						id: 'testimonial-ana',
-						quote:
-							'Graças ao GEDUC, consegui não apenas uma vaga na universidade, mas também uma bolsa de estudos integral. O programa me deu ferramentas para vida toda.',
-						author: {
-							name: 'Ana Carolina Lima',
-							title: 'Estudante de Medicina',
-							avatar: '/images/testimonials/ana-carolina.jpg',
-							company: 'UNIFESP - Universidade Federal de São Paulo'
-						},
-						rating: 5,
-						featured: false,
-						date: '2023-09-10'
+						date: '2025-06-03'
 					}
+					
 				],
 				layout: 'grid',
-				columns: 2,
+				columns: 3,
 				autoplay: false,
 				autoplayInterval: 5000,
 				navigation: true,
