@@ -6,37 +6,39 @@ export const load: PageLoad = async ({ fetch, params }) => {
 	try {
 		// Dados podem vir de APIs, CMS, arquivos JSON, etc.
 		// Aqui estamos simulando carregamento de dados
-    const pageData: HomePageProps = {
-      hero: {
-        title: 'Guardiões da Educação',
-        subtitle: 'Maior organização brasileira de',
-        highlight: 'Educação Humanizada',
-        description: 'Somos um projeto educacional sem fins lucrativos que acredita em uma educação de forma humanizada, plural e acessível. Atuamos em todas as regiões do Brasil, conectados por um mesmo sonho: tornar o aprendizado uma jornada viva, que vai além da sala de aula e se entrelaça com as experiências de cada indivíduo.',
-        actions: [
-          {
-            label: 'Saiba Mais',
-            href: '/sobre',
-            variant: 'secondary'
-          },
-          {
-            label: 'Assista o Vídeo',
-            href: '/video',
-            variant: 'outline'
-          }
-        ],
-        media: {
-          type: 'illustration',
-          src: '/images/hero-illustration.svg',
-          alt: 'Ilustração representando educação e conhecimento'
-        },
-        background: {
-          type: 'gradient',
-          value: 'radial-gradient(circle at center, var(--color-primary-600) 0%, var(--color-primary-700) 100%)'
-        },
-        layout: 'centered',
-        size: 'xl',
-        decorative: true
-      },
+		const pageData: HomePageProps = {
+			hero: {
+				title: 'Guardiões da Educação',
+				subtitle: 'Maior organização brasileira de',
+				highlight: 'Educação Humanizada',
+				description:
+					'Somos um projeto educacional sem fins lucrativos que acredita em uma educação de forma humanizada, plural e acessível. Atuamos em todas as regiões do Brasil, conectados por um mesmo sonho: tornar o aprendizado uma jornada viva, que vai além da sala de aula e se entrelaça com as experiências de cada indivíduo.',
+				actions: [
+					{
+						label: 'Saiba Mais',
+						href: '/sobre',
+						variant: 'secondary'
+					},
+					{
+						label: 'Assista o Vídeo',
+						href: '/video',
+						variant: 'outline'
+					}
+				],
+				media: {
+					type: 'illustration',
+					src: '/images/hero-illustration.svg',
+					alt: 'Ilustração representando educação e conhecimento'
+				},
+				background: {
+					type: 'gradient',
+					value:
+						'radial-gradient(circle at center, var(--color-primary-600) 0%, var(--color-primary-700) 100%)'
+				},
+				layout: 'centered',
+				size: 'xl',
+				decorative: true
+			},
 			ourImpact: {
 				title: 'Nosso Impacto',
 				titleColor: 'primary',
@@ -123,7 +125,7 @@ export const load: PageLoad = async ({ fetch, params }) => {
 			initiatives: {
 				title: 'Nossas Iniciativas',
 				description:
-					'Programas inovadores e abrangentes que conectam jovens talentos brasileiros às melhores oportunidades educacionais do país.',
+					'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
 				initiatives: [
 					{
 						id: 'mentoria-oportunidades',
@@ -253,7 +255,7 @@ export const load: PageLoad = async ({ fetch, params }) => {
 			pageData: {
 				hero: {
 					title: 'Guardiões da Educação',
-          highlight: 'Só de brincadeira',
+					highlight: 'Só de brincadeira',
 					description: 'Transformando vidas através do conhecimento.',
 					actions: [],
 					layout: 'centered' as const,
