@@ -74,7 +74,7 @@
 	{/if}
 
 	{#if description}
-		<Text as="p" size="md" color="subtle" {align} class="section-header-description">
+		<Text as="p" size="md" color="secondary" {align} class="section-header-description">
 			{description}
 		</Text>
 	{/if}

@@ -11,6 +11,8 @@
 	export let featured: TestimonialCardProps['featured'] = false;
 	export let variant: TestimonialCardProps['variant'] = 'card';
 	export let date: TestimonialCardProps['date'] = undefined;
+	export let borderRadius: TestimonialCardProps['borderRadius'] = '2xl';
+	export let size: TestimonialCardProps['size'] = undefined;
 
 	// Classes adicionais
 	let className = '';
@@ -20,7 +22,9 @@
 	$: classes = [
 		'testimonial-card',
 		`testimonial-card-variant-${variant}`,
+		`testimonial-card-border-radius-${borderRadius}`,
 		featured && 'testimonial-card-featured',
+		size && `testimonial-card-size-${size}`,
 		className
 	]
 		.filter(Boolean)
@@ -43,22 +47,39 @@
 </script>
 
 <div class={classes}>
-	<!-- Aspas decorativas -->
-	<div class="testimonial-card-quote-icon">
-		<svg viewBox="0 0 24 24" fill="currentColor">
-			<path
-				d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-10zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h4v10h-10z"
-			/>
-		</svg>
+	<!-- Just a simple quote character -->
+	<div class="testimonial-card-quote-character">
+		<Text
+			as="cite"
+			size="3xl"
+			color="neutral"
+			fontStyle="italic"
+			class="testimonial-card-quote-character-text"
+		>
+			"
+		</Text>
 	</div>
 
-	<!-- Rating -->
+	<!-- Featured Badge -->
+	{#if featured}
+		<div class="testimonial-card-featured-badge">
+			<Icon
+				name="star"
+				size="xs"
+				color="white"
+				decorative={true}
+				class="testimonial-card-featured-icon"
+			/>
+		</div>
+	{/if}
+
+	<!-- Rating (se houver, mostrar no topo) -->
 	{#if rating}
 		<div class="testimonial-card-rating">
 			{#each stars as filled, index}
 				<Icon
 					name="star"
-					size="sm"
+					size="xs"
 					color={filled ? 'warning' : 'neutral'}
 					class="testimonial-card-star"
 				/>
@@ -68,8 +89,8 @@
 
 	<!-- Quote -->
 	<div class="testimonial-card-content">
-		<Text as="blockquote" size="md" weight="normal" class="testimonial-card-quote">
-			"{quote}"
+		<Text as="blockquote" size="xs" weight="normal" class="testimonial-card-quote" color="neutral">
+			{quote}
 		</Text>
 	</div>
 
@@ -84,19 +105,20 @@
 		/>
 
 		<div class="testimonial-card-author-info">
-			<Text as="cite" size="md" weight="semibold" class="testimonial-card-author-name">
+			<Text as="cite" size="xs" weight="semibold" class="testimonial-card-author-name">
 				{author.name}
 			</Text>
 
-			<Text as="span" size="sm" color="subtle" class="testimonial-card-author-title">
-				{author.title}
+			{#if author.title || author.company}
+				<Text as="span" size="xs" color="subtle" class="testimonial-card-author-meta">
+					{author.title}
+				</Text>
 				{#if author.company}
-					<span class="testimonial-card-author-company">
-						· {author.company}
-					</span>
+					<Text as="span" size="xs" color="subtle" class="testimonial-card-author-meta">
+						{author.company}
+					</Text>
 				{/if}
-			</Text>
-		</div>
+			{/if}
 
 		{#if formattedDate}
 			<Text as="time" size="xs" color="subtle" class="testimonial-card-date">
@@ -104,6 +126,20 @@
 			</Text>
 		{/if}
 	</div>
+
+	<!-- Closing quote character -->
+	<div class="testimonial-card-quote-character-closing">
+		<Text
+			as="cite"
+			size="3xl"
+			color="neutral"
+			fontStyle="italic"
+			class="testimonial-card-quote-character-text"
+		>
+			"
+		</Text>
+	</div>
+</div>
 </div>
 
 <style>
@@ -111,11 +147,150 @@
 		position: relative;
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-md);
-		padding: var(--spacing-lg);
+		gap: var(--spacing-xs);
+		padding: var(--spacing-sm);
 		background-color: var(--background-color-card);
 		border-radius: var(--border-radius-lg);
 		transition: all var(--transition-normal) var(--transition-timing-default);
+	}
+
+	/* Sistema de tamanhos - Extra Small */
+	.testimonial-card-size-xs {
+		width: var(--card-width-xs);
+		height: var(--card-height-xs);
+		min-width: var(--card-width-xs);
+		max-width: var(--card-width-xs);
+		min-height: var(--card-height-xs);
+		max-height: var(--card-height-xs);
+		overflow: hidden;
+		padding: var(--spacing-xs);
+		gap: var(--spacing-xxs);
+	}
+
+	.testimonial-card-size-xs .testimonial-card-content {
+		overflow: hidden;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		line-clamp: 2;
+		-webkit-box-orient: vertical;
+	}
+
+	/* Sistema de tamanhos - Small */
+	.testimonial-card-size-sm {
+		width: var(--card-width-sm);
+		height: var(--card-height-sm);
+		min-width: var(--card-width-sm);
+		max-width: var(--card-width-sm);
+		min-height: var(--card-height-sm);
+		max-height: var(--card-height-sm);
+		overflow: hidden;
+		padding: var(--spacing-sm);
+		gap: var(--spacing-xs);
+	}
+
+	.testimonial-card-size-sm .testimonial-card-content {
+		overflow: hidden;
+		display: -webkit-box;
+		-webkit-line-clamp: 3;
+		line-clamp: 3;
+		-webkit-box-orient: vertical;
+	}
+
+	/* Sistema de tamanhos - Medium (padrão 400x240) */
+	.testimonial-card-size-md {
+		width: var(--card-width-md);
+		height: var(--card-height-md);
+		min-width: var(--card-width-md);
+		max-width: var(--card-width-md);
+		min-height: var(--card-height-md);
+		max-height: var(--card-height-md);
+		overflow: hidden;
+		padding: var(--spacing-md);
+		gap: var(--spacing-xs);
+	}
+
+	.testimonial-card-size-md .testimonial-card-content {
+		overflow: hidden;
+		display: -webkit-box;
+		-webkit-line-clamp: 4;
+		line-clamp: 4;
+		-webkit-box-orient: vertical;
+		padding: var(--spacing-lg);
+	}
+
+	/* Sistema de tamanhos - Large */
+	.testimonial-card-size-lg {
+		width: var(--card-width-lg);
+		height: var(--card-height-lg);
+		min-width: var(--card-width-lg);
+		max-width: var(--card-width-lg);
+		min-height: var(--card-height-lg);
+		max-height: var(--card-height-lg);
+		overflow: hidden;
+		padding: var(--spacing-lg);
+		gap: var(--spacing-sm);
+	}
+
+	.testimonial-card-size-lg .testimonial-card-content {
+		overflow: hidden;
+		display: -webkit-box;
+		-webkit-line-clamp: 5;
+		line-clamp: 5;
+		-webkit-box-orient: vertical;
+	}
+
+	/* Sistema de tamanhos - Extra Large */
+	.testimonial-card-size-xl {
+		width: var(--card-width-xl);
+		height: var(--card-height-xl);
+		min-width: var(--card-width-xl);
+		max-width: var(--card-width-xl);
+		min-height: var(--card-height-xl);
+		max-height: var(--card-height-xl);
+		overflow: hidden;
+		padding: var(--spacing-xl);
+		gap: var(--spacing-md);
+	}
+
+	.testimonial-card-size-xl .testimonial-card-content {
+		overflow: hidden;
+		display: -webkit-box;
+		-webkit-line-clamp: 8;
+		line-clamp: 8;
+		-webkit-box-orient: vertical;
+	}
+
+	/* Raio da borda */
+	.testimonial-card-border-radius-sm {
+		border-radius: var(--border-radius-sm);
+	}
+
+	.testimonial-card-border-radius-md {
+		border-radius: var(--border-radius-md);
+	}
+
+	.testimonial-card-border-radius-lg {
+		border-radius: var(--border-radius-lg);
+	}
+
+	.testimonial-card-border-radius-xl {
+		border-radius: var(--border-radius-xl);
+	}
+
+	.testimonial-card-border-radius-2xl {
+		border-radius: var(--border-radius-2xl);
+	}
+
+	.testimonial-card-border-radius-3xl {
+		border-radius: var(--border-radius-3xl);
+	}
+
+	.testimonial-card-border-radius-4xl {
+		border-radius: var(--border-radius-4xl);
+	}
+
+	.testimonial-card-border-radius-none {
+		border-radius: var(--border-radius-none);
 	}
 
 	/* Variantes */
@@ -146,6 +321,32 @@
 		border-color: var(--color-primary-300);
 	}
 
+	/* Quote Character Decorativo */
+	.testimonial-card-quote-character {
+		position: absolute;
+		top: var(--spacing-md);
+		left: var(--spacing-md);
+		z-index: 1;
+		opacity: 1;
+		pointer-events: none;
+		line-height: 1;
+	}
+
+	.testimonial-card-quote-character-text {
+		line-height: 0.8;
+		user-select: none;
+	}
+
+	.testimonial-card-quote-character-closing {
+		position: absolute;
+		bottom: var(--spacing-3xl);
+		right: var(--spacing-md);
+		z-index: 1;
+		opacity: 1;
+		pointer-events: none;
+		line-height: 1;
+	}
+
 	/* Featured */
 	.testimonial-card-featured {
 		background: linear-gradient(135deg, var(--color-primary-50) 0%, var(--color-accent-50) 100%);
@@ -153,39 +354,36 @@
 		position: relative;
 	}
 
-	.testimonial-card-featured::before {
-		content: 'Em Destaque';
+	.testimonial-card-featured-badge {
 		position: absolute;
-		top: -1px;
-		right: var(--spacing-lg);
-		background-color: var(--color-primary-500);
-		color: var(--color-neutral-0);
-		padding: var(--spacing-xs) var(--spacing-sm);
-		border-radius: 0 0 var(--border-radius-sm) var(--border-radius-sm);
-		font-size: var(--font-size-xs);
-		font-weight: var(--font-weight-semibold);
-		text-transform: uppercase;
-		letter-spacing: 0.5px;
+		top: var(--spacing-xs);
+		right: var(--spacing-xs);
+		z-index: 10;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 24px;
+		height: 24px;
+		background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-primary-600) 100%);
+		border-radius: var(--border-radius-full);
+		box-shadow: var(--shadow-sm);
+		transition: all var(--transition-fast) var(--transition-timing-default);
 	}
 
-	/* Quote icon */
-	.testimonial-card-quote-icon {
-		width: 32px;
-		height: 32px;
-		color: var(--color-primary-300);
-		opacity: 0.6;
+	.testimonial-card-featured-badge:hover {
+		transform: scale(1.15) rotate(15deg);
+		box-shadow: var(--shadow-md);
 	}
 
-	.testimonial-card-quote-icon svg {
-		width: 100%;
-		height: 100%;
+	.testimonial-card-featured-icon {
+		filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
 	}
 
 	/* Rating */
 	.testimonial-card-rating {
 		display: flex;
 		gap: var(--spacing-xs);
-		margin-bottom: var(--spacing-sm);
+		margin-bottom: 0;
 	}
 
 	.testimonial-card-star {
@@ -199,30 +397,18 @@
 
 	.testimonial-card-quote {
 		margin: 0;
-		font-style: italic;
-		line-height: var(--line-height-relaxed);
+		line-height: var(--line-height-tight);
 		color: var(--text-color-primary);
 		position: relative;
-	}
-
-	.testimonial-card-quote::before {
-		content: '';
-		position: absolute;
-		left: -var(--spacing-md);
-		top: 0;
-		bottom: 0;
-		width: 3px;
-		background: linear-gradient(to bottom, var(--color-primary-500), var(--color-secondary-500));
-		border-radius: var(--border-radius-sm);
 	}
 
 	/* Author */
 	.testimonial-card-author {
 		display: flex;
 		align-items: center;
-		gap: var(--spacing-md);
-		margin-top: var(--spacing-md);
-		padding-top: var(--spacing-md);
+		gap: var(--spacing-xs);
+		margin-top: auto;
+		padding-top: var(--spacing-xs);
 		border-top: 1px solid var(--border-color-default);
 	}
 
@@ -234,65 +420,74 @@
 		flex: 1;
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-xs);
+		gap: 0;
+		min-width: 0;
 	}
 
 	.testimonial-card-author-name {
 		margin: 0;
 		color: var(--text-color-primary);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 
-	.testimonial-card-author-title {
+	.testimonial-card-author-meta {
 		margin: 0;
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-xs);
-	}
-
-	.testimonial-card-author-company {
-		color: var(--color-primary-600);
-		font-weight: var(--font-weight-medium);
+		display: block;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 
 	.testimonial-card-date {
 		flex-shrink: 0;
-		margin-left: auto;
+		margin-left: var(--spacing-xs);
+		align-self: flex-start;
 		font-size: var(--font-size-xs);
+		white-space: nowrap;
 	}
 
 	/* Responsividade */
 	@media (max-width: 768px) {
-		.testimonial-card {
-			padding: var(--spacing-md);
-		}
 
 		.testimonial-card-author {
-			flex-direction: column;
-			align-items: flex-start;
-			gap: var(--spacing-sm);
+			flex-wrap: wrap;
+			gap: var(--spacing-xxs);
 		}
 
 		.testimonial-card-date {
 			margin-left: 0;
-			align-self: flex-end;
+			width: 100%;
+			text-align: right;
+		}
+
+		/* Remover dimensões fixas em mobile para melhor responsividade */
+		.testimonial-card-size-xs,
+		.testimonial-card-size-sm,
+		.testimonial-card-size-md,
+		.testimonial-card-size-lg,
+		.testimonial-card-size-xl {
+			width: 100%;
+			min-width: unset;
+			max-width: 100%;
+			height: auto;
+			min-height: var(--card-min-height);
+			max-height: unset;
 		}
 	}
 
 	/* Dark theme */
-	[data-theme='dark'] .testimonial-card-featured {
+	:global([data-theme='dark']) .testimonial-card-featured {
 		background: linear-gradient(135deg, var(--color-primary-900) 0%, var(--color-accent-900) 100%);
 		border-color: var(--color-primary-700);
 	}
 
-	[data-theme='dark'] .testimonial-card-quote-icon {
-		color: var(--color-primary-600);
+	:global([data-theme='dark']) .testimonial-card-featured-badge {
+		background: linear-gradient(135deg, var(--color-primary-600) 0%, var(--color-primary-700) 100%);
 	}
 
-	[data-theme='dark'] .testimonial-card-author-company {
-		color: var(--color-primary-400);
-	}
-
-	[data-theme='dark'] .testimonial-card-variant-bordered:hover {
+	:global([data-theme='dark']) .testimonial-card-variant-bordered:hover {
 		border-color: var(--color-primary-600);
 	}
 
@@ -313,12 +508,6 @@
 	}
 
 	/* Hover effects */
-	.testimonial-card:hover .testimonial-card-quote-icon {
-		color: var(--color-primary-500);
-		transform: scale(1.1);
-		transition: all var(--transition-fast) var(--transition-timing-default);
-	}
-
 	.testimonial-card:hover .testimonial-card-avatar {
 		transform: scale(1.05);
 		transition: transform var(--transition-fast) var(--transition-timing-default);
