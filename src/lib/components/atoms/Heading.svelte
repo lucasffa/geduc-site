@@ -20,6 +20,8 @@
 	export let align: HeadingProps['align'] = 'left';
 	export let gradient: HeadingProps['gradient'] = false;
 	export let children: HeadingProps['children'];
+	export let lineHeight: HeadingProps['lineHeight'] = 'normal';
+	export let letterSpacing: HeadingProps['letterSpacing'] = 'normal';
 
 	// Novas props para funcionalidades avançadas
 	export let decorativeLetter: HeadingProps['decorativeLetter'] = false;
@@ -149,6 +151,26 @@
 		right: 'decoration-right'
 	} as const;
 
+	// Mapeamento de line heights para classes CSS
+	const lineHeightMap: Record<string, string> = {
+		none: 'line-height-none',
+		tighter: 'line-height-tighter',
+		tight: 'line-height-tight',
+		normal: 'line-height-normal',
+		relaxed: 'line-height-relaxed',
+		loose: 'line-height-loose'
+	} as const;
+
+	// Mapeamento de letter spacings para classes CSS
+	const letterSpacingMap: Record<string, string> = {
+		tighter: 'letter-spacing-tighter',
+		tight: 'letter-spacing-tight',
+		normal: 'letter-spacing-normal',
+		wide: 'letter-spacing-wide',
+		wider: 'letter-spacing-wider',
+		widest: 'letter-spacing-widest'
+	} as const;
+
 	// Classes CSS baseadas nas props
 	$: classes = [
 		'heading',
@@ -160,6 +182,8 @@
 		gradient && 'heading-gradient',
 		decorativeLetter && 'heading-decorative',
 		shadow && shadowMap[shadow],
+		lineHeight && lineHeightMap[lineHeight],
+		letterSpacing && letterSpacingMap[letterSpacing],
 		decoration &&
 			decorationPosition &&
 			`heading-decoration ${decorationPositionMap[decorationPosition]} decoration-${decorationStyle}`,
@@ -406,7 +430,7 @@
 	}
 
 	.heading-shadow-outline {
-		text-shadow: 
+		text-shadow:
 			-1px -1px 0 rgba(0, 0, 0, 0.3),
 			1px -1px 0 rgba(0, 0, 0, 0.3),
 			-1px 1px 0 rgba(0, 0, 0, 0.3),
@@ -484,6 +508,50 @@
 		height: 0;
 		overflow: hidden;
 		pointer-events: none;
+	}
+
+	/* Line Height */
+	.line-height-none {
+		line-height: var(--line-height-none);
+	}
+	.line-height-tighter {
+		line-height: var(--line-height-tighter);
+	}
+
+	.line-height-tight {
+		line-height: var(--line-height-tight);
+	}
+
+	.line-height-normal {
+		line-height: var(--line-height-normal);
+	}
+
+	.line-height-relaxed {
+		line-height: var(--line-height-relaxed);
+	}
+
+	.line-height-loose {
+		line-height: var(--line-height-loose);
+	}
+
+	/* Letter Spacing */
+	.letter-spacing-tighter {
+		letter-spacing: var(--letter-spacing-tighter);
+	}
+	.letter-spacing-tight {
+		letter-spacing: var(--letter-spacing-tight);
+	}
+	.letter-spacing-normal {
+		letter-spacing: var(--letter-spacing-normal);
+	}
+	.letter-spacing-wide {
+		letter-spacing: var(--letter-spacing-wide);
+	}
+	.letter-spacing-wider {
+		letter-spacing: var(--letter-spacing-wider);
+	}
+	.letter-spacing-widest {
+		letter-spacing: var(--letter-spacing-widest);
 	}
 
 	/* Decoração */

@@ -112,21 +112,26 @@
 
 			<div class="initiatives-section-grid">
 				{#each visibleInitiatives as initiative, index}
-					<FeatureCard
-						title={initiative.title}
-						description={initiative.description}
-						href={initiative.href}
-						interactive={!!initiative.href}
-						featured={initiative.featured}
-						illustration={{
-							src: getIllustrationSrc(index),
-							alt: getIllustrationAlt(initiative.title),
-							aspectRatio: 'square',
-							objectFit: 'contain'
-						}}
-						class="initiatives-section-card"
-						style={`animation-delay: ${index * 0.1}s`}
-					/>
+					<div class="initiatives-section-card-wrapper" style={`animation-delay: ${index * 0.2}s`}>
+						<FeatureCard
+							title={initiative.title}
+							description={initiative.description}
+							href={initiative.href}
+							interactive={!!initiative.href}
+							featured={initiative.featured}
+							variant="gradient"
+							size="xl"
+							borderRadius="xl"
+							illustration={{
+								src: getIllustrationSrc(index),
+								alt: getIllustrationAlt(initiative.title),
+								aspectRatio: 'square',
+								objectFit: 'contain'
+							}}
+							class="initiatives-section-card"
+							style={`animation-delay: ${index * 0.1}s`}
+						/>
+					</div>
 				{/each}
 			</div>
 
@@ -145,6 +150,7 @@
 
 	.initiatives-section-container {
 		max-width: var(--container-max-width-xl);
+		min-height: var(--container-min-height-xl);
 		margin: 0 auto;
 		padding: 0 var(--spacing-lg);
 		display: flex;
@@ -180,6 +186,15 @@
 		display: grid;
 		gap: var(--spacing-lg);
 		align-items: start;
+		justify-items: center;
+		width: 100%;
+	}
+
+	.initiatives-section-card-wrapper {
+		animation: fadeInUp 0.6s ease-out both;
+		width: 100%;
+		display: flex;
+		justify-content: center;
 	}
 
 	/* Layouts */

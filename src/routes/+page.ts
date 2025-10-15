@@ -160,8 +160,8 @@ export const load: PageLoad = async ({ fetch, params }) => {
 						featured: false
 					}
 				],
-				layout: 'grid',
-				columns: 4,
+				layout: 'carousel',
+				columns: undefined,
 				filterable: false
 			},
 
@@ -254,7 +254,6 @@ export const load: PageLoad = async ({ fetch, params }) => {
 						featured: false,
 						date: '2025-06-03'
 					}
-					
 				],
 				layout: 'grid',
 				columns: 3,

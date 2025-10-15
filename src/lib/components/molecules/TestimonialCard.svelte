@@ -120,26 +120,26 @@
 				{/if}
 			{/if}
 
-		{#if formattedDate}
-			<Text as="time" size="xs" color="subtle" class="testimonial-card-date">
-				{formattedDate}
-			</Text>
-		{/if}
-	</div>
+			{#if formattedDate}
+				<Text as="time" size="xs" color="subtle" class="testimonial-card-date">
+					{formattedDate}
+				</Text>
+			{/if}
+		</div>
 
-	<!-- Closing quote character -->
-	<div class="testimonial-card-quote-character-closing">
-		<Text
-			as="cite"
-			size="3xl"
-			color="neutral"
-			fontStyle="italic"
-			class="testimonial-card-quote-character-text"
-		>
-			"
-		</Text>
+		<!-- Closing quote character -->
+		<div class="testimonial-card-quote-character-closing">
+			<Text
+				as="cite"
+				size="3xl"
+				color="neutral"
+				fontStyle="italic"
+				class="testimonial-card-quote-character-text"
+			>
+				"
+			</Text>
+		</div>
 	</div>
-</div>
 </div>
 
 <style>
@@ -156,12 +156,12 @@
 
 	/* Sistema de tamanhos - Extra Small */
 	.testimonial-card-size-xs {
-		width: var(--card-width-xs);
-		height: var(--card-height-xs);
-		min-width: var(--card-width-xs);
-		max-width: var(--card-width-xs);
-		min-height: var(--card-height-xs);
-		max-height: var(--card-height-xs);
+		width: var(--card-width-landscape-xs);
+		height: var(--card-height-landscape-xs);
+		min-width: var(--card-width-landscape-xs);
+		max-width: var(--card-width-landscape-xs);
+		min-height: var(--card-height-landscape-xs);
+		max-height: var(--card-height-landscape-xs);
 		overflow: hidden;
 		padding: var(--spacing-xs);
 		gap: var(--spacing-xxs);
@@ -177,12 +177,12 @@
 
 	/* Sistema de tamanhos - Small */
 	.testimonial-card-size-sm {
-		width: var(--card-width-sm);
-		height: var(--card-height-sm);
-		min-width: var(--card-width-sm);
-		max-width: var(--card-width-sm);
-		min-height: var(--card-height-sm);
-		max-height: var(--card-height-sm);
+		width: var(--card-width-landscape-sm);
+		height: var(--card-height-landscape-sm);
+		min-width: var(--card-width-landscape-sm);
+		max-width: var(--card-width-landscape-sm);
+		min-height: var(--card-height-landscape-sm);
+		max-height: var(--card-height-landscape-sm);
 		overflow: hidden;
 		padding: var(--spacing-sm);
 		gap: var(--spacing-xs);
@@ -198,12 +198,12 @@
 
 	/* Sistema de tamanhos - Medium (padrão 400x240) */
 	.testimonial-card-size-md {
-		width: var(--card-width-md);
-		height: var(--card-height-md);
-		min-width: var(--card-width-md);
-		max-width: var(--card-width-md);
-		min-height: var(--card-height-md);
-		max-height: var(--card-height-md);
+		width: var(--card-width-landscape-md);
+		height: var(--card-height-landscape-md);
+		min-width: var(--card-width-landscape-md);
+		max-width: var(--card-width-landscape-md);
+		min-height: var(--card-height-landscape-md);
+		max-height: var(--card-height-landscape-md);
 		overflow: hidden;
 		padding: var(--spacing-md);
 		gap: var(--spacing-xs);
@@ -220,12 +220,12 @@
 
 	/* Sistema de tamanhos - Large */
 	.testimonial-card-size-lg {
-		width: var(--card-width-lg);
-		height: var(--card-height-lg);
-		min-width: var(--card-width-lg);
-		max-width: var(--card-width-lg);
-		min-height: var(--card-height-lg);
-		max-height: var(--card-height-lg);
+		width: var(--card-width-landscape-lg);
+		height: var(--card-height-landscape-lg);
+		min-width: var(--card-width-landscape-lg);
+		max-width: var(--card-width-landscape-lg);
+		min-height: var(--card-height-landscape-lg);
+		max-height: var(--card-height-landscape-lg);
 		overflow: hidden;
 		padding: var(--spacing-lg);
 		gap: var(--spacing-sm);
@@ -241,12 +241,12 @@
 
 	/* Sistema de tamanhos - Extra Large */
 	.testimonial-card-size-xl {
-		width: var(--card-width-xl);
-		height: var(--card-height-xl);
-		min-width: var(--card-width-xl);
-		max-width: var(--card-width-xl);
-		min-height: var(--card-height-xl);
-		max-height: var(--card-height-xl);
+		width: var(--card-width-landscape-xl);
+		height: var(--card-height-landscape-xl);
+		min-width: var(--card-width-landscape-xl);
+		max-width: var(--card-width-landscape-xl);
+		min-height: var(--card-height-landscape-xl);
+		max-height: var(--card-height-landscape-xl);
 		overflow: hidden;
 		padding: var(--spacing-xl);
 		gap: var(--spacing-md);
@@ -450,7 +450,6 @@
 
 	/* Responsividade */
 	@media (max-width: 768px) {
-
 		.testimonial-card-author {
 			flex-wrap: wrap;
 			gap: var(--spacing-xxs);

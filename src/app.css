@@ -69,8 +69,8 @@ h6 {
 	--color-primary-300: #90caf9;
 	--color-primary-400: #64b5f6;
 	--color-primary-500: #42a5f5;
-	--color-primary-600: #324ACB;
-	--color-primary-700: #161AA3;
+	--color-primary-600: #324acb;
+	--color-primary-700: #161aa3;
 	--color-primary-800: #191ea6;
 	--color-primary-900: #152db5;
 
@@ -290,10 +290,20 @@ h6 {
 	/* Line Heights */
 	/* Valores unitless (sem unidade) que multiplicam o font-size atual */
 	/* Ex: font-size 16px + line-height 1.5 = 24px de altura total da linha */
+	--line-height-none: 1; /* Sem espaçamento extra */
+	--line-height-tighter: 1.125; /* 12.5% maior que o font-size - para títulos muito grandes */
 	--line-height-tight: 1.25; /* 25% maior que o font-size - para títulos */
 	--line-height-normal: 1.5; /* 50% maior - padrão recomendado para leitura */
 	--line-height-relaxed: 1.75; /* 75% maior - para textos longos */
 	--line-height-loose: 2; /* 100% maior - máximo espaçamento */
+
+	/* Letter Spacing */
+	--letter-spacing-tighter: -0.025em; /* Espaçamento negativo para títulos muito grandes que representa 12.5% menor que o tamanho da fonte */
+	--letter-spacing-tight: -0.0125em; /* Espaçamento negativo para títulos que representa 6.25% menor que o tamanho da fonte */
+	--letter-spacing-normal: 0; /* Espaçamento padrão */
+	--letter-spacing-wide: 0.025em; /* Espaçamento positivo para textos que representa 12.5% maior que o tamanho da fonte */
+	--letter-spacing-wider: 0.05em; /* Espaçamento positivo para textos que representa 25% maior que o tamanho da fonte */
+	--letter-spacing-widest: 0.1em; /* Espaçamento positivo para textos que representa 50% maior que o tamanho da fonte */
 
 	/* Variáveis Semânticas de Tipografia */
 	--heading-1-font-size: var(--font-size-3xl);
@@ -372,27 +382,55 @@ h6 {
 	--container-max-width-lg: 1024px;
 	--container-max-width-xl: 1280px;
 
+	/* Container min height */
+	--container-min-height-sm: 320px;
+	--container-min-height-md: 480px;
+	--container-min-height-lg: 640px;
+	--container-min-height-xl: 800px;
+
 	/* Card dimensions - Sistema de tamanhos baseado em Size */
+	/* Aspecto Retrato */
 	/* Extra Small */
-	--card-width-xs: calc(60 * var(--spacing-unit)); /* 240px */
-	--card-height-xs: calc(40 * var(--spacing-unit)); /* 160px */
-	
+	--card-width-portrait-xs: calc(40 * var(--spacing-unit)); /* 160px */
+	--card-height-portrait-xs: calc(60 * var(--spacing-unit)); /* 240px */
+
 	/* Small */
-	--card-width-sm: calc(75 * var(--spacing-unit)); /* 300px */
-	--card-height-sm: calc(50 * var(--spacing-unit)); /* 200px */
-	
+	--card-width-portrait-sm: calc(50 * var(--spacing-unit)); /* 200px */
+	--card-height-portrait-sm: calc(75 * var(--spacing-unit)); /* 300px */
+
 	/* Medium - padrão */
-	--card-width-md: calc(100 * var(--spacing-unit)); /* 400px */
-	--card-height-md: calc(60 * var(--spacing-unit)); /* 240px */
-	
+	--card-width-portrait-md: calc(60 * var(--spacing-unit)); /* 240px */
+	--card-height-portrait-md: calc(100 * var(--spacing-unit)); /* 400px */
+
 	/* Large */
-	--card-width-lg: calc(125 * var(--spacing-unit)); /* 500px */
-	--card-height-lg: calc(75 * var(--spacing-unit)); /* 300px */
-	
+	--card-width-portrait-lg: calc(75 * var(--spacing-unit)); /* 300px */
+	--card-height-portrait-lg: calc(125 * var(--spacing-unit)); /* 500px */
+
 	/* Extra Large */
-	--card-width-xl: calc(150 * var(--spacing-unit)); /* 600px */
-	--card-height-xl: calc(100 * var(--spacing-unit)); /* 400px */
-	
+	--card-width-portrait-xl: calc(88 * var(--spacing-unit)); /* 352px */
+	--card-height-portrait-xl: calc(117 * var(--spacing-unit)); /* 468px */
+
+	/* Aspecto Paisagem */
+	/* Extra Small */
+	--card-width-landscape-xs: calc(60 * var(--spacing-unit)); /* 240px */
+	--card-height-landscape-xs: calc(40 * var(--spacing-unit)); /* 160px */
+
+	/* Small */
+	--card-width-landscape-sm: calc(75 * var(--spacing-unit)); /* 300px */
+	--card-height-landscape-sm: calc(50 * var(--spacing-unit)); /* 200px */
+
+	/* Medium - padrão */
+	--card-width-landscape-md: calc(100 * var(--spacing-unit)); /* 400px */
+	--card-height-landscape-md: calc(60 * var(--spacing-unit)); /* 240px */
+
+	/* Large */
+	--card-width-landscape-lg: calc(125 * var(--spacing-unit)); /* 500px */
+	--card-height-landscape-lg: calc(75 * var(--spacing-unit)); /* 300px */
+
+	/* Extra Large */
+	--card-width-landscape-xl: calc(150 * var(--spacing-unit)); /* 600px */
+	--card-height-landscape-xl: calc(100 * var(--spacing-unit)); /* 400px */
+
 	/* Dimensões flexíveis para fallback */
 	--card-min-height: calc(40 * var(--spacing-unit)); /* 160px */
 	--card-max-height: calc(100 * var(--spacing-unit)); /* 400px */
@@ -427,7 +465,7 @@ h6 {
 	--border-radius-lg: 0.5rem;
 	/* 8px */
 	--border-radius-xl: 1rem;
-	/* 16px */	
+	/* 16px */
 	--border-radius-2xl: 1.5rem;
 	/* 24px */
 	--border-radius-3xl: 2rem;

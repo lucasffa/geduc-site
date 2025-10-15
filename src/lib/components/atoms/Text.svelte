@@ -12,6 +12,7 @@
 	export let maxLines: TextProps['maxLines'] = undefined;
 	export let lineHeight: TextProps['lineHeight'] = 'normal';
 	export let fontStyle: TextProps['fontStyle'] = undefined;
+	export let letterSpacing: TextProps['letterSpacing'] = undefined;
 
 	// Classes adicionais
 	let className = '';
@@ -29,6 +30,7 @@
 		`text-style-${fontStyle}`,
 		truncate && 'text-truncate',
 		maxLines && 'text-clamp',
+		letterSpacing && `text-letterspacing-${letterSpacing}`,
 		className
 	]
 		.filter(Boolean)
@@ -58,7 +60,7 @@
 	.text-style-italic {
 		font-style: italic;
 	}
-	
+
 	.text-style-normal {
 		font-style: normal;
 	}
@@ -66,11 +68,11 @@
 	.text-style-bold {
 		font-weight: var(--font-weight-bold);
 	}
-	
+
 	.text-style-underline {
 		text-decoration: underline;
 	}
-	
+
 	.text-style-line-through {
 		text-decoration: line-through;
 	}
@@ -103,7 +105,7 @@
 	.text-size-3xl {
 		font-size: var(--font-size-3xl);
 	}
-	
+
 	.text-size-4xl {
 		font-size: var(--font-size-4xl);
 	}
@@ -211,6 +213,14 @@
 		line-height: var(--line-height-normal);
 	}
 
+	.text-lineheight-none {
+		line-height: var(--line-height-none);
+	}
+
+	.text-lineheight-tighter {
+		line-height: var(--line-height-tighter);
+	}
+
 	.text-lineheight-tight {
 		line-height: var(--line-height-tight);
 	}
@@ -223,6 +233,25 @@
 		line-height: var(--line-height-loose);
 	}
 
+	/* Letter Spacing */
+	.text-letterspacing-tighter {
+		letter-spacing: var(--letter-spacing-tighter);
+	}
+	.text-letterspacing-tight {
+		letter-spacing: var(--letter-spacing-tight);
+	}
+	.text-letterspacing-normal {
+		letter-spacing: var(--letter-spacing-normal);
+	}
+	.text-letterspacing-wide {
+		letter-spacing: var(--letter-spacing-wide);
+	}
+	.text-letterspacing-wider {
+		letter-spacing: var(--letter-spacing-wider);
+	}
+	.text-letterspacing-widest {
+		letter-spacing: var(--letter-spacing-widest);
+	}
 	/* Truncate */
 	.text-truncate {
 		overflow: hidden;

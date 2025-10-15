@@ -15,6 +15,8 @@
 	export let target: FeatureCardProps['target'] = undefined;
 	export let rel: FeatureCardProps['rel'] = undefined;
 	export let external: FeatureCardProps['external'] = false;
+	export let size: FeatureCardProps['size'] = undefined;
+	export let borderRadius: FeatureCardProps['borderRadius'] = undefined;
 
 	// Classes adicionais
 	let className = '';
@@ -28,8 +30,10 @@
 		'feature-card',
 		`feature-card-variant-${variant}`,
 		`feature-card-orientation-${orientation}`,
+		size && `feature-card-size-${size}`,
 		interactive && 'feature-card-interactive',
 		href && 'feature-card-clickable',
+		borderRadius && `feature-card-radius-${borderRadius}`,
 		className
 	]
 		.filter(Boolean)
@@ -62,11 +66,27 @@
 	{/if}
 
 	<div class="feature-card-content">
-		<Heading level={3} size="lg" weight="semibold" class="feature-card-title">
+		<Heading
+			level={3}
+			size="xl"
+			weight="semibold"
+			class="feature-card-title"
+			color="white"
+			lineHeight="tighter"
+			letterSpacing="wide"
+		>
 			{title}
 		</Heading>
 
-		<Text as="p" size="md" color="secondary" class="feature-card-description">
+		<Text
+			as="p"
+			size="md"
+			color="inverse"
+			weight="light"
+			class="feature-card-description"
+			lineHeight="tighter"
+			letterSpacing="wide"
+		>
 			{description}
 		</Text>
 
@@ -88,12 +108,165 @@
 	.feature-card {
 		display: flex;
 		background-color: var(--background-color-card);
-		border-radius: var(--border-radius-lg);
 		overflow: hidden;
 		transition: all var(--transition-normal) var(--transition-timing-default);
 		position: relative;
 		text-decoration: none;
 		color: inherit;
+	}
+
+	/* Sistema de bordas */
+	.feature-card-radius-sm {
+		border-radius: var(--border-radius-sm);
+	}
+	.feature-card-radius-md {
+		border-radius: var(--border-radius-md);
+	}
+	.feature-card-radius-lg {
+		border-radius: var(--border-radius-lg);
+	}
+	.feature-card-radius-xl {
+		border-radius: var(--border-radius-xl);
+	}
+	.feature-card-radius-2xl {
+		border-radius: var(--border-radius-2xl);
+	}
+	.feature-card-radius-3xl {
+		border-radius: var(--border-radius-3xl);
+	}
+	.feature-card-radius-4xl {
+		border-radius: var(--border-radius-4xl);
+	}
+	.feature-card-radius-none {
+		border-radius: var(--border-radius-none);
+	}
+
+	/* Sistema de tamanhos - Extra Small */
+	.feature-card-size-xs {
+		width: var(--card-width-portrait-xs);
+		height: var(--card-height-portrait-xs);
+		min-width: var(--card-width-portrait-xs);
+		max-width: var(--card-width-portrait-xs);
+		min-height: var(--card-height-portrait-xs);
+		max-height: var(--card-height-portrait-xs);
+		overflow: hidden;
+		padding: var(--spacing-xs);
+		gap: var(--spacing-xxs);
+	}
+
+	.feature-card-size-xs .feature-card-content {
+		overflow: hidden;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		line-clamp: 2;
+		-webkit-box-orient: vertical;
+		padding: var(--spacing-xs);
+	}
+
+	/* Sistema de tamanhos - Small */
+	.feature-card-size-sm {
+		width: var(--card-width-portrait-sm);
+		height: var(--card-height-portrait-sm);
+		min-width: var(--card-width-portrait-sm);
+		max-width: var(--card-width-portrait-sm);
+		min-height: var(--card-height-portrait-sm);
+		max-height: var(--card-height-portrait-sm);
+		overflow: hidden;
+		padding: var(--spacing-sm);
+		gap: var(--spacing-xs);
+	}
+
+	.feature-card-size-sm .feature-card-content {
+		overflow: hidden;
+		display: -webkit-box;
+		-webkit-line-clamp: 3;
+		line-clamp: 3;
+		-webkit-box-orient: vertical;
+		padding: var(--spacing-sm);
+	}
+
+	/* Sistema de tamanhos - Medium */
+	.feature-card-size-md {
+		width: var(--card-width-portrait-md);
+		height: var(--card-height-portrait-md);
+		min-width: var(--card-width-portrait-md);
+		max-width: var(--card-width-portrait-md);
+		min-height: var(--card-height-portrait-md);
+		max-height: var(--card-height-portrait-md);
+		overflow: hidden;
+		padding: var(--spacing-md);
+		gap: var(--spacing-sm);
+	}
+
+	.feature-card-size-md .feature-card-content {
+		overflow: hidden;
+		display: -webkit-box;
+		-webkit-line-clamp: 4;
+		line-clamp: 4;
+		-webkit-box-orient: vertical;
+		padding: var(--spacing-md);
+	}
+
+	/* Sistema de tamanhos - Large */
+	.feature-card-size-lg {
+		width: var(--card-width-portrait-lg);
+		height: var(--card-height-portrait-lg);
+		min-width: var(--card-width-portrait-lg);
+		max-width: var(--card-width-portrait-lg);
+		min-height: var(--card-height-portrait-lg);
+		max-height: var(--card-height-portrait-lg);
+		overflow: hidden;
+		padding: var(--spacing-lg);
+		gap: var(--spacing-md);
+	}
+
+	.feature-card-size-lg .feature-card-content {
+		overflow: hidden;
+		display: -webkit-box;
+		-webkit-line-clamp: 5;
+		line-clamp: 5;
+		-webkit-box-orient: vertical;
+		padding: var(--spacing-lg);
+	}
+
+	.feature-card-size-xl {
+		width: var(--card-width-portrait-xl);
+		height: var(--card-height-portrait-xl);
+		min-width: var(--card-width-portrait-xl);
+		max-width: var(--card-width-portrait-xl);
+		min-height: var(--card-height-portrait-xl);
+		max-height: var(--card-height-portrait-xl);
+		overflow: hidden;
+		padding: var(--spacing-md);
+		gap: var(--spacing-lg);
+	}
+
+	.feature-card-size-xl .feature-card-content {
+		overflow: hidden;
+		display: flex;
+		padding: var(--spacing-xl) var(--spacing-sm);
+		gap: var(--spacing-sm);
+	}
+
+	.feature-card-size-2xl {
+		width: var(--card-width-portrait-2xl);
+		height: var(--card-height-portrait-2xl);
+		min-width: var(--card-width-portrait-2xl);
+		max-width: var(--card-width-portrait-2xl);
+		min-height: var(--card-height-portrait-2xl);
+		max-height: var(--card-height-portrait-2xl);
+		overflow: hidden;
+		padding: var(--spacing-2xl);
+		gap: var(--spacing-xl);
+	}
+
+	.feature-card-content {
+		overflow: hidden;
+		display: -webkit-box;
+		-webkit-line-clamp: 7;
+		line-clamp: 7;
+		-webkit-box-orient: vertical;
+		padding: var(--spacing-2xl);
 	}
 
 	/* Orientações */
@@ -122,6 +295,13 @@
 		background-color: transparent;
 		border: none;
 		box-shadow: none;
+	}
+
+	.feature-card-variant-gradient {
+		background: linear-gradient(135deg, var(--color-primary-600) 0%, var(--color-primary-800) 100%);
+		border: none;
+		box-shadow: var(--shadow-md);
+		color: var(--text-color-on-gradient);
 	}
 
 	/* Estados interativos */
