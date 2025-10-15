@@ -299,6 +299,12 @@ export interface HeadingProps extends BaseComponentProps {
 
 	/** Conteúdo do heading */
 	children: Snippet;
+
+	/** Altura específica da linha */
+	lineHeight?: 'none' | 'tighter' | 'tight' | 'normal' | 'relaxed' | 'loose';
+
+	/** Espaçamento entre letras */
+	letterSpacing?: 'tighter' | 'tight' | 'normal' | 'wide' | 'wider' | 'widest';
 }
 
 export interface TextProps extends BaseComponentProps {
@@ -321,7 +327,7 @@ export interface TextProps extends BaseComponentProps {
 	leading?: 'tight' | 'normal' | 'relaxed' | 'loose';
 
 	/** Altura específica da linha */
-	lineHeight?: 'normal' | 'tight' | 'relaxed' | 'loose';
+	lineHeight?: 'normal' | 'tight' | 'relaxed' | 'loose' | 'none' | 'tighter';
 
 	/** Estilo da fonte */
 	fontStyle?: 'italic' | 'normal' | 'bold' | 'underline' | 'line-through';
@@ -334,6 +340,9 @@ export interface TextProps extends BaseComponentProps {
 
 	/** Conteúdo do texto */
 	children: Snippet;
+
+	/** Espaçamento entre letras */
+	letterSpacing?: 'tighter' | 'tight' | 'normal' | 'wide' | 'wider' | 'widest';
 }
 
 export interface AnchorProps extends BaseComponentProps, LinkableProps {
@@ -464,13 +473,19 @@ export interface FeatureCardProps extends BaseComponentProps, Partial<LinkablePr
 	illustration?: MediaProps;
 
 	/** Variante visual */
-	variant?: 'default' | 'highlighted' | 'minimal';
+	variant?: 'default' | 'highlighted' | 'minimal' | 'gradient';
 
 	/** Orientação do layout */
 	orientation?: Orientation;
 
 	/** Se é interativo (hover effects) */
 	interactive?: boolean;
+
+	/** Tamanho do card */
+	size?: Size;
+
+	/** Raio da borda */
+	borderRadius?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | 'none';
 }
 
 export interface TestimonialCardProps extends BaseComponentProps {
