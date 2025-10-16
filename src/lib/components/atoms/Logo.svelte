@@ -10,6 +10,8 @@
 	export let target: LogoProps['target'] = undefined;
 	export let rel: LogoProps['rel'] = undefined;
 	export let external: LogoProps['external'] = false;
+	export let src: LogoProps['src'] = undefined;
+	export let alt: LogoProps['alt'] = 'Guardiões da Educação';
 
 	// Classes adicionais
 	let className = '';
@@ -48,27 +50,31 @@
 <svelte:element this={element} class={classes} {...linkProps} {...$$restProps}>
 	{#if showIcon}
 		<div class="logo-icon">
-			<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-				<!-- Ícone representativo do livro/educação -->
-				<rect
-					x="8"
-					y="10"
-					width="24"
-					height="20"
-					rx="2"
-					stroke="currentColor"
-					stroke-width="2"
-					fill="none"
-				/>
-				<path
-					d="M12 18h16M12 22h12M12 26h8"
-					stroke="currentColor"
-					stroke-width="1.5"
-					stroke-linecap="round"
-				/>
-				<circle cx="20" cy="6" r="3" fill="currentColor" />
-				<path d="M20 9v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-			</svg>
+			{#if src}
+				<img {src} {alt} class="logo-image" />
+			{:else}
+				<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+					<!-- Ícone representativo do livro/educação -->
+					<rect
+						x="8"
+						y="10"
+						width="24"
+						height="20"
+						rx="2"
+						stroke="currentColor"
+						stroke-width="2"
+						fill="none"
+					/>
+					<path
+						d="M12 18h16M12 22h12M12 26h8"
+						stroke="currentColor"
+						stroke-width="1.5"
+						stroke-linecap="round"
+					/>
+					<circle cx="20" cy="6" r="3" fill="currentColor" />
+					<path d="M20 9v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+				</svg>
+			{/if}
 		</div>
 	{/if}
 

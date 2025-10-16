@@ -261,6 +261,12 @@ export interface LogoProps extends BaseComponentProps, Partial<LinkableProps> {
 
 	/** Se é interativo (clicável) */
 	interactive?: boolean;
+
+	/** URL da imagem externa (opcional) */
+	src?: string;
+  
+	/** Texto alternativo da imagem */
+	alt?: string;
 }
 
 export interface HeadingProps extends BaseComponentProps {

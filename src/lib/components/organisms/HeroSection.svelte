@@ -77,7 +77,6 @@
 						src="/images/illustrations/cerebro.png"
 						alt="Ilustração de cérebro representando conhecimento"
 						class="image-halftone"
-						
 						aspectRatio="square"
 						objectFit="contain"
 						loading="lazy"
@@ -89,7 +88,6 @@
 						src="/images/illustrations/lampada.png"
 						alt="Ilustração de lâmpada representando ideias"
 						class="image-halftone"
-						
 						aspectRatio="auto"
 						objectFit="contain"
 						loading="lazy"

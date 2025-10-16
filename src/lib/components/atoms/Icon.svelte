@@ -210,7 +210,7 @@
 	class:animated
 	width={iconSize}
 	height={iconSize}
-	viewBox={viewBox}
+	{viewBox}
 	fill={shouldFill ? iconColor : 'none'}
 	stroke={shouldFill ? 'none' : iconColor}
 	stroke-width="2"
