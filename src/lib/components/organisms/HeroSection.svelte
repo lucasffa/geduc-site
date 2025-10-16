@@ -74,14 +74,26 @@
 				<!-- Ilustrações específicas mencionadas na hierarquia -->
 				<div class="hero-illustration hero-illustration-brain">
 					<Image
-						src="/images/illustrations/brain.svg"
+						src="/images/illustrations/cerebro.png"
 						alt="Ilustração de cérebro representando conhecimento"
+						class="image-halftone"
+						
+						aspectRatio="square"
+						objectFit="contain"
+						loading="lazy"
+						priority
 					/>
 				</div>
 				<div class="hero-illustration hero-illustration-lamp">
 					<Image
-						src="/images/illustrations/lamp.png"
+						src="/images/illustrations/lampada.png"
 						alt="Ilustração de lâmpada representando ideias"
+						class="image-halftone"
+						
+						aspectRatio="auto"
+						objectFit="contain"
+						loading="lazy"
+						priority
 					/>
 				</div>
 			</div>
@@ -90,7 +102,6 @@
 
 	<div class="hero-section-container">
 		<div class="hero-section-content">
-			<!-- Perguntar como colocar o nome em destaque. Somente o "Guardiões da Educação" em cor diferente -->
 			<div class="hero-headings-container">
 				<Heading level={1} size="4xl" weight="bold" color="neutral" class="hero-section-title">
 					{title}
@@ -160,9 +171,11 @@
 						src={media.src}
 						alt={media.alt || 'Hero image'}
 						aspectRatio="auto"
+						objectFit="cover"
 						loading="eager"
 						priority
-						class="hero-section-image"
+						class="hero-section-image image-halftone"
+						blendMode="screen"
 					/>
 				{:else if media.type === 'video'}
 					<video
@@ -412,8 +425,7 @@
 		bottom: 0;
 		z-index: 1;
 		pointer-events: none;
-		/* Backdrop mais luminoso para o mix-blend-mode: screen */
-		}
+	}
 
 	.hero-section-layout-centered .hero-section-media {
 		width: 100%;
@@ -437,6 +449,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		mix-blend-mode: screen;
 	}
 
 	.hero-section-media-background .hero-section-illustrations {

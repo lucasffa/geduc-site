@@ -84,11 +84,12 @@
                 interactive
                 href={logo.href}
                 class="footer-logo"
+                theme="dark"
               />
             {/if}
   
             {#if description}
-              <Text as="p" size="md" color="secondary" class="footer-description">
+              <Text as="p" size="md" color="white" class="footer-description">
                 {description}
               </Text>
             {/if}
@@ -97,7 +98,7 @@
               <div class="footer-contact">
                                 {#if contact.email}
                   <div class="footer-contact-item">
-                    <Icon name="mail" size="sm" class="footer-contact-icon" />
+                    <Icon name="mail" size="sm" class="footer-contact-icon"/>
                     <Anchor size="sm" href={`mailto:${contact.email}`} class="footer-contact-link">
                       {contact.email}
                     </Anchor>
@@ -116,7 +117,7 @@
                 {#if contact.address}
                   <div class="footer-contact-item">
                     <Icon name="map-pin" size="sm" class="footer-contact-icon" />
-                    <Text as="span" size="sm" class="footer-contact-text">
+                    <Text as="span" size="sm" class="footer-contact-text" color="white">
                       {contact.address}
                     </Text>
                   </div>
@@ -140,7 +141,7 @@
             <div class="footer-links">
               {#each links as linkGroup}
                 <div class="footer-link-group">
-                  <Heading level={3} size="md" weight="semibold" class="footer-link-title">
+                  <Heading level={3} size="md" weight="semibold" class="footer-link-title" color="white">
                     {linkGroup.title}
                   </Heading>
                   <ul class="footer-link-list">
@@ -166,12 +167,12 @@
           <!-- Newsletter -->
           {#if newsletter}
             <div class="footer-newsletter">
-              <Heading level={3} size="md" weight="semibold" class="footer-newsletter-title">
+              <Heading level={3} size="md" weight="semibold" class="footer-newsletter-title" color="white">
                 {newsletter.title}
               </Heading>
   
               {#if newsletter.description}
-                <Text as="p" size="sm" color="secondary" class="footer-newsletter-description">
+                <Text as="p" size="sm" color="white" class="footer-newsletter-description">
                   {newsletter.description}
                 </Text>
               {/if}
@@ -199,7 +200,7 @@
       <!-- Seção de copyright -->
       <div class="footer-bottom">
         {#if copyright}
-          <Text as="p" size="sm" color="subtle" class="footer-copyright">
+          <Text as="p" size="sm" color="white" class="footer-copyright">
             {copyright}
           </Text>
         {/if}

@@ -27,7 +27,7 @@ export const load: PageLoad = async ({ fetch, params }) => {
 				],
 				media: {
 					type: 'illustration',
-					src: '/images/hero-illustration.svg',
+					src: '/images/hero-illustration.png',
 					alt: 'Ilustração representando educação e conhecimento'
 				},
 				background: {
@@ -279,7 +279,7 @@ export const load: PageLoad = async ({ fetch, params }) => {
 					'acesso universitário',
 					'desenvolvimento estudantil'
 				],
-				image: '/images/og-image-geduc.jpg'
+				image: '/images/og-image-geduc.png'
 			}
 		};
 
