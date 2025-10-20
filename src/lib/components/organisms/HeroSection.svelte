@@ -69,8 +69,9 @@
 
 	<!-- Background illustrations positioned behind content -->
 	{#if media && media.type === 'illustration'}
-		<div class="hero-section-media hero-section-media-background">
-			<div class="hero-section-illustrations">
+	
+		<div class="hero-section-media-background">
+
 				<!-- Ilustrações específicas mencionadas na hierarquia -->
 				<div class="hero-illustration hero-illustration-brain">
 					<Image
@@ -79,6 +80,7 @@
 						class="image-halftone"
 						aspectRatio="square"
 						objectFit="contain"
+						blendMode="screen"
 						loading="lazy"
 						priority
 					/>
@@ -90,11 +92,12 @@
 						class="image-halftone"
 						aspectRatio="auto"
 						objectFit="contain"
+						blendMode="screen"
 						loading="lazy"
 						priority
 					/>
 				</div>
-			</div>
+
 		</div>
 	{/if}
 
@@ -425,11 +428,7 @@
 		pointer-events: none;
 	}
 
-	.hero-section-layout-centered .hero-section-media {
-		width: 100%;
-		max-width: 600px;
-		margin-top: var(--spacing-xl);
-	}
+	
 
 	.hero-section-image,
 	.hero-section-video {
@@ -447,10 +446,11 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		mix-blend-mode: screen;
+		background-color: transparent;
 	}
 
-	.hero-section-media-background .hero-section-illustrations {
+	.hero-section-media-background{
+		
 		height: 100vh;
 		max-height: 800px;
 		width: 100vw;
@@ -460,9 +460,11 @@
 	}
 
 	.hero-illustration {
+		background: linear-gradient(135deg,
+			var(--color-primary-900) 0%,
+			var(--color-secondary-900) 50%,
+			var(--color-accent-900) 100%);
 		position: absolute;
-		max-width: 300px;
-		max-height: 300px;
 		animation: float 6s ease-in-out infinite;
 	}
 

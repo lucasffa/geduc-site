@@ -14,7 +14,8 @@
 	export let color: StatCardProps['color'] = 'primary';
 	export let size: StatCardProps['size'] = 'md';
 	export let variant: StatCardProps['variant'] = 'default';
-
+	export let showIconBackground: StatCardProps['showIconBackground'] = true;
+	
 	// Classes adicionais
 	let className = '';
 	export { className as class };
@@ -32,7 +33,7 @@
 	 * A classe adicional `className` permite que o usuário do componente adicione classes extras.
 	 * O resultado é uma string de classes que será aplicada ao elemento principal do StatCard.
 	 */
-	$: classes = [
+	 $: classes = [
 		'stat-card',
 		`stat-card-variant-${variant}`,
 		`stat-card-size-${size}`,
@@ -65,28 +66,27 @@
 
 <div class={classes} {style}>
 	<div class="stat-card-header">
-		{#if icon}
-			<div class="stat-card-icon">
-				<Icon name={icon.name} size="lg" color={icon.color || color} />
-			</div>
-		{/if}
-
+		<!-- Slot para ilustrações customizadas (prioridade sobre icon) -->
 		<slot name="illustration">
-			<!-- Slot para ilustrações customizadas como as mencionadas na hierarquia -->
+			{#if icon}
+				<div class="stat-card-icon" class:has-background={showIconBackground}>
+					<Icon name={icon.name} size="lg" color={icon.color || color} />
+				</div>
+			{/if}
 		</slot>
 	</div>
 
 	<div class="stat-card-content">
-		<Heading level={2} size="2xl" weight="bold" class="stat-card-value">
+		<Heading level={2} size="3xl" weight="bold" class="stat-card-value">
 			{displayValue}
 		</Heading>
 
-		<Text as="p" size="md" weight="medium" class="stat-card-label">
+		<Text as="p" size="md" weight="medium" color="primary" class="stat-card-label">
 			{label}
 		</Text>
 
 		{#if description}
-			<Text as="p" size="sm" color="subtle" class="stat-card-description">
+			<Text as="p" size="sm" color="primary" class="stat-card-description">
 				{description}
 			</Text>
 		{/if}

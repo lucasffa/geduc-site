@@ -466,6 +466,9 @@ export interface StatCardProps extends BaseComponentProps {
 
 	/** Variante visual */
 	variant?: 'default' | 'minimal' | 'highlighted';
+
+	/** Se deve mostrar background no ícone */
+	showIconBackground?: boolean;
 }
 
 export interface FeatureCardProps extends BaseComponentProps, Partial<LinkableProps> {
