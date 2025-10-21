@@ -4,5 +4,5 @@ Projeto desenvolvido em Svelte, por meio do framework Sveltekit.
 
 Não fizemos e2e tests e não temos uma coverage para frontend.
 
-Por gentileza, consulte docs do svelte e o kit em (https://svelte.dev/docs)[https://svelte.dev/docs] 
+Por gentileza, consulte docs do svelte e o kit em [https://svelte.dev/docs](https://svelte.dev/docs)
 
