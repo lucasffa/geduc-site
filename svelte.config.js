@@ -5,7 +5,17 @@ import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 const config = {
 	preprocess: vitePreprocess(),
 	kit: { 
-		adapter: adapter() 
+		adapter: adapter(),
+		prerender: {
+			handleHttpError: ({ path, referrer, message }) => {
+				// Ignora erros 404 durante o prerender
+				if (message.includes('404')) {
+					console.warn(`Aviso: ${message}`);
+					return;
+				}
+				throw new Error(message);
+			}
+		}
 	}
 };
 

@@ -1,0 +1,22 @@
+services:
+  app:
+    build:
+      context: .
+      target: development
+      dockerfile: Dockerfile
+    container_name: geduc-site-dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    restart: unless-stopped
+    networks:
+      - geduc-network
+
+networks:
+  geduc-network:
+    driver: bridge
+
