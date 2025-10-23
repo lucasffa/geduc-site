@@ -6,3 +6,4 @@ Não fizemos e2e tests e não temos uma coverage para frontend.
 
 Por gentileza, consulte docs do svelte e o kit em [https://svelte.dev/docs](https://svelte.dev/docs)
 
+Disponível em [https://geduc.site](https://geduc.site)
