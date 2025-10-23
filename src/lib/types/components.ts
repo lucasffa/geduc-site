@@ -36,7 +36,8 @@ export type ColorVariant =
 	| 'warning'
 	| 'error'
 	| 'info'
-	| 'white';
+	| 'white'
+	| 'black';
 
 export type BlendType =
 	| 'multiply'

@@ -147,9 +147,7 @@
 	.text-color-neutral {
 		color: var(--text-color-neutral);
 	}
-	.text-color-white {
-		color: var(--color-neutral-0);
-	}
+	
 	.text-color-success {
 		color: var(--color-success);
 	}
@@ -172,6 +170,14 @@
 
 	.text-color-subtle {
 		color: var(--text-color-subtle);
+	}
+
+	.text-color-black {
+		color: var(--text-color-black);
+	}
+
+	.text-color-white {
+		color: var(--text-color-white);
 	}
 
 	/* Alinhamentos */

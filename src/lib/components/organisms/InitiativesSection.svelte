@@ -89,7 +89,7 @@
 					spacing="normal"
 					align="center"
 					size="lg"
-					color="secondary"
+					color="neutral"
 					weight="normal"
 					leading="relaxed"
 				/>

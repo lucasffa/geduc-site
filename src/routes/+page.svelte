@@ -31,11 +31,7 @@
 			alt: 'Logo Guardiões da Educação',
 			href: '/'
 		},
-		cta: {
-			label: 'Participar',
-			href: '/participar',
-			variant: 'primary' as const
-		}
+		cta: undefined // CTA desativado
 	};
 
 	// Dados do footer
@@ -170,7 +166,6 @@
 	<svelte:fragment slot="navigation" let:dispatch>
 		<Navigation
 			items={navigationData.items}
-			logo={navigationData.logo}
 			cta={navigationData.cta}
 			variant="transparent"
 			sticky={true}

@@ -1,13 +1,11 @@
 <!-- src/lib/components/organisms/Navigation.svelte -->
 <script lang="ts">
 	import type { NavigationProps } from '$lib/types/components';
-	import Logo from '../atoms/Logo.svelte';
 	import Button from '../atoms/Button.svelte';
 	import Icon from '../atoms/Icon.svelte';
 	import NavItem from '../molecules/NavItem.svelte';
 
 	export let items: NavigationProps['items'];
-	export let logo: NavigationProps['logo'] = undefined;
 	export let cta: NavigationProps['cta'] = undefined;
 	export let variant: NavigationProps['variant'] = 'default';
 	export let sticky: NavigationProps['sticky'] = false;
@@ -62,11 +60,6 @@
 
 <nav class={classes}>
 	<div class="navigation-container">
-		<!-- Logo -->
-		{#if logo}
-			<Logo variant="full" size="md" interactive href={logo.href} class="navigation-logo" />
-		{/if}
-
 		<!-- Desktop Navigation -->
 		<div class="navigation-menu">
 			{#each items as item}
@@ -83,7 +76,7 @@
 
 		<!-- CTA Button -->
 		{#if cta}
-			<Button href={cta.href} variant={cta.variant || 'primary'} size="md" class="navigation-cta">
+			<Button href={cta.href} variant={cta.variant || 'primary'} size="sm" class="navigation-cta">
 				{cta.label}
 			</Button>
 		{/if}
@@ -96,7 +89,7 @@
 				aria-label={mobileMenuOpen ? 'Fechar menu' : 'Abrir menu'}
 				aria-expanded={mobileMenuOpen}
 			>
-				<Icon name={mobileMenuOpen ? 'x' : 'menu'} size="md" />
+				<Icon name={mobileMenuOpen ? 'x' : 'menu'} size="lg" color="primary" />
 			</button>
 		{/if}
 	</div>
@@ -131,17 +124,6 @@
 				{/if}
 			</div>
 		</div>
-	{/if}
-
-	<!-- Overlay para mobile menu -->
-	{#if mobileMenuOpen}
-		<div
-			class="navigation-overlay"
-			on:click={toggleMobileMenu}
-			on:keydown={null}
-			role="button"
-			tabindex="-1"
-		></div>
 	{/if}
 </nav>
 
@@ -199,11 +181,6 @@
 		background-color: rgba(255, 255, 255, 0.95);
 	}
 
-	/* Logo */
-	.navigation-logo {
-		flex-shrink: 0;
-	}
-
 	/* Desktop Menu */
 	.navigation-menu {
 		display: flex;
@@ -228,19 +205,23 @@
 		display: none;
 		align-items: center;
 		justify-content: center;
-		width: 40px;
-		height: 40px;
+		width: 48px;
+		height: 48px;
 		background: transparent;
 		border: none;
-		border-radius: var(--border-radius-md);
-		color: var(--icon-color-default);
+		border-radius: var(--border-radius-lg);
 		cursor: pointer;
-		transition: all var(--transition-fast) var(--transition-timing-default);
+		transition: all var(--transition-normal) var(--transition-timing-default);
+		position: relative;
+		z-index: 1001;
 	}
 
 	.navigation-mobile-toggle:hover {
-		background-color: var(--color-neutral-100);
-		color: var(--color-primary-500);
+		transform: scale(1.05);
+	}
+
+	.navigation-mobile-toggle:active {
+		transform: scale(0.95);
 	}
 
 	.navigation-mobile-toggle:focus-visible {
@@ -251,17 +232,17 @@
 	/* Mobile Menu */
 	.navigation-mobile-menu {
 		position: fixed;
-		top: 100%;
+		top: 0;
 		left: 0;
 		right: 0;
-		background-color: var(--background-color-card);
-		border-top: 1px solid var(--border-color-default);
-		box-shadow: var(--shadow-lg);
+		bottom: 0;
+		background-color: rgba(255, 255, 255, 0.98);
+		backdrop-filter: blur(10px);
 		transform: translateY(-100%);
 		opacity: 0;
 		visibility: hidden;
 		transition: all var(--transition-normal) var(--transition-timing-default);
-		z-index: 999;
+		z-index: 1000;
 	}
 
 	.navigation-mobile-menu-open {
@@ -271,35 +252,53 @@
 	}
 
 	.navigation-mobile-content {
-		padding: var(--spacing-lg);
+		padding: calc(20 * var(--spacing-unit)) var(--spacing-xl) var(--spacing-xl);
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-sm);
-		max-height: 70vh;
-		overflow-y: auto;
+		align-items: center;
+		gap: var(--spacing-md);
+		max-width: calc(200 * var(--spacing-unit)); /* 800px */
+		margin: 0 auto;
+		height: 100%;
+		justify-content: center;
 	}
 
 	.navigation-mobile-item {
 		width: 100%;
 		justify-content: center;
-		padding: var(--spacing-md) var(--spacing-lg);
-		border-radius: var(--border-radius-lg);
+		padding: var(--spacing-lg) var(--spacing-xl);
+		border-radius: var(--border-radius-xl);
+		background-color: transparent;
+		border: 2px solid transparent;
+		font-size: var(--font-size-lg);
+		transition: all var(--transition-normal) var(--transition-timing-default);
+		animation: slideInFromTop 0.4s ease-out backwards;
+	}
+
+	.navigation-mobile-item:nth-child(1) {
+		animation-delay: 0.1s;
+	}
+
+	.navigation-mobile-item:nth-child(2) {
+		animation-delay: 0.15s;
+	}
+
+	.navigation-mobile-item:nth-child(3) {
+		animation-delay: 0.2s;
+	}
+
+	.navigation-mobile-item:nth-child(4) {
+		animation-delay: 0.25s;
+	}
+
+	.navigation-mobile-item:nth-child(5) {
+		animation-delay: 0.3s;
 	}
 
 	.navigation-mobile-cta {
-		margin-top: var(--spacing-md);
-	}
-
-	/* Overlay */
-	.navigation-overlay {
-		position: fixed;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background-color: rgba(0, 0, 0, 0.5);
-		backdrop-filter: blur(4px);
-		z-index: 998;
+		margin-top: var(--spacing-lg);
+		animation: slideInFromTop 0.4s ease-out backwards;
+		animation-delay: 0.35s;
 	}
 
 	/* Responsividade */
@@ -314,10 +313,12 @@
 
 		.navigation-mobile-toggle {
 			display: flex;
+			margin: 0 auto;
 		}
 
 		.navigation-container {
 			padding: var(--spacing-sm) var(--spacing-md);
+			justify-content: center;
 		}
 	}
 
@@ -325,19 +326,6 @@
 		.navigation-mobile-menu {
 			display: none;
 		}
-
-		.navigation-overlay {
-			display: none;
-		}
-	}
-
-	/* Dark theme */
-	[data-theme='dark'] .navigation-variant-transparent.navigation-scrolled {
-		background-color: rgba(33, 33, 33, 0.95);
-	}
-
-	[data-theme='dark'] .navigation-mobile-toggle:hover {
-		background-color: var(--color-neutral-800);
 	}
 
 	/* Animações */
@@ -353,6 +341,26 @@
 		to {
 			opacity: 1;
 			transform: translateY(0);
+		}
+	}
+
+	@keyframes slideInFromTop {
+		from {
+			opacity: 0;
+			transform: translateY(-20px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	@keyframes fadeIn {
+		from {
+			opacity: 0;
+		}
+		to {
+			opacity: 1;
 		}
 	}
 

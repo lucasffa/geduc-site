@@ -68,13 +68,13 @@
 	{/if}
 
 	{#if subtitle}
-		<Text as="p" size="lg" color="secondary" {align} class="section-header-subtitle">
+		<Text as="p" size="lg" color="neutral" {align} class="section-header-subtitle">
 			{subtitle}
 		</Text>
 	{/if}
 
 	{#if description}
-		<Text as="p" size="md" color="secondary" {align} class="section-header-description">
+		<Text as="p" size="md" color="neutral" {align} class="section-header-description">
 			{description}
 		</Text>
 	{/if}
