@@ -169,6 +169,7 @@ h6 {
 	--color-neutral-700: #616161;
 	--color-neutral-800: #424242;
 	--color-neutral-900: #2a2a2a;
+	--color-neutral-1000: #000000;
 }
 
 /* -----------------------------------------------------------------------------
@@ -212,12 +213,14 @@ h6 {
 :root {
 	/* Cores de texto */
 	--text-color-primary: var(--color-primary-900);
-	--text-color-secondary: var(--color-neutral-900);
+	--text-color-secondary: var(--color-secondary-900);
 	--text-color-subtle: var(--color-neutral-600);
 	--text-color-disabled: var(--color-neutral-500);
 	--text-color-inverse: var(--color-neutral-0);
 	--text-color-accent: var(--color-accent-500);
 	--text-color-neutral: var(--color-neutral-900);
+	--text-color-white: var(--color-neutral-0);
+	--text-color-black: var(--color-neutral-1000);
 
 	/* Cores de fundo */
 	--background-color-page: var(--color-neutral-50);

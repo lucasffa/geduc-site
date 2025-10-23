@@ -89,7 +89,7 @@
 					spacing="normal"
 					align="left"
 					size="lg"
-					color="secondary"
+					color="neutral"
 					weight="normal"
 					leading="relaxed"
 					class="our-impact-text"

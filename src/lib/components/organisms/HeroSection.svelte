@@ -119,7 +119,9 @@
 				{/if}
 			</div>
 			{#if description}
-				<Text as="p" size="lg" color="white" align="center" class="hero-section-description">
+				<Text as="p" size="lg" color="white" align="center" class="hero-section-description"
+				letterSpacing="wider"
+				>
 					{description}
 				</Text>
 			{/if}

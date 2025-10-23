@@ -48,14 +48,20 @@
 		<Icon name={icon} size="sm" class="nav-item-icon" />
 	{/if}
 
-	<Text as="span" size="md" weight="medium" class="nav-item-text">
-		<slot />
-	</Text>
+	{#if !active}
+		<Text as="span" size="md" weight="medium" color="white">
+			<slot />
+		</Text>
+	{:else}
+		<Text as="span" size="md" weight="medium" color="primary">
+			<slot />
+		</Text>
+	{/if}
 
 	{#if badge}
-		<span class="nav-item-badge">
+		<Text as="span" size="md" weight="medium" class="nav-item-badge" color="black">
 			{badge}
-		</span>
+		</Text>
 	{/if}
 </svelte:element>
 
@@ -64,57 +70,60 @@
 		display: flex;
 		align-items: center;
 		gap: var(--spacing-sm);
-		padding: var(--spacing-sm) var(--spacing-md);
+		padding: var(--spacing-sm) var(--spacing-lg);
 		border-radius: var(--border-radius-md);
 		text-decoration: none;
-		color: var(--text-color-primary);
 		background-color: transparent;
 		border: none;
 		cursor: pointer;
-		transition: all var(--transition-fast) var(--transition-timing-default);
+		transition: transform var(--transition-fast) var(--transition-timing-default);
 		position: relative;
 		font-family: var(--font-family-sans);
 		white-space: nowrap;
 	}
 
 	.nav-item:hover:not(.nav-item-disabled) {
-		background-color: var(--color-primary-100);
-		color: var(--color-primary-700);
-		transform: translateY(-1px);
+		transform: scale(1.05);
 	}
 
 	.nav-item:focus-visible {
-		outline: 2px solid var(--color-primary-500);
+		outline: 2px solid var(--color-secondary-600);
 		outline-offset: 2px;
 	}
 
 	.nav-item:active:not(.nav-item-disabled) {
-		transform: translateY(0);
-		background-color: var(--color-primary-200);
+		transform: scale(0.95);
 	}
 
 	/* Estado ativo */
 	.nav-item-active {
-		background-color: var(--color-primary-500);
-		color: var(--color-neutral-0);
+		background-color: var(--color-secondary-600);
 		font-weight: var(--font-weight-semibold);
+		border-radius: var(--border-radius-full);
+		animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+	}
+
+	@keyframes popIn {
+		0% {
+			transform: scale(0.8);
+			opacity: 0;
+		}
+		50% {
+			transform: scale(1.1);
+		}
+		100% {
+			transform: scale(1);
+			opacity: 1;
+		}
 	}
 
 	.nav-item-active:hover {
-		background-color: var(--color-primary-600);
-		color: var(--color-neutral-0);
+		background-color: var(--color-secondary-600);
+		transform: scale(1.05);
 	}
 
-	.nav-item-active::before {
-		content: '';
-		position: absolute;
-		left: 0;
-		top: 50%;
-		transform: translateY(-50%);
-		width: 3px;
-		height: 70%;
-		background-color: var(--color-accent-500);
-		border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0;
+	.nav-item-active:active {
+		transform: scale(0.95);
 	}
 
 	/* Estado desabilitado */
@@ -143,68 +152,47 @@
 		height: 20px;
 		padding: 0 var(--spacing-xs);
 		background-color: var(--color-error);
-		color: var(--color-neutral-0);
 		font-size: var(--font-size-xs);
 		font-weight: var(--font-weight-bold);
 		border-radius: var(--border-radius-full);
 		margin-left: auto;
 	}
 
-	.nav-item-active .nav-item-badge {
-		background-color: var(--color-accent-500);
-		color: var(--text-color-primary);
-	}
-
 	/* Responsividade */
 	@media (max-width: 768px) {
 		.nav-item {
-			padding: var(--spacing-md) var(--spacing-lg);
-			justify-content: flex-start;
+			padding: var(--spacing-lg) var(--spacing-xl);
+			justify-content: center;
+			background-color: transparent;
+			border: 2px solid transparent;
+			border-radius: var(--border-radius-xl);
+			font-size: var(--font-size-lg);
+		}
+
+		.nav-item:hover:not(.nav-item-disabled) {
+			background-color: var(--color-primary-50);
+			border-color: var(--color-secondary-600);
+			transform: scale(1.02);
+		}
+
+		.nav-item-active {
+			background-color: var(--color-secondary-600);
+			border-color: var(--color-secondary-600);
+			font-weight: var(--font-weight-bold);
+		}
+
+		.nav-item-active:hover {
+			background-color: var(--color-secondary-800);
+			border-color: var(--color-secondary-800);
+			transform: scale(1.02);
+		}
+
+		.nav-item-active:active {
+			transform: scale(0.98);
 		}
 
 		.nav-item-text {
 			font-size: var(--font-size-lg);
 		}
-	}
-
-	/* Dark theme */
-	[data-theme='dark'] .nav-item:hover:not(.nav-item-disabled) {
-		background-color: var(--color-primary-900);
-		color: var(--color-primary-300);
-	}
-
-	[data-theme='dark'] .nav-item:active:not(.nav-item-disabled) {
-		background-color: var(--color-primary-800);
-	}
-
-	[data-theme='dark'] .nav-item-active {
-		background-color: var(--color-primary-700);
-		color: var(--color-neutral-0);
-	}
-
-	[data-theme='dark'] .nav-item-active:hover {
-		background-color: var(--color-primary-600);
-	}
-
-	/* Efeitos de animação */
-	.nav-item::after {
-		content: '';
-		position: absolute;
-		bottom: 0;
-		left: 50%;
-		width: 0;
-		height: 2px;
-		background-color: var(--color-primary-500);
-		transition: all var(--transition-fast) var(--transition-timing-default);
-		transform: translateX(-50%);
-	}
-
-	.nav-item:hover::after,
-	.nav-item-active::after {
-		width: 80%;
-	}
-
-	.nav-item-active::after {
-		background-color: var(--color-accent-500);
 	}
 </style>
