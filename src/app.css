@@ -407,7 +407,7 @@ h6 {
 	--card-height-portrait-lg: calc(125 * var(--spacing-unit)); /* 500px */
 
 	/* Extra Large */
-	--card-width-portrait-xl: calc(88 * var(--spacing-unit)); /* 352px */
+	--card-width-portrait-xl: calc(86 * var(--spacing-unit)); /* 344px */
 	--card-height-portrait-xl: calc(117 * var(--spacing-unit)); /* 468px */
 
 	/* Aspecto Paisagem */
