@@ -264,7 +264,7 @@ export interface LogoProps extends BaseComponentProps, Partial<LinkableProps> {
 
 	/** URL da imagem externa (opcional) */
 	src?: string;
-  
+
 	/** Texto alternativo da imagem */
 	alt?: string;
 }
@@ -435,6 +435,23 @@ export interface NavItemProps extends BaseComponentProps, LinkableProps {
 	children: Snippet;
 }
 
+export interface StatItem {
+	value: string | number;
+	label: string;
+	description?: string;
+	icon?: { name: string; color?: ColorVariant };
+	color?: ColorVariant;
+	trend?: {
+		direction: 'up' | 'down' | 'neutral';
+		value: number;
+		label?: string;
+	};
+	href?: string;
+	suffix?: string;
+	prefix?: string;
+	iconImage?: string;
+}
+
 export interface StatCardProps extends BaseComponentProps {
 	/** Valor principal da estatística */
 	value: string | number;
@@ -465,10 +482,24 @@ export interface StatCardProps extends BaseComponentProps {
 	size?: Size;
 
 	/** Variante visual */
-	variant?: 'default' | 'minimal' | 'highlighted';
+	variant?: 'default' | 'minimal' | 'highlighted' | 'bordered' | 'elevated' | 'gradient';
 
 	/** Se deve mostrar background no ícone */
 	showIconBackground?: boolean;
+
+	animateValue?: boolean;
+
+	animationDuration?: number;
+
+	href?: string;
+
+	target?: '_blank' | '_self';
+
+	suffix?: string;
+
+	prefix?: string;
+
+	style?: string;
 }
 
 export interface FeatureCardProps extends BaseComponentProps, Partial<LinkableProps> {
@@ -552,14 +583,14 @@ export interface SectionHeaderProps extends BaseComponentProps {
 
 	/** Cor do titulo principal */
 	titleColor?:
-		| 'primary'
-		| 'secondary'
-		| 'accent'
-		| 'neutral'
-		| 'success'
-		| 'warning'
-		| 'error'
-		| 'info';
+	| 'primary'
+	| 'secondary'
+	| 'accent'
+	| 'neutral'
+	| 'success'
+	| 'warning'
+	| 'error'
+	| 'info';
 }
 
 export interface SocialLinksProps extends BaseComponentProps {
@@ -696,27 +727,44 @@ export interface HeroSectionProps extends BaseComponentProps {
 	decorative?: boolean;
 }
 
+
 export interface StatsSectionProps extends BaseComponentProps {
 	/** Lista de estatísticas */
-	stats: Array<{
-		value: string | number;
-		label: string;
-		description?: string;
-		icon?: { name: string; color?: ColorVariant };
-		color?: ColorVariant;
-	}>;
+	// stats: Array<{
+	// 	value: string | number;
+	// 	label: string;
+	// 	description?: string;
+	// 	icon?: { name: string; color?: ColorVariant };
+	// 	color?: ColorVariant;
+	// }>;
+
+	stats: StatItem[];
 
 	/** Layout das estatísticas */
-	layout?: 'grid' | 'horizontal' | 'carousel';
+	layout?: 'grid' | 'horizontal' | 'carousel' | 'masonry';
 
 	/** Número de colunas no grid */
 	columns?: 2 | 3 | 4 | 5 | 6;
 
 	/** Background da seção */
-	background?: 'none' | 'muted' | 'primary' | 'gradient';
+	background?: 'none' | 'muted' | 'primary' | 'gradient' | 'pattern';
 
 	/** Se deve ter animação de contador */
 	animated?: boolean;
+
+	title?: string;
+
+	subtitle?: string;
+
+	align?: TextAlign;
+
+	gap?: 'sm' | 'md' | 'lg' | 'xl';
+
+	cardVariant?: 'default' | 'minimal' | 'highlighted' | 'bordered' | 'elevated' | 'gradient';
+
+	showIllustrations?: boolean;
+
+	iconImage?: string;
 }
 
 export interface OurImpactProps extends BaseComponentProps {
@@ -725,14 +773,14 @@ export interface OurImpactProps extends BaseComponentProps {
 
 	/** Cor do titulo principal da seção */
 	titleColor?:
-		| 'primary'
-		| 'secondary'
-		| 'accent'
-		| 'neutral'
-		| 'success'
-		| 'warning'
-		| 'error'
-		| 'info';
+	| 'primary'
+	| 'secondary'
+	| 'accent'
+	| 'neutral'
+	| 'success'
+	| 'warning'
+	| 'error'
+	| 'info';
 
 	/** Texto específico sobre o impacto */
 	impactText?: string;
@@ -1108,14 +1156,14 @@ export interface AboutUsProps extends BaseComponentProps {
 
 	/** Cor do titulo principal da seção */
 	titleColor:
-		| 'primary'
-		| 'secondary'
-		| 'accent'
-		| 'neutral'
-		| 'success'
-		| 'warning'
-		| 'error'
-		| 'info';
+	| 'primary'
+	| 'secondary'
+	| 'accent'
+	| 'neutral'
+	| 'success'
+	| 'warning'
+	| 'error'
+	| 'info';
 
 	/** Descrição principal */
 	description: string;

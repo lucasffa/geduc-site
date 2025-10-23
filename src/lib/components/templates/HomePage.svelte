@@ -53,14 +53,14 @@
     <slot name="hero" {dispatch} />
   </section>
 
-  <!-- Our Impact Section -->
-  <section class="home-page-our-impact" aria-label="Nosso impacto">
-    <slot name="ourImpact" {dispatch} />
-  </section>
-
   <!-- Stats Section -->
   <section class="home-page-stats" aria-label="Estatísticas">
     <slot name="stats" {dispatch} />
+  </section>
+
+  <!-- Our Impact Section -->
+  <section class="home-page-our-impact" aria-label="Nosso impacto">
+    <slot name="ourImpact" {dispatch} />
   </section>
 
   <!-- About Section -->
