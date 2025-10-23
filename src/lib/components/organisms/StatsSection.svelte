@@ -92,7 +92,7 @@
 					value={stat.value}
 					label={stat.label}
 					description={stat.description}
-					icon={stat.icon || (showIllustrations ? undefined : { name: defaultIcons[index % 4] })}
+					iconImage={stat.iconImage || ''}
 					trend={stat.trend}
 					color={stat.color || 'primary'}
 					variant={cardVariant}
@@ -131,7 +131,6 @@
 	.stats-section-container {
 		max-width: var(--container-max-width-xl, 1280px);
 		margin: 0 auto;
-		padding: 0 var(--spacing-lg, 2rem);
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-3xl, 3rem);
@@ -307,7 +306,7 @@
 	.stat-icon {
 		width: 28px;
 		height: 28px;
-		color: white;
+		
 	}
 
 	.stats-section-card:hover .stat-icon-circle {

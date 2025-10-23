@@ -5,6 +5,7 @@
 	import Heading from '$lib/components/atoms/Heading.svelte';
 	import Text from '$lib/components/atoms/Text.svelte';
 	import Icon from '$lib/components/atoms/Icon.svelte';
+	import Image from '../atoms/Image.svelte';
 
 	export let value: StatCardProps['value'];
 	export let label: StatCardProps['label'];
@@ -34,6 +35,11 @@
 	// Estado para animação de contagem
 	let displayValue = animateValue ? 0 : value;
 	let mounted = false;
+
+	// Debug: log do iconImage
+	$: if (iconImage) {
+		console.log('StatCard iconImage:', iconImage);
+	}
 
 	// Classes CSS baseadas nas props
 	$: classes = [
@@ -117,21 +123,26 @@
 
 {#snippet content()}
 	<div class="stat-card-inner">
-		<!-- Ícone no topo -->
-		{#if icon}
-			<div class="stat-card-icon-wrapper">
-				<Icon name={icon.name} size="xl" color="white" />
-			</div>
+		<!-- Imagem do ícone no topo -->
+		{#if iconImage}
+			<Image
+				src = {iconImage}
+				alt = {label}
+			/>
 		{/if}
 
 		<!-- Valor grande -->
 		<div class="stat-card-value">
-			{fullValue}
+			<Text as="span" size="4xl" color="primary" class="stat-card-full-value" weight ="bold">
+				{fullValue}
+			</Text>
 		</div>
 
 		<!-- Label/Descrição -->
 		<div class="stat-card-label">
-			{label}
+			<Text as="span" size="lg" color="primary" class="stat-card-label">
+				{label}
+			</Text>
 		</div>
 
 		{#if description}
@@ -213,25 +224,7 @@
 	}
 
 	/* Valor grande em azul escuro */
-	.stat-card-value {
-		font-size: 3.5rem;
-		font-weight: 800;
-		line-height: 1;
-		color: #1E3A8A;
-		letter-spacing: -0.02em;
-		margin: 0;
-		animation: fadeInUp 0.6s ease-out;
-	}
-
-	/* Label em azul */
-	.stat-card-label {
-		font-size: 1rem;
-		font-weight: 600;
-		color: #3B82F6;
-		line-height: 1.4;
-		max-width: 200px;
-		margin: 0;
-	}
+	
 
 	.stat-card-description {
 		margin: 0;
@@ -311,6 +304,13 @@
 		z-index: -1;
 	}
 
+	.stat-card-icon-image {
+		width: 40px;
+		height: 40px;
+		object-fit: contain;
+	
+	}
+
 	.stat-card:hover .stat-card-icon-wrapper::before {
 		opacity: 1;
 		animation: pulse 2s ease-in-out infinite;
@@ -325,6 +325,13 @@
 			transform: scale(1.2);
 			opacity: 0.6;
 		}
+	}
+
+	.stat-card-icon-image {
+		width: 40px;
+		height: 40px;
+		object-fit: contain;
+		
 	}
 
 	/* Responsividade */

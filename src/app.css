@@ -212,7 +212,7 @@ h6 {
 :root {
 	/* Cores de texto */
 	--text-color-primary: var(--color-primary-900);
-	--text-color-secondary: var(--color-neutral-900);
+	--text-color-secondary: var(--color-secondary-900);
 	--text-color-subtle: var(--color-neutral-600);
 	--text-color-disabled: var(--color-neutral-500);
 	--text-color-inverse: var(--color-neutral-0);
