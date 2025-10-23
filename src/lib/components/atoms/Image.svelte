@@ -107,8 +107,6 @@
 	}
 
 	.image-element {
-		width: 100%;
-		height: 100%;
 		object-fit: var(--object-fit, cover);
 		transition: opacity var(--transition-normal) var(--transition-timing-default);
 	}
@@ -337,12 +335,6 @@
 			var(--color-neutral-800) 50%,
 			var(--color-neutral-700) 75%
 		);
-	}
-
-	/* Hover effects para imagens interativas */
-	.image-container:hover .image-element {
-		transform: scale(1.05);
-		transition: transform var(--transition-normal) var(--transition-timing-default);
 	}
 
 	/* Efeito halftone específico mencionado na hierarquia */

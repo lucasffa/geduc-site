@@ -74,7 +74,7 @@
 				<!-- Ilustrações específicas mencionadas na hierarquia -->
 				<div class="hero-illustration hero-illustration-brain">
 					<Image
-						src="/images/illustrations/brain.svg"
+						src="/images/illustrations/brain.png"
 						alt="Ilustração de cérebro representando conhecimento"
 					/>
 				</div>
@@ -537,6 +537,7 @@
 		right: 10%;
 		animation: rotate 25s linear infinite;
 	}
+
 
 	@keyframes rotate {
 		from {

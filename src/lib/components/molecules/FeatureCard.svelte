@@ -57,10 +57,10 @@
 				alt={illustration.alt}
 				width={illustration.width}
 				height={illustration.height}
-				aspectRatio={illustration.aspectRatio || 'square'}
+				aspectRatio={illustration.aspectRatio || 'auto'}
 				objectFit={illustration.objectFit || 'contain'}
 				loading={illustration.loading || 'lazy'}
-				class="feature-card-image image-halftone"
+				class="image-halftone"
 			/>
 		</div>
 	{/if}
@@ -330,18 +330,10 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		padding: var(--spacing-lg);
-		background: linear-gradient(
-			135deg,
-			var(--color-primary-100) 0%,
-			var(--color-secondary-100) 100%
-		);
 	}
 
 	.feature-card-orientation-vertical .feature-card-illustration {
-		width: 100%;
-		height: 200px;
-		padding: var(--spacing-xl);
+		padding: var(--spacing-sm);
 	}
 
 	.feature-card-orientation-horizontal .feature-card-illustration {
@@ -351,8 +343,6 @@
 	}
 
 	.feature-card-image {
-		max-width: 120px;
-		max-height: 120px;
 		width: 100%;
 		height: auto;
 	}
