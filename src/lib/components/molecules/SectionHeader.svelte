@@ -12,6 +12,7 @@
 	export let decorative: SectionHeaderProps['decorative'] = false;
 	export let actions: SectionHeaderProps['actions'] = undefined;
 	export let titleColor: SectionHeaderProps['titleColor'] = 'primary';
+	export let headingLevel: SectionHeaderProps['headingLevel'] = 2;
 
 	// Novas props para funcionalidades avançadas
 	export let decorativeLetter: boolean = false;
@@ -48,8 +49,6 @@
 		.filter(Boolean)
 		.join(' ');
 
-	// Determina o nível do heading baseado no contexto
-	$: headingLevel = (align === 'center' ? 1 : 2) as HeadingLevel;
 </script>
 
 <header class={classes}>

@@ -11,8 +11,9 @@
 	import Image from './Image.svelte';
 	import { onMount } from 'svelte';
 	import { logger } from '$lib/utils/logger';
+	import Text from './Text.svelte';
 
-	export let level: HeadingProps['level'] = 1;
+	export let level: HeadingProps['level'] = 2;
 	export let shadow: HeadingProps['shadow'] = undefined;
 	export let size: HeadingProps['size'] = undefined;
 	export let weight: HeadingProps['weight'] = undefined;
@@ -120,7 +121,8 @@
 		warning: 'text-warning',
 		error: 'text-error',
 		info: 'text-info',
-		white: 'text-white'
+		white: 'text-white',
+		black: 'text-black'
 	} as const;
 
 	// Mapeamento de alinhamentos para classes CSS
@@ -251,6 +253,7 @@
 					src={imagePath}
 					alt={`Letra decorativa ${(firstLetter || 'N').toUpperCase()}`}
 					objectFit="contain"
+					aspectRatio="auto"
 					priority={true}
 					onload={handleDecorativeImageLoad}
 					onerror={handleDecorativeImageError}

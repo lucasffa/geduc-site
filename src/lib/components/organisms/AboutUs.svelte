@@ -176,28 +176,6 @@
 		margin-bottom: var(--spacing-xl);
 	}
 
-	/* Título principal */
-	:global(.about-us-title) {
-		font-size: var(--heading-2-font-size);
-		font-weight: var(--heading-2-font-weight);
-		line-height: var(--heading-2-line-height);
-		color: var(--text-color-primary);
-		position: relative;
-		display: inline-block;
-	}
-
-	/* Decoração do título */
-	:global(.about-us-title)::after {
-		content: '';
-		position: absolute;
-		bottom: -8px;
-		left: 0;
-		width: 100%;
-		height: 4px;
-		background: var(--color-primary-300);
-		border-radius: var(--border-radius-sm);
-	}
-
 	/* Layout base do conteúdo */
 	.about-us-content {
 		display: flex;
@@ -211,13 +189,6 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-xl);
-	}
-
-	/* Parágrafo principal */
-	:global(.about-us-paragraph) {
-		line-height: var(--line-height-relaxed);
-		color: var(--text-color-secondary);
-		font-size: var(--font-size-lg);
 	}
 
 	/* Container dos botões */

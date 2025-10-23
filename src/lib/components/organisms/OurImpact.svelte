@@ -73,7 +73,6 @@
 					{title}
 					{titleColor}
 					align="left"
-					class="our-impact-header"
 					decorativeLetter={true}
 					decoration={true}
 					decorationColor="var(--color-yellow-600)"
