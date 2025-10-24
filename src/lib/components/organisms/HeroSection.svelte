@@ -77,7 +77,6 @@
 					<Image
 						src="/images/illustrations/brain.png"
 						alt="Ilustração de cérebro representando conhecimento"
-						class="image-halftone"
 						aspectRatio="square"
 						objectFit="contain"
 						blendMode="screen"
@@ -87,9 +86,8 @@
 				</div>
 				<div class="hero-illustration hero-illustration-lamp">
 					<Image
-						src="/images/illustrations/lampada.png"
+						src="/images/illustrations/lamp.png"
 						alt="Ilustração de lâmpada representando ideias"
-						class="image-halftone"
 						aspectRatio="auto"
 						objectFit="contain"
 						blendMode="screen"
@@ -491,10 +489,10 @@
 	}
 
 	.hero-section-media-background .hero-illustration-lamp {
-		bottom: 27%;
+		bottom: 40%;
 		right: 7%;
-		max-width: 380px;
-		max-height: 380px;
+		max-width: 350px;
+		max-height: 350px;
 	}
 
 	@keyframes float {

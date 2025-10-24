@@ -60,7 +60,6 @@
 				aspectRatio={illustration.aspectRatio || 'auto'}
 				objectFit={illustration.objectFit || 'contain'}
 				loading={illustration.loading || 'lazy'}
-				class="image-halftone"
 			/>
 		</div>
 	{/if}
