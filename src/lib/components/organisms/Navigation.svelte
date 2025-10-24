@@ -178,7 +178,7 @@
 	}
 
 	.navigation-variant-transparent.navigation-scrolled {
-		background-color: rgba(255, 255, 255, 0.95);
+		background-color: var(--background-color-header);
 	}
 
 	/* Desktop Menu */
