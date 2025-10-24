@@ -78,17 +78,20 @@
           <!-- Coluna de informações principais -->
           <div class="footer-brand">
             {#if logo}
-              <Logo
-                variant="full"
-                size="lg"
-                interactive
-                href={logo.href}
-                class="footer-logo"
-              />
-            {/if}
+            <Logo
+              variant="full"
+              size="lg"
+              interactive
+              href={logo.href || '/'}
+              src={logo.src}          
+              alt={logo.alt || 'Logo'} 
+              class="footer-logo"
+              theme="dark"
+            />
+          {/if}
   
             {#if description}
-              <Text as="p" size="md" color="secondary" class="footer-description">
+              <Text as="p" size="md" color="white" class="footer-description">
                 {description}
               </Text>
             {/if}
@@ -97,8 +100,8 @@
               <div class="footer-contact">
                                 {#if contact.email}
                   <div class="footer-contact-item">
-                    <Icon name="mail" size="sm" class="footer-contact-icon" />
-                    <Anchor size="sm" href={`mailto:${contact.email}`} class="footer-contact-link">
+                    <Icon name="mail" size="sm" class="footer-contact-icon"/>
+                    <Anchor size="sm" href={`mailto:${contact.email}`} class="footer-contact-link" color="inverse">
                       {contact.email}
                     </Anchor>
                   </div>
@@ -107,7 +110,7 @@
                 {#if contact.phone}
                   <div class="footer-contact-item">
                     <Icon name="phone" size="sm" class="footer-contact-icon" />
-                    <Anchor size="sm" href={`tel:${contact.phone}`} class="footer-contact-link">
+                    <Anchor size="sm" href={`tel:${contact.phone}`} class="footer-contact-link" color="inverse">
                       {contact.phone}
                     </Anchor>
                   </div>
@@ -116,7 +119,7 @@
                 {#if contact.address}
                   <div class="footer-contact-item">
                     <Icon name="map-pin" size="sm" class="footer-contact-icon" />
-                    <Text as="span" size="sm" class="footer-contact-text">
+                    <Text as="span" size="sm" class="footer-contact-text" color="white">
                       {contact.address}
                     </Text>
                   </div>
@@ -140,7 +143,7 @@
             <div class="footer-links">
               {#each links as linkGroup}
                 <div class="footer-link-group">
-                  <Heading level={3} size="md" weight="semibold" class="footer-link-title">
+                  <Heading level={3} size="md" weight="semibold" class="footer-link-title" color="white">
                     {linkGroup.title}
                   </Heading>
                   <ul class="footer-link-list">
@@ -152,6 +155,7 @@
                           target={linkItem.external ? '_blank' : undefined}
                           external={linkItem.external}
                           class="footer-link-item"
+                          color="inverse"
                         >
                           {linkItem.label}
                         </Anchor>
@@ -166,12 +170,12 @@
           <!-- Newsletter -->
           {#if newsletter}
             <div class="footer-newsletter">
-              <Heading level={3} size="md" weight="semibold" class="footer-newsletter-title">
+              <Heading level={3} size="md" weight="semibold" class="footer-newsletter-title" color="white">
                 {newsletter.title}
               </Heading>
   
               {#if newsletter.description}
-                <Text as="p" size="sm" color="secondary" class="footer-newsletter-description">
+                <Text as="p" size="sm" color="white" class="footer-newsletter-description">
                   {newsletter.description}
                 </Text>
               {/if}
@@ -199,7 +203,7 @@
       <!-- Seção de copyright -->
       <div class="footer-bottom">
         {#if copyright}
-          <Text as="p" size="sm" color="subtle" class="footer-copyright">
+          <Text as="p" size="sm" color="white" class="footer-copyright">
             {copyright}
           </Text>
         {/if}
@@ -294,18 +298,15 @@
     }
   
     .footer-contact-link {
-      color: var(--text-color-inverse);
       text-decoration: none;
       transition: color var(--transition-fast) var(--transition-timing-default);
     }
   
     .footer-contact-link:hover {
-      color: var(--color-accent-400);
       text-decoration: underline;
     }
   
     .footer-contact-text {
-      color: var(--text-color-inverse);
     }
   
     /* Social */
@@ -327,7 +328,6 @@
     }
   
     .footer-link-title {
-      color: var(--text-color-inverse);
       margin-bottom: var(--spacing-sm);
     }
   
@@ -341,7 +341,6 @@
     }
   
     .footer-link-item {
-      color: var(--color-neutral-300);
       text-decoration: none;
       transition: all var(--transition-fast) var(--transition-timing-default);
       position: relative;

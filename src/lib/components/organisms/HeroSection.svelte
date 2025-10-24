@@ -69,28 +69,40 @@
 
 	<!-- Background illustrations positioned behind content -->
 	{#if media && media.type === 'illustration'}
-		<div class="hero-section-media hero-section-media-background">
-			<div class="hero-section-illustrations">
+	
+		<div class="hero-section-media-background">
+
 				<!-- Ilustrações específicas mencionadas na hierarquia -->
 				<div class="hero-illustration hero-illustration-brain">
 					<Image
 						src="/images/illustrations/brain.png"
 						alt="Ilustração de cérebro representando conhecimento"
+						class="image-halftone"
+						aspectRatio="square"
+						objectFit="contain"
+						blendMode="screen"
+						loading="lazy"
+						priority
 					/>
 				</div>
 				<div class="hero-illustration hero-illustration-lamp">
 					<Image
-						src="/images/illustrations/lamp.png"
+						src="/images/illustrations/lampada.png"
 						alt="Ilustração de lâmpada representando ideias"
+						class="image-halftone"
+						aspectRatio="auto"
+						objectFit="contain"
+						blendMode="screen"
+						loading="lazy"
+						priority
 					/>
 				</div>
-			</div>
+
 		</div>
 	{/if}
 
 	<div class="hero-section-container">
 		<div class="hero-section-content">
-			<!-- Perguntar como colocar o nome em destaque. Somente o "Guardiões da Educação" em cor diferente -->
 			<div class="hero-headings-container">
 				<Heading level={1} size="4xl" weight="bold" color="neutral" class="hero-section-title">
 					{title}
@@ -162,9 +174,11 @@
 						src={media.src}
 						alt={media.alt || 'Hero image'}
 						aspectRatio="auto"
+						objectFit="cover"
 						loading="eager"
 						priority
-						class="hero-section-image"
+						class="hero-section-image image-halftone"
+						blendMode="screen"
 					/>
 				{:else if media.type === 'video'}
 					<video
@@ -414,14 +428,9 @@
 		bottom: 0;
 		z-index: 1;
 		pointer-events: none;
-		/* Backdrop mais luminoso para o mix-blend-mode: screen */
-		}
-
-	.hero-section-layout-centered .hero-section-media {
-		width: 100%;
-		max-width: 600px;
-		margin-top: var(--spacing-xl);
 	}
+
+	
 
 	.hero-section-image,
 	.hero-section-video {
@@ -439,9 +448,11 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		background-color: transparent;
 	}
 
-	.hero-section-media-background .hero-section-illustrations {
+	.hero-section-media-background{
+		
 		height: 100vh;
 		max-height: 800px;
 		width: 100vw;
@@ -451,9 +462,11 @@
 	}
 
 	.hero-illustration {
+		background: linear-gradient(135deg,
+			var(--color-primary-900) 0%,
+			var(--color-secondary-900) 50%,
+			var(--color-accent-900) 100%);
 		position: absolute;
-		max-width: 300px;
-		max-height: 300px;
 		animation: float 6s ease-in-out infinite;
 	}
 

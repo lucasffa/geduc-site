@@ -27,7 +27,7 @@ export const load: PageLoad = async ({ fetch, params }) => {
 				],
 				media: {
 					type: 'illustration',
-					src: '/images/hero-illustration.svg',
+					src: '/images/hero-illustration.png',
 					alt: 'Ilustração representando educação e conhecimento'
 				},
 				background: {
@@ -52,50 +52,36 @@ export const load: PageLoad = async ({ fetch, params }) => {
 				title: 'Estatísticas',
 				stats: [
 					{
-						value: '100+',
-						label: 'Cidades alcançadas',
-						description: 'Presença nacional expandindo oportunidades educacionais',
-						icon: {
-							name: 'map-pin',
-							color: 'primary'
-						},
-						color: 'primary'
+						value: 100,
+						suffix: '+',
+						label: 'Cidades alcançadas em todo o Brasil',
+						iconImage: '/images/illustrations/pin.png'
 					},
 					{
-						value: '30+',
-						label: 'Voluntários especializados',
-						description: 'Educadores dedicados de todo o Brasil',
-						icon: {
-							name: 'users',
-							color: 'secondary'
-						},
-						color: 'secondary'
+						value: 30,
+						suffix: '+',
+						label: 'Voluntários de todo o Brasil',
+						iconImage: '/images/illustrations/user.png'
 					},
 					{
-						value: '750k+',
-						label: 'Pessoas impactadas',
-						description: 'Vidas transformadas através da educação',
-						icon: {
-							name: 'heart',
-							color: 'accent'
-						},
-						color: 'accent'
+						value: 750,
+						suffix: 'k+',
+						label: 'Contas alcançadas nas redes sociais',
+						iconImage: '/images/illustrations/social.png'
 					},
 					{
-						value: '25k+',
-						label: 'Estudantes beneficiados',
-						description: 'Jovens com acesso a oportunidades únicas',
-						icon: {
-							name: 'graduation-cap',
-							color: 'success'
-						},
-						color: 'success'
+						value: 25,
+						suffix: 'k+',
+						label: 'Pessoas impactadas por nossas ações',
+						iconImage: '/images/illustrations/target.png'
 					}
 				],
 				layout: 'grid',
 				columns: 4,
-				background: 'gradient',
-				animated: true
+				background: 'primary',
+				animated: true,
+				cardVariant: 'minimal',
+				showIllustrations: true
 			},
 
 			about: {
@@ -279,7 +265,7 @@ export const load: PageLoad = async ({ fetch, params }) => {
 					'acesso universitário',
 					'desenvolvimento estudantil'
 				],
-				image: '/images/og-image-geduc.jpg'
+				image: '/images/og-image-geduc.png'
 			}
 		};
 

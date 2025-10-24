@@ -161,63 +161,64 @@
 		object-fit: none;
 	}
 
-	.blend-mode-screen .image-element {
+	/* Blend Modes - aplicados diretamente no container */
+	.blend-mode-screen {
 		mix-blend-mode: screen;
 	}
 
-	.blend-mode-multiply .image-element {
+	.blend-mode-multiply {
 		mix-blend-mode: multiply;
 	}
 
-	.blend-mode-overlay .image-element {
+	.blend-mode-overlay {
 		mix-blend-mode: overlay;
 	}
 
-	.blend-mode-darken .image-element {
+	.blend-mode-darken {
 		mix-blend-mode: darken;
 	}
 
-	.blend-mode-lighten .image-element {
+	.blend-mode-lighten {
 		mix-blend-mode: lighten;
 	}
 
-	.blend-mode-color-dodge .image-element {
+	.blend-mode-color-dodge {
 		mix-blend-mode: color-dodge;
 	}
 
-	.blend-mode-color-burn .image-element {
+	.blend-mode-color-burn {
 		mix-blend-mode: color-burn;
 	}
 
-	.blend-mode-hard-light .image-element {
+	.blend-mode-hard-light {
 		mix-blend-mode: hard-light;
 	}
 
-	.blend-mode-soft-light .image-element {
+	.blend-mode-soft-light {
 		mix-blend-mode: soft-light;
 	}
 
-	.blend-mode-difference .image-element {
+	.blend-mode-difference {
 		mix-blend-mode: difference;
 	}
 
-	.blend-mode-exclusion .image-element {
+	.blend-mode-exclusion {
 		mix-blend-mode: exclusion;
 	}
 
-	.blend-mode-hue .image-element {
+	.blend-mode-hue {
 		mix-blend-mode: hue;
 	}
 
-	.blend-mode-saturation .image-element {
+	.blend-mode-saturation {
 		mix-blend-mode: saturation;
 	}
 
-	.blend-mode-color .image-element {
+	.blend-mode-color {
 		mix-blend-mode: color;
 	}
 
-	.blend-mode-luminosity .image-element {
+	.blend-mode-luminosity {
 		mix-blend-mode: luminosity;
 	}
 
