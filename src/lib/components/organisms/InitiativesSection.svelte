@@ -53,11 +53,11 @@
 	// Gera as ilustrações específicas baseadas no índice
 	function getIllustrationSrc(index: number): string {
 		const illustrations = [
-			'/images/illustrations/globe.svg',
-			'/images/illustrations/books.svg',
-			'/images/illustrations/monitor.svg',
-			'/images/illustrations/gears.svg',
-			'/images/illustrations/house.svg'
+			'/images/illustrations/globe.png',
+			'/images/illustrations/books.png',
+			'/images/illustrations/monitor.png',
+			'/images/illustrations/gears.png',
+			'/images/illustrations/house.png'
 		];
 		return illustrations[index % illustrations.length];
 	}
@@ -89,7 +89,7 @@
 					spacing="normal"
 					align="center"
 					size="lg"
-					color="secondary"
+					color="neutral"
 					weight="normal"
 					leading="relaxed"
 				/>
@@ -125,8 +125,10 @@
 							illustration={{
 								src: getIllustrationSrc(index),
 								alt: getIllustrationAlt(initiative.title),
-								aspectRatio: 'square',
-								objectFit: 'contain'
+								aspectRatio: 'auto',
+								objectFit: 'contain',
+								width: '176px',
+								height: '222px'
 							}}
 							class="initiatives-section-card"
 							style={`animation-delay: ${index * 0.1}s`}
@@ -464,12 +466,12 @@
 	}
 
 	.initiatives-section-layout-carousel .initiatives-section-grid::-webkit-scrollbar-thumb {
-		background: var(--color-primary-500);
+		background: var(--color-primary-600);
 		border-radius: 3px;
 	}
 
 	.initiatives-section-layout-carousel .initiatives-section-grid::-webkit-scrollbar-thumb:hover {
-		background: var(--color-primary-600);
+		background: var(--color-primary-700);
 	}
 
 	/* Animações escalonadas */

@@ -169,6 +169,7 @@ h6 {
 	--color-neutral-700: #616161;
 	--color-neutral-800: #424242;
 	--color-neutral-900: #2a2a2a;
+	--color-neutral-1000: #000000;
 }
 
 /* -----------------------------------------------------------------------------
@@ -218,6 +219,8 @@ h6 {
 	--text-color-inverse: var(--color-neutral-0);
 	--text-color-accent: var(--color-accent-500);
 	--text-color-neutral: var(--color-neutral-900);
+	--text-color-white: var(--color-neutral-0);
+	--text-color-black: var(--color-neutral-1000);
 
 	/* Cores de fundo */
 	--background-color-page: var(--color-neutral-50);
@@ -407,7 +410,7 @@ h6 {
 	--card-height-portrait-lg: calc(125 * var(--spacing-unit)); /* 500px */
 
 	/* Extra Large */
-	--card-width-portrait-xl: calc(88 * var(--spacing-unit)); /* 352px */
+	--card-width-portrait-xl: calc(86 * var(--spacing-unit)); /* 344px */
 	--card-height-portrait-xl: calc(117 * var(--spacing-unit)); /* 468px */
 
 	/* Aspecto Paisagem */

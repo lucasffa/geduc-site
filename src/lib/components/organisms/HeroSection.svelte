@@ -75,7 +75,7 @@
 				<!-- Ilustrações específicas mencionadas na hierarquia -->
 				<div class="hero-illustration hero-illustration-brain">
 					<Image
-						src="/images/illustrations/cerebro.png"
+						src="/images/illustrations/brain.png"
 						alt="Ilustração de cérebro representando conhecimento"
 						class="image-halftone"
 						aspectRatio="square"
@@ -131,7 +131,9 @@
 				{/if}
 			</div>
 			{#if description}
-				<Text as="p" size="lg" color="white" align="center" class="hero-section-description">
+				<Text as="p" size="lg" color="white" align="center" class="hero-section-description"
+				letterSpacing="wider"
+				>
 					{description}
 				</Text>
 			{/if}
@@ -548,6 +550,7 @@
 		right: 10%;
 		animation: rotate 25s linear infinite;
 	}
+
 
 	@keyframes rotate {
 		from {

@@ -36,7 +36,8 @@ export type ColorVariant =
 	| 'warning'
 	| 'error'
 	| 'info'
-	| 'white';
+	| 'white'
+	| 'black';
 
 export type BlendType =
 	| 'multiply'
@@ -170,6 +171,18 @@ export interface MediaProps {
 
 	/** Altura */
 	height?: number | string;
+
+	/** Altura mínima */
+	minHeight?: number | string;
+
+	/** Altura máxima */
+	maxHeight?: number | string;
+
+	/** Largura mínima */
+	minWidth?: number | string;
+
+	/** Largura máxima */
+	maxWidth?: number | string;
 
 	/** Proporção de aspecto */
 	aspectRatio?: AspectRatio;
@@ -580,6 +593,9 @@ export interface SectionHeaderProps extends BaseComponentProps {
 
 	/** Ações adicionais (botões, links) */
 	actions?: Snippet;
+
+	/** Nível do heading */
+	headingLevel?: HeadingLevel;
 
 	/** Cor do titulo principal */
 	titleColor?:

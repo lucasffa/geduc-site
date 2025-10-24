@@ -6,6 +6,10 @@
 	export let alt: ImageProps['alt'];
 	export let width: ImageProps['width'] = undefined;
 	export let height: ImageProps['height'] = undefined;
+	export let minHeight: ImageProps['minHeight'] = undefined;
+	export let minWidth: ImageProps['minWidth'] = undefined;
+	export let maxHeight: ImageProps['maxHeight'] = undefined;
+	export let maxWidth: ImageProps['maxWidth'] = undefined;
 	export let aspectRatio: ImageProps['aspectRatio'] = 'auto';
 	export let objectFit: ImageProps['objectFit'] = 'cover';
 	export let loading: ImageProps['loading'] = 'lazy';
@@ -78,6 +82,10 @@
 		{alt}
 		{width}
 		{height}
+		style:min-height={minHeight}
+		style:min-width={minWidth}
+		style:max-height={maxHeight}
+		style:max-width={maxWidth}
 		loading={priority ? 'eager' : loading}
 		class="image-element"
 		on:load={handleLoad}
@@ -107,8 +115,6 @@
 	}
 
 	.image-element {
-		width: 100%;
-		height: 100%;
 		object-fit: var(--object-fit, cover);
 		transition: opacity var(--transition-normal) var(--transition-timing-default);
 	}
@@ -338,12 +344,6 @@
 			var(--color-neutral-800) 50%,
 			var(--color-neutral-700) 75%
 		);
-	}
-
-	/* Hover effects para imagens interativas */
-	.image-container:hover .image-element {
-		transform: scale(1.05);
-		transition: transform var(--transition-normal) var(--transition-timing-default);
 	}
 
 	/* Efeito halftone específico mencionado na hierarquia */
