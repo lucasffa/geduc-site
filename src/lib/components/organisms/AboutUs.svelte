@@ -101,18 +101,18 @@
 		<div class="about-us-content">
 			<!-- Texto principal -->
 			<div class="about-us-text">
-				<TextBlock
-					content={description}
-					variant="paragraphs"
-					spacing="normal"
-					align="right"
-					size="lg"
-					color="white"
-					weight="normal"
-					leading="relaxed"
-					class="about-us-text"
-				/>
-
+				{#if description}
+					<TextBlock
+						content={description}
+						variant="paragraphs"
+						spacing="normal"
+						align="right"
+						color="white"
+						weight="normal"
+						leading="relaxed"
+						class="about-us-text"
+					/>
+				{/if}
 				<!-- Botões de ação -->
 				{#if actions && actions.length > 0}
 					<div class="about-us-actions">

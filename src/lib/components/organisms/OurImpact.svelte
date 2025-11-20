@@ -87,7 +87,6 @@
 					variant="paragraphs"
 					spacing="normal"
 					align="left"
-					size="lg"
 					color="neutral"
 					weight="normal"
 					leading="relaxed"
