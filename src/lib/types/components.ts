@@ -343,7 +343,7 @@ export interface TextProps extends BaseComponentProps {
 	align?: TextAlign;
 
 	/** Altura da linha */
-	leading?: 'tight' | 'normal' | 'relaxed' | 'loose';
+	leading?: 'tight' | 'normal' | 'relaxed' | 'loose' | 'very-loose';
 
 	/** Altura específica da linha */
 	lineHeight?: 'normal' | 'tight' | 'relaxed' | 'loose' | 'none' | 'tighter';
@@ -378,7 +378,7 @@ export interface AnchorProps extends BaseComponentProps, LinkableProps {
 	align?: TextAlign;
 
 	/** Altura da linha */
-	leading?: 'tight' | 'normal' | 'relaxed' | 'loose';
+	leading?: 'tight' | 'normal' | 'relaxed' | 'loose' | 'very-loose';
 
 	/** Se deve truncar o texto */
 	truncate?: boolean;
@@ -638,7 +638,7 @@ export interface TextBlockProps extends BaseComponentProps {
 	variant?: 'paragraphs' | 'list' | 'cards';
 
 	/** Espaçamento entre elementos */
-	spacing?: 'tight' | 'normal' | 'loose';
+	spacing?: 'tight' | 'normal' | 'wide' | 'wider' | 'widest';
 
 	/** Alinhamento do texto */
 	align?: TextAlign;
@@ -653,7 +653,7 @@ export interface TextBlockProps extends BaseComponentProps {
 	weight?: FontWeight;
 
 	/** Altura da linha */
-	leading?: 'tight' | 'normal' | 'relaxed' | 'loose';
+	leading?: 'tight' | 'normal' | 'relaxed' | 'loose' | 'very-loose';
 }
 
 // ================================

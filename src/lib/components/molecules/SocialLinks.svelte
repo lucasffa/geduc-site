@@ -39,13 +39,13 @@
 
 	// Mapeia plataformas para cores
 	const platformColors = {
-		facebook: '#1877F2',
-		linkedin: '#0A66C2',
-		instagram: '#E4405F',
-		twitter: '#1DA1F2',
-		youtube: '#FF0000',
-		tiktok: '#000000',
-		whatsapp: '#25D366'
+		facebook: '#ffffff',
+		linkedin: '#ffffff',
+		instagram: '#ffffff',
+		twitter: '#ffffff',
+		youtube: '#ffffff',
+		tiktok: '#ffffff',
+		whatsapp: '#ffffff'
 	};
 
 	// Gera label automático se não fornecido
@@ -76,7 +76,9 @@
 			aria-label={`Visite nosso ${getLabel(link.platform, link.label)}`}
 			style:--platform-color={platformColors[link.platform]}
 		>
-			<Icon name={platformIcons[link.platform] || 'link'} {size} class="social-links-icon" />
+			<Icon name={platformIcons[link.platform] || 'link'} {size}
+			 color= {platformColors[link.platform]} 
+			 class="social-links-icon" />
 
 			{#if showLabels}
 				<Text as="span" size="sm" weight="medium" class="social-links-label">

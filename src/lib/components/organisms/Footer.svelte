@@ -8,6 +8,7 @@
 	import Anchor from '../atoms/Anchor.svelte';
 	import Heading from '../atoms/Heading.svelte';
 	import SocialLinks from '../molecules/SocialLinks.svelte';
+	import TextBlock from '../molecules/TextBlock.svelte';
 
 	// Props principais
 	export let logo: FooterProps['logo'] = {
@@ -74,9 +75,17 @@
 
 				<div class="footer-text">
 					{#if description}
-						<Text as="p" size="md" color="white" class="footer-description">
-							{description}
-						</Text>
+						<TextBlock
+							size="md"
+							content={description}
+							variant="paragraphs"
+							spacing="widest"
+							align="left"
+							color="white"
+							weight="normal"
+							leading="relaxed"
+							class="footer-description"
+						/>
 					{/if}
 
 					{#if contact?.email}
