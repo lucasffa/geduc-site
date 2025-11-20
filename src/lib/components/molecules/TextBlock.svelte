@@ -1,9 +1,10 @@
 <!-- src/lib/components/molecules/TextBlock.svelte -->
 <script lang="ts">
-	import type { TextBlockProps } from '$lib/types/components';
+	import type { TextBlockProps, Size } from '$lib/types/components';
 	import { createEventDispatcher } from 'svelte';
 	import { marked } from 'marked';
 	import Text from '../atoms/Text.svelte';
+	import { responsiveService, type Breakpoint } from '$lib/services/responsive.service';
 
 	// Props principais
 	export let content: TextBlockProps['content'];
@@ -14,6 +15,7 @@
 	export let color: TextBlockProps['color'] = 'secondary';
 	export let weight: TextBlockProps['weight'] = 'normal';
 	export let leading: TextBlockProps['leading'] = 'relaxed';
+	export let responsive: boolean = true; // Nova prop: habilita/desabilita responsividade
 
 	// Props de BaseComponentProps
 	export let id: string | undefined = undefined;
@@ -26,6 +28,20 @@
 	// Atributos HTML padrão
 	let style = '';
 	export { style };
+
+	// ========================================
+	// BLOCO REATIVO: Media Queries CSS-like via Serviço Externo
+	// ========================================
+
+	// Store reativo de breakpoint do serviço
+	const breakpointStore = responsiveService.getBreakpointStore();
+
+	// Size responsivo calculado reativamente baseado no breakpoint atual
+	// Para breakpoints < 768px (xs, sm), usa o size padrão da prop
+	// Para breakpoints >= 768px (md+), usa o mapeamento responsivo
+	$: responsiveSize = responsive 
+		? (responsiveService.getTextBlockSize($breakpointStore) ?? size)
+		: size;
 
 	// Event dispatcher para eventos customizados
 	const dispatch = createEventDispatcher<{
@@ -70,14 +86,14 @@
 	});
 </script>
 
-<div class={classes} {id} {style} role="text" aria-label="Bloco de texto com múltiplos parágrafos">
+<div class={classes} {id} {style} aria-label="Bloco de texto com múltiplos parágrafos">
 	{#if variant === 'paragraphs'}
 		<!-- Renderiza como parágrafos HTML semânticos -->
 		<div class="text-block-paragraphs-container">
 			{#each paragraphs as paragraph, index}
 				<Text
 					as="p"
-					{size}
+					size={responsiveSize}
 					{color}
 					{align}
 					{weight}
@@ -94,7 +110,7 @@
 		<ol class="text-block-list-container">
 			{#each paragraphs as paragraph, index}
 				<li class="text-block-list-item">
-					<Text {size} {color} {align} {weight} {leading} class="text-block-list-item-text">
+					<Text size={responsiveSize} {color} {align} {weight} {leading} class="text-block-list-item-text">
 						{@html marked(paragraph)}
 					</Text>
 				</li>
@@ -105,7 +121,7 @@
 		<div class="text-block-cards-container">
 			{#each paragraphs as paragraph, index}
 				<div class="text-block-card">
-					<Text {size} {color} {align} {weight} {leading} class="text-block-card-text">
+					<Text size={responsiveSize} {color} {align} {weight} {leading} class="text-block-card-text">
 						{@html marked(paragraph)}
 					</Text>
 				</div>

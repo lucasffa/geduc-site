@@ -1,8 +1,9 @@
 <!-- src/lib/components/molecules/SectionHeader.svelte -->
 <script lang="ts">
-	import type { SectionHeaderProps, TextAlign, HeadingLevel } from '$lib/types/components';
+	import type { SectionHeaderProps, TextAlign, HeadingLevel, Size } from '$lib/types/components';
 	import Heading from '$lib/components/atoms/Heading.svelte';
 	import Text from '$lib/components/atoms/Text.svelte';
+	import { responsiveService, type ResponsiveSizeMap } from '$lib/services/responsive.service';
 
 	export let title: SectionHeaderProps['title'];
 	export let subtitle: SectionHeaderProps['subtitle'] = undefined;
@@ -19,6 +20,9 @@
 	export let decoration: boolean = false;
 	export let decorationColor: string = 'var(--color-yellow-600)';
 	export let decorationPosition: 'top' | 'bottom' | 'left' | 'right' = 'bottom';
+
+	// Prop para customização do mapeamento responsivo
+	export let customSizeMap: Partial<ResponsiveSizeMap> | undefined = undefined;
 
 	// Classes adicionais
 	let className = '';
@@ -49,6 +53,20 @@
 		.filter(Boolean)
 		.join(' ');
 
+	// ========================================
+	// BLOCO REATIVO: Media Queries CSS-like via Serviço Externo
+	// ========================================
+
+	// Store reativo de breakpoint do serviço
+	const breakpointStore = responsiveService.getBreakpointStore();
+
+	// Sizes responsivos calculados reativamente baseados no breakpoint atual
+	$: responsiveSizes = responsiveService.getSectionHeaderSizes($breakpointStore, customSizeMap);
+
+	// Sizes individuais para cada componente atom
+	$: headingSize = responsiveSizes.heading;
+	$: subtitleSize = responsiveSizes.subtitle;
+	$: descriptionSize = responsiveSizes.description;
 </script>
 
 <header class={classes}>
@@ -67,13 +85,13 @@
 	{/if}
 
 	{#if subtitle}
-		<Text as="p" size="lg" color="neutral" {align} class="section-header-subtitle">
+		<Text as="p" size={subtitleSize} color="neutral" {align} class="section-header-subtitle">
 			{subtitle}
 		</Text>
 	{/if}
 
 	{#if description}
-		<Text as="p" size="md" color="neutral" {align} class="section-header-description">
+		<Text as="p" size={descriptionSize} color="neutral" {align} class="section-header-description">
 			{description}
 		</Text>
 	{/if}

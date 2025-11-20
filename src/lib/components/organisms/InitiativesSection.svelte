@@ -72,6 +72,7 @@
 		{#if title || description}
 			<SectionHeader
 				title={title || ''}
+				description={description || ''}
 				align="center"
 				class="initiatives-section-header"
 				decorativeLetter={true}
@@ -79,21 +80,6 @@
 				decorationColor="var(--color-yellow-600)"
 				decorationPosition="bottom"
 			/>
-		{/if}
-
-		{#if description}
-			<div class="initiatives-section-description">
-				<TextBlock
-					content={description}
-					variant="paragraphs"
-					spacing="normal"
-					align="center"
-					size="lg"
-					color="neutral"
-					weight="normal"
-					leading="relaxed"
-				/>
-			</div>
 		{/if}
 
 		<div class="initiatives-section-content">
@@ -152,7 +138,7 @@
 
 	.initiatives-section-container {
 		max-width: var(--container-max-width-xl);
-		min-height: var(--container-min-height-xl);
+		min-height: var(--container-min-height-sm);
 		margin: 0 auto;
 		padding: 0 var(--spacing-lg);
 		display: flex;
