@@ -11,7 +11,7 @@
 	export let variant: TextBlockProps['variant'] = 'paragraphs';
 	export let spacing: TextBlockProps['spacing'] = 'normal';
 	export let align: TextBlockProps['align'] = 'left';
-	export let size: TextBlockProps['size'] = 'md';
+	export let size: TextBlockProps['size'] = undefined;
 	export let color: TextBlockProps['color'] = 'secondary';
 	export let weight: TextBlockProps['weight'] = 'normal';
 	export let leading: TextBlockProps['leading'] = 'relaxed';
@@ -93,7 +93,7 @@
 			{#each paragraphs as paragraph, index}
 				<Text
 					as="p"
-					size={responsiveSize}
+					size={size || responsiveSize}
 					{color}
 					{align}
 					{weight}
@@ -182,6 +182,23 @@
 		text-align: justify;
 	}
 
+	/* Letter Spacing */
+	.text-block-spacing-tight {
+		letter-spacing: var(--letter-spacing-tight);
+	}
+	.text-block-spacing-normal {
+		letter-spacing: var(--letter-spacing-normal);
+	}
+	.text-block-spacing-wide {
+		letter-spacing: var(--letter-spacing-wide);
+	}
+	.text-block-spacing-wider {
+		letter-spacing: var(--letter-spacing-wider);
+	}
+	.text-block-spacing-widest {
+		letter-spacing: var(--letter-spacing-widest);
+	}
+	
 	/* Lista */
 	.text-block-list-item {
 		position: relative;
