@@ -8,15 +8,14 @@
 	import Anchor from '../atoms/Anchor.svelte';
 	import Heading from '../atoms/Heading.svelte';
 	import SocialLinks from '../molecules/SocialLinks.svelte';
-  
+
 	// Props principais
 	export let logo: FooterProps['logo'] = {
 		src: '/images/logo-geduc.png',
 		alt: 'Logo Guardiões da Educação',
 		href: '/'
 	};
-	export let description: FooterProps['description'] = 
-		'GEDUC é a maior ONG do Brasil que transforma vidas com educação gratuita, pluralizada e verdadeiramente humana.';
+	export let description: FooterProps['description'] = undefined;
 	export let contact: FooterProps['contact'] = {
 		email: 'contato.geducbr@gmail.com'
 	};
@@ -24,28 +23,24 @@
 	export let copyright: FooterProps['copyright'] = undefined;
 	export let backToTop: FooterProps['backToTop'] = true;
 	export let variant: FooterProps['variant'] = 'detailed';
-  
+
 	// Classes adicionais
 	let className = '';
 	export { className as class };
-  
+
 	// Estado interno
 	let showBackToTop = false;
-  
+
 	// Classes CSS baseadas nas props
-	$: classes = [
-		'footer',
-		`footer-variant-${variant}`,
-		className
-	].filter(Boolean).join(' ');
-  
+	$: classes = ['footer', `footer-variant-${variant}`, className].filter(Boolean).join(' ');
+
 	// Monitora scroll para mostrar botão voltar ao topo
 	function handleScroll() {
 		if (typeof window !== 'undefined') {
 			showBackToTop = window.scrollY > 300;
 		}
 	}
-  
+
 	// Voltar ao topo
 	function scrollToTop() {
 		if (typeof window !== 'undefined') {
@@ -55,17 +50,18 @@
 			});
 		}
 	}
-  
+
 	// Mapeia social array para formato esperado pelo SocialLinks
-	$: socialLinksData = social?.map(item => ({
-		platform: item.platform as any,
-		url: item.url,
-		label: item.label
-	})) || [];
+	$: socialLinksData =
+		social?.map((item) => ({
+			platform: item.platform as any,
+			url: item.url,
+			label: item.label
+		})) || [];
 </script>
-  
+
 <svelte:window on:scroll={handleScroll} />
-  
+
 <footer class={classes}>
 	<div class="footer-container">
 		<!-- Seção principal do footer -->
@@ -73,12 +69,7 @@
 			<!-- Coluna de informações principais (esquerda) -->
 			<div class="footer-brand">
 				{#if logo}
-					<Image
-						src={logo.src}
-						alt={logo.alt || 'Logo'}
-						class="footer-logo"
-						loading="lazy"
-					/>
+					<Image src={logo.src} alt={logo.alt || 'Logo'} class="footer-logo" loading="lazy" />
 				{/if}
 
 				<div class="footer-text">
@@ -124,25 +115,19 @@
 					{copyright}
 				</Text>
 			{:else}
-				<Text as="p" size="sm" color="white" class="footer-copyright">
-					© GEDUC Brasil
-				</Text>
+				<Text as="p" size="sm" color="white" class="footer-copyright">© GEDUC Brasil</Text>
 			{/if}
 		</div>
 	</div>
 
 	<!-- Botão voltar ao topo (fixed) -->
 	{#if backToTop && showBackToTop}
-		<button
-			class="footer-back-to-top"
-			on:click={scrollToTop}
-			aria-label="Voltar ao topo"
-		>
+		<button class="footer-back-to-top" on:click={scrollToTop} aria-label="Voltar ao topo">
 			<Icon name="arrow-up" size="md" color="white" />
 		</button>
 	{/if}
 </footer>
-  
+
 <style>
 	.footer {
 		position: relative;
@@ -364,20 +349,20 @@
 	}
 
 	/* Dark theme adjustments */
-	[data-theme="dark"] .footer {
+	[data-theme='dark'] .footer {
 		background-color: var(--color-neutral-900);
 	}
 
-	[data-theme="dark"] .footer-bottom {
+	[data-theme='dark'] .footer-bottom {
 		border-top-color: var(--color-neutral-800);
 	}
 
-	[data-theme="dark"] .footer-back-to-top {
+	[data-theme='dark'] .footer-back-to-top {
 		background-color: var(--color-neutral-800);
 		border-color: var(--color-neutral-700);
 	}
 
-	[data-theme="dark"] .footer-back-to-top:hover {
+	[data-theme='dark'] .footer-back-to-top:hover {
 		background-color: var(--color-neutral-700);
 	}
 

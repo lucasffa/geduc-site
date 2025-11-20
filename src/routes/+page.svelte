@@ -42,7 +42,7 @@
 			href: '/'
 		},
 		description:
-			'GEDUC é a maior ONG educacional do Brasil, dedicada a democratizar o acesso ao ensino de qualidade.',
+			'GEDUC é a maior ONG do Brasil que transforma vidas com educação gratuita, pluralizada e verdadeiramente humana.',
 		contact: {
 			email: 'contato.geducbr@gmail.com',
 			phone: '+55 (11) 9999-9999',
