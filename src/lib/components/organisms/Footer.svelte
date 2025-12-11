@@ -9,6 +9,7 @@
 	import Heading from '../atoms/Heading.svelte';
 	import SocialLinks from '../molecules/SocialLinks.svelte';
 	import TextBlock from '../molecules/TextBlock.svelte';
+	import { onMount } from 'svelte';
 
 	// Props principais
 	export let logo: FooterProps['logo'] = {
@@ -31,6 +32,8 @@
 
 	// Estado interno
 	let showBackToTop = false;
+	let backToTopTheme: 'light' | 'dark' = 'light';
+	let buttonElement: HTMLDivElement;
 
 	// Classes CSS baseadas nas props
 	$: classes = ['footer', `footer-variant-${variant}`, className].filter(Boolean).join(' ');
@@ -39,8 +42,133 @@
 	function handleScroll() {
 		if (typeof window !== 'undefined') {
 			showBackToTop = window.scrollY > 300;
+			
+			// Analisa a cor da superfície sob o botão
+			if (showBackToTop && buttonElement) {
+				detectBackgroundColor();
+			}
 		}
 	}
+
+	// Detecta a cor do elemento abaixo do botão
+	function detectBackgroundColor() {
+		if (!buttonElement) return;
+
+		const rect = buttonElement.getBoundingClientRect();
+		const centerX = rect.left + rect.width / 2;
+		const centerY = rect.top + rect.height / 2;
+
+		// Temporariamente esconde o botão para pegar o elemento abaixo
+		buttonElement.style.pointerEvents = 'none';
+		const elementBelow = document.elementFromPoint(centerX, centerY);
+		buttonElement.style.pointerEvents = '';
+
+		if (elementBelow) {
+			// Busca a cor de fundo real percorrendo até encontrar uma cor sólida
+			let currentElement: Element | null = elementBelow;
+			let finalColor = '';
+			
+			while (currentElement && currentElement !== document.documentElement) {
+				// já é otimizado desde 9 anos atrás, mas não aprova de futuro
+				const computedStyle = window.getComputedStyle(currentElement);
+				const bgColor = computedStyle.backgroundColor;
+				const bgImage = computedStyle.backgroundImage;
+				
+				// Verifica se tem gradiente
+				if (bgImage && bgImage !== 'none' && bgImage.includes('gradient')) {
+					// Extrai a cor predominante do gradiente
+					const color = extractColorFromGradient(bgImage);
+					if (color) {
+						finalColor = color;
+						break;
+					}
+				}
+				
+				// Verifica se tem cor de fundo sólida
+				if (bgColor && bgColor !== 'rgba(0, 0, 0, 0)' && bgColor !== 'transparent') {
+					finalColor = bgColor;
+					break;
+				}
+				
+				currentElement = currentElement.parentElement;
+			}
+			
+			// Se não encontrou nada, usa branco como padrão
+			if (!finalColor) {
+				finalColor = 'rgb(255, 255, 255)';
+			}
+			
+			const isLight = isColorLight(finalColor);
+			
+			// Se a superfície é clara, botão deve ser claro (light) - azul
+			// Se a superfície é escura, botão deve ser escuro (dark) - branco
+			backToTopTheme = isLight ? 'light' : 'dark';
+		}
+	}
+
+	// Extrai cor predominante de um gradiente
+	function extractColorFromGradient(gradient: string): string | null {
+		// Regex para capturar cores rgb/rgba no gradiente
+		const rgbMatch = gradient.match(/rgba?\([^)]+\)/g);
+		
+		if (rgbMatch && rgbMatch.length > 0) {
+			// Pega a primeira cor do gradiente (geralmente a mais predominante)
+			return rgbMatch[0];
+		}
+		
+		// Regex para capturar cores hex no gradiente
+		const hexMatch = gradient.match(/#[0-9a-fA-F]{6}|#[0-9a-fA-F]{3}/g);
+		
+		if (hexMatch && hexMatch.length > 0) {
+			// Converte hex para rgb
+			return hexToRgb(hexMatch[0]);
+		}
+		
+		return null;
+	}
+
+	// Converte hex para rgb
+	function hexToRgb(hex: string): string {
+		const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+		if (result) {
+			const r = parseInt(result[1], 16);
+			const g = parseInt(result[2], 16);
+			const b = parseInt(result[3], 16);
+			return `rgb(${r}, ${g}, ${b})`;
+		}
+		
+		// Suporte para formato curto #fff
+		const shortResult = /^#?([a-f\d])([a-f\d])([a-f\d])$/i.exec(hex);
+		if (shortResult) {
+			const r = parseInt(shortResult[1] + shortResult[1], 16);
+			const g = parseInt(shortResult[2] + shortResult[2], 16);
+			const b = parseInt(shortResult[3] + shortResult[3], 16);
+			return `rgb(${r}, ${g}, ${b})`;
+		}
+		
+		return 'rgb(0, 0, 0)';
+	}
+
+	// Verifica se uma cor é clara ou escura
+	function isColorLight(color: string): boolean {
+		// Converte rgb(r, g, b) ou rgba(r, g, b, a) para valores
+		const match = color.match(/\d+/g);
+		if (!match) return false;
+
+		const [r, g, b] = match.map(Number);
+		
+		// Fórmula de luminância relativa
+		const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+		
+		return luminance > 0.5;
+	}
+
+	onMount(() => {
+		// Detecta inicialmente quando o componente é montado
+		if (showBackToTop && buttonElement) {
+			detectBackgroundColor();
+		}
+	});
 
 	// Voltar ao topo
 	function scrollToTop() {
@@ -70,7 +198,13 @@
 			<!-- Coluna de informações principais (esquerda) -->
 			<div class="footer-brand">
 				{#if logo}
-					<Image src={logo.src} alt={logo.alt || 'Logo'} class="footer-logo" loading="lazy" />
+					<Image
+						src={logo.src}
+						alt={logo.alt || 'Logo'}
+						class="footer-logo"
+						loading="lazy"
+						width="300px"
+					/>
 				{/if}
 
 				<div class="footer-text">
@@ -129,11 +263,19 @@
 		</div>
 	</div>
 
-	<!-- Botão voltar ao topo (fixed) -->
+	<!-- Botão voltar ao topo (fixed) - usando Button component -->
 	{#if backToTop && showBackToTop}
-		<button class="footer-back-to-top" on:click={scrollToTop} aria-label="Voltar ao topo">
-			<Icon name="arrow-up" size="md" color="white" />
-		</button>
+		<div class="footer-back-to-top" bind:this={buttonElement}>
+			<Button
+				variant="primary"
+				size="md"
+				onclick={scrollToTop}
+				aria-label="Voltar ao topo"
+				class="back-to-top-button {backToTopTheme}"
+			>
+				<Icon name="arrow-up" size="md" color={backToTopTheme === 'dark' ? undefined : 'white'} />
+			</Button>
+		</div>
 	{/if}
 </footer>
 
@@ -229,34 +371,57 @@
 		gap: 1rem;
 	}
 
-	/* Back to top button (fixed - acompanha a tela) */
+	/* Back to top button wrapper (fixed - acompanha a tela) */
 	.footer-back-to-top {
 		position: fixed;
 		bottom: 2rem;
 		right: 2rem;
-		width: 48px;
-		height: 48px;
-		background-color: var(--color-primary-600);
-		border: 2px solid rgba(255, 255, 255, 0.2);
-		border-radius: 8px;
-		color: var(--text-color-inverse);
-		cursor: pointer;
+		z-index: 1000;
+		animation: slideUp 0.3s ease-out;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-		transition: all 0.2s ease;
-		z-index: 1000;
-		animation: slideUp 0.3s ease-out;
 	}
 
-	.footer-back-to-top:hover {
+	/* Estilos base para o botão back-to-top */
+	.footer-back-to-top :global(.button.back-to-top-button) {
+		width: 48px;
+		height: 48px;
+		padding: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 8px;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+		transition: all 0.2s ease;
+	}
+
+	/* Tema escuro - botão branco (sobre superfície escura) */
+	.footer-back-to-top :global(.button.back-to-top-button.dark) {
+		background-color: var(--color-neutral-0);
+		border: 1px solid rgba(0, 0, 0, 0.1);
+	}
+
+	.footer-back-to-top :global(.button.back-to-top-button.dark:hover) {
+		background-color: var(--color-neutral-0);
+		transform: translateY(-4px);
+		border-color: rgba(0, 0, 0, 0.2);
+		box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+	}
+
+	/* Tema claro - botão azul (sobre superfície clara) */
+	.footer-back-to-top :global(.button.back-to-top-button.light) {
+		background-color: var(--color-primary-600);
+		border: 2px solid rgba(255, 255, 255, 0.2);
+	}
+
+	.footer-back-to-top :global(.button.back-to-top-button.light:hover) {
 		background-color: var(--color-primary-700);
 		transform: translateY(-4px);
 		border-color: rgba(255, 255, 255, 0.3);
 	}
 
-	.footer-back-to-top:focus-visible {
+	.footer-back-to-top :global(.button.back-to-top-button:focus-visible) {
 		outline: 2px solid var(--color-accent-400);
 		outline-offset: 2px;
 	}
@@ -338,6 +503,9 @@
 		.footer-back-to-top {
 			bottom: 1.5rem;
 			right: 1.5rem;
+		}
+
+		.footer-back-to-top :global(.button.back-to-top-button) {
 			width: 44px;
 			height: 44px;
 		}
@@ -364,15 +532,6 @@
 
 	[data-theme='dark'] .footer-bottom {
 		border-top-color: var(--color-neutral-800);
-	}
-
-	[data-theme='dark'] .footer-back-to-top {
-		background-color: var(--color-neutral-800);
-		border-color: var(--color-neutral-700);
-	}
-
-	[data-theme='dark'] .footer-back-to-top:hover {
-		background-color: var(--color-neutral-700);
 	}
 
 	/* Animações */
