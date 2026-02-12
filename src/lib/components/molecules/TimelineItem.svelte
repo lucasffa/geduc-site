@@ -2,142 +2,122 @@
 <script lang="ts">
 	import Text from '../atoms/Text.svelte';
 	import type { TimelineItemData } from '$lib/types/data';
+	import Image from '../atoms/Image.svelte';
+	import TextBlock from './TextBlock.svelte';
 
 	export let item: TimelineItemData;
-	export let side: 'left' | 'right' = 'left';
 	export let index: number = 0;
+
+	$: isEven = index % 2 === 0;
+
+	$: topContent = isEven ? 'text' : 'image';
+	$: bottomContent = isEven ? 'image' : 'text';
 </script>
 
-<article
-	class="timeline-item {side}"
-	role="listitem"
-	style="--delay: {index * 0.1}s"
->
-	<!-- Conteúdo -->
-	<div class="content">
-		<Text as="div" size="lg" weight="bold" color="primary">
-			{item.title}
-		</Text>
-
-		<Text size="sm" color="secondary" leading="relaxed">
-			{item.description}
-		</Text>
+<article class="timeline-item">
+	<!-- Bloco Superior -->
+	<div class="top">
+		{#if topContent === 'text'}
+			<div class="content">
+				<Text weight="bold">{item.title}</Text>
+				<TextBlock
+					content={item.description}
+					variant="paragraphs"
+					spacing="normal"
+					align="left"
+					color="neutral"
+					weight="normal"
+					leading="relaxed"
+					class="our-impact-text"
+					size="sm"
+				/>
+			</div>
+		{:else}
+			<Image src={item.image} alt={item.title} />
+		{/if}
 	</div>
 
-	<!-- Marcador central -->
-	<div class="marker" aria-hidden="true">
+	<div class="marker">
 		<div class="dot"></div>
+		<span class="year">{item.year}</span>
+	</div>
 
-		<div class="year">
-			<Text size="xs" weight="bold" color="white">
-				{item.year}
-			</Text>
-		</div>
+	<div class="bottom">
+		{#if bottomContent === 'text'}
+			<div class="content">
+				<Text weight="bold">{item.title}</Text>
+				<TextBlock
+					content={item.description}
+					variant="paragraphs"
+					spacing="normal"
+					align="left"
+					color="neutral"
+					weight="normal"
+					leading="relaxed"
+					class="our-impact-text"
+					size="sm"
+				/>
+			</div>
+		{:else}
+			<Image src={item.image} alt={item.title} />
+		{/if}
 	</div>
 </article>
 
 <style>
 	.timeline-item {
-		position: relative;
-		display: flex;
-		align-items: center;
-		width: 100%;
-		min-height: 140px;
-		opacity: 0;
-		animation: fadeUp 0.6s ease forwards;
-		animation-delay: var(--delay);
-	}
-
-	/* Alternância desktop */
-	.timeline-item.left {
-		justify-content: flex-start;
-	}
-
-	.timeline-item.right {
-		justify-content: flex-end;
-	}
-
-	/* Conteúdo */
-	.content {
-		width: 42%;
-		background: var(--background-color-card);
-		padding: var(--spacing-xl);
-		border-radius: var(--border-radius-xl);
-		box-shadow: var(--shadow-sm);
-		border: 1px solid var(--border-color-default);
-		transition: all var(--transition-normal);
-		position: relative;
-		z-index: 1;
-	}
-
-	.timeline-item.right .content {
-		text-align: right;
-	}
-
-	.content:hover {
-		transform: translateY(-6px);
-		box-shadow: var(--shadow-md);
-	}
-
-	/* Marker */
-	.marker {
-		position: absolute;
-		left: 50%;
-		transform: translateX(-50%);
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		z-index: 2;
+		min-width: 280px;
+		position: relative;
+	}
+
+	.top,
+	.bottom {
+		height: 180px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.content {
+		background: var(--background-color);
+		padding: var(--spacing-lg);
+		text-align: center;
+	}
+
+	img {
+		width: 200px;
+		height: 140px;
+		object-fit: cover;
+		border-radius: var(--border-radius-md);
+	}
+
+	.marker {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		margin: 1rem 0;
 	}
 
 	.dot {
-		width: 16px;
-		height: 16px;
+		width: 14px;
+		height: 14px;
 		background: var(--color-primary-500);
 		border-radius: 50%;
-		border: 4px solid var(--background-color-card);
-		box-shadow: 0 0 0 4px var(--color-primary-200);
-		transition: transform 0.3s ease;
-	}
-
-	.timeline-item:hover .dot {
-		transform: scale(1.2);
 	}
 
 	.year {
-		margin-top: var(--spacing-xs);
+		position: absolute;
+		color: white;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
 		background: var(--color-primary-600);
-		padding: 6px 12px;
+		padding: 0.5rem 1rem;
 		border-radius: 999px;
-	}
-
-	/* MOBILE */
-	@media (max-width: 768px) {
-		.timeline-item {
-			justify-content: flex-start !important;
-			padding-left: 50px;
-		}
-
-		.content {
-			width: 100%;
-			text-align: left !important;
-		}
-
-		.marker {
-			left: 20px;
-			transform: none;
-		}
-	}
-
-	/* Animation */
-	@keyframes fadeUp {
-		from {
-			transform: translateY(20px);
-			opacity: 0;
-		}
-		to {
-			transform: translateY(0);
-			opacity: 1;
-		}
+		z-index: 2;
 	}
 </style>

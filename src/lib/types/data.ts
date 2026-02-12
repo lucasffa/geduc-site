@@ -158,8 +158,9 @@ export interface SEOMetadata {
 }
 
 // Tipos para Timeline / Nossa História
-export interface TimelineItemData {
+export type TimelineItemData = {
+	year: string;
 	title: string;
 	description: string;
-	year: string | number;
-}
+	image: string;
+};

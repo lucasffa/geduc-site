@@ -26,6 +26,9 @@ vite.config.ts.timestamp-*
 # Paraglide
 src/lib/paraglide
 
+# Inlang
+project.inlang
+
 # Pnpm
 pnpm-lock.yaml
 pnpm-workspace.yaml
