@@ -33,15 +33,18 @@
 				/>
 			</div>
 		{:else}
-			<Image src={item.image} alt={item.title} />
+			<div class="image-placeholder">
+				<Image src={item.image} alt={item.title} />
+			</div>
 		{/if}
 	</div>
 
+	<!-- Marcador na linha do tempo -->
 	<div class="marker">
-		<div class="dot"></div>
 		<span class="year">{item.year}</span>
 	</div>
 
+	<!-- Bloco Inferior -->
 	<div class="bottom">
 		{#if bottomContent === 'text'}
 			<div class="content">
@@ -59,7 +62,9 @@
 				/>
 			</div>
 		{:else}
-			<Image src={item.image} alt={item.title} />
+			<div class="image-placeholder">
+				<Image src={item.image} alt={item.title} />
+			</div>
 		{/if}
 	</div>
 </article>
@@ -69,55 +74,67 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		min-width: 280px;
+		/* Largura fixa para cada item — ajuste conforme necessário */
+		flex: 0 0 240px;
+		width: 240px;
 		position: relative;
+		scroll-snap-align: start;
 	}
 
+	/* Blocos superior e inferior com altura mínima consistente */
 	.top,
 	.bottom {
-		height: 180px;
+		width: 100%;
+		min-height: 140px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 	}
 
 	.content {
-		background: var(--background-color);
-		padding: var(--spacing-lg);
-		text-align: center;
+		padding: var(--spacing-md, 0.75rem);
+		text-align: left;
+		width: 100%;
 	}
 
-	img {
-		width: 200px;
-		height: 140px;
+	.image-placeholder {
+		width: 100%;
+		height: 120px;
+		border-radius: var(--border-radius-md, 8px);
+		overflow: hidden;
+		background: var(--color-neutral-100, #f0f0f0);
+	}
+
+	.image-placeholder :global(img) {
+		width: 100%;
+		height: 100%;
 		object-fit: cover;
-		border-radius: var(--border-radius-md);
 	}
 
+	/* Marcador: envolve o badge do ano e fica sobre a linha horizontal */
 	.marker {
 		position: relative;
+		z-index: 3;
 		display: flex;
-		flex-direction: column;
 		align-items: center;
-		margin: 1rem 0;
-	}
-
-	.dot {
-		width: 14px;
-		height: 14px;
-		background: var(--color-primary-500);
-		border-radius: 50%;
+		justify-content: center;
+		/* Margem vertical pequena para não inflar a altura */
+		margin: var(--spacing-xs, 0.25rem) 0;
 	}
 
 	.year {
-		position: absolute;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
 		color: white;
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
-		background: var(--color-primary-600);
-		padding: 0.5rem 1rem;
+		background: var(--color-primary-600, #3b3fc7);
+		padding: 0.35rem 1rem;
 		border-radius: 999px;
-		z-index: 2;
+		font-size: 0.875rem;
+		font-weight: 600;
+		white-space: nowrap;
+		/* Garante que o badge fique sobre a linha ::before do timeline */
+		position: relative;
+		z-index: 3;
 	}
 </style>
