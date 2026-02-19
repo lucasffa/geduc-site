@@ -156,3 +156,11 @@ export interface SEOMetadata {
   ogType?: string;
   canonicalUrl?: string;
 }
+
+// Tipos para Timeline / Nossa História
+export type TimelineItemData = {
+	year: string;
+	title: string;
+	description: string;
+	image: string;
+};
