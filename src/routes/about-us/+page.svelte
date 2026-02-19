@@ -40,7 +40,6 @@
 <OurHistory
 		title="Nossa História"
 		titleColor="primary"
-		align="center"
 		{history}
 	/>
 
