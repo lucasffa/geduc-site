@@ -38,15 +38,6 @@
 	];
 </script>
 
-<OurHistory
-	title="Nossa História"
-	subtitle="Uma jornada de crescimento"
-	titleColor="primary"
-	align="center"
-	{history}
-/>
-title="Nossa História" titleColor="primary"
-{history}
-/>
+<OurHistory title="Nossa História" titleColor="primary" {history} />
 
 <OurTeam />
