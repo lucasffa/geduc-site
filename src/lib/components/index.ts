@@ -22,6 +22,7 @@ import TestimonialCard from './molecules/TestimonialCard.svelte';
 import SectionHeader from './molecules/SectionHeader.svelte';
 import SocialLinks from './molecules/SocialLinks.svelte';
 import TextBlock from './molecules/TextBlock.svelte';
+import TeamMemberCard from './molecules/TeamMemberCard.svelte';
 
 // ================================
 // ORGANISMOS (ORGANISMS)
@@ -33,6 +34,8 @@ import OurImpact from './organisms/OurImpact.svelte';
 import InitiativesSection from './organisms/InitiativesSection.svelte';
 import TestimonialsSection from './organisms/TestimonialsSection.svelte';
 import Footer from './organisms/Footer.svelte';
+import OurTeam from './organisms/OurTeam.svelte';
+import OurHistory from './organisms/OurHistory.svelte';
 
 // ================================
 // EXPORTAÇÕES INDIVIDUAIS
@@ -53,6 +56,7 @@ export { default as TestimonialCard } from './molecules/TestimonialCard.svelte';
 export { default as SectionHeader } from './molecules/SectionHeader.svelte';
 export { default as SocialLinks } from './molecules/SocialLinks.svelte';
 export { default as TextBlock } from './molecules/TextBlock.svelte';
+export { default as TeamMemberCard } from './molecules/TeamMemberCard.svelte';
 
 export { default as Navigation } from './organisms/Navigation.svelte';
 export { default as HeroSection } from './organisms/HeroSection.svelte';
@@ -61,6 +65,8 @@ export { default as OurImpact } from './organisms/OurImpact.svelte';
 export { default as InitiativesSection } from './organisms/InitiativesSection.svelte';
 export { default as TestimonialsSection } from './organisms/TestimonialsSection.svelte';
 export { default as Footer } from './organisms/Footer.svelte';
+export { default as OurTeam } from './organisms/OurTeam.svelte';
+export { default as OurHistory } from './organisms/OurHistory.svelte';
 
 // ================================
 // TIPOS DE DADOS
@@ -73,49 +79,52 @@ export type * from '../types/components';
 
 // Átomos
 export const Atoms = {
-  Icon,
-  Button,
-  Logo,
-  Heading,
-  Text,
-  Image,
-  Avatar,
-  Anchor
+	Icon,
+	Button,
+	Logo,
+	Heading,
+	Text,
+	Image,
+	Avatar,
+	Anchor
 } as const;
 
 // Moléculas
 export const Molecules = {
-  NavItem,
-  StatCard,
-  FeatureCard,
-  TestimonialCard,
-  SectionHeader,
-  SocialLinks,
-  TextBlock
+	NavItem,
+	StatCard,
+	FeatureCard,
+	TestimonialCard,
+	SectionHeader,
+	SocialLinks,
+	TextBlock,
+	TeamMemberCard
 } as const;
 
 // Organismos
 export const Organisms = {
-  Navigation,
-  HeroSection,
-  StatsSection,
-  OurImpact,
-  InitiativesSection,
-  TestimonialsSection,
-  Footer
+	Navigation,
+	HeroSection,
+	StatsSection,
+	OurImpact,
+	OurTeam,
+	OurHistory,
+	InitiativesSection,
+	TestimonialsSection,
+	Footer
 } as const;
 
 // Namespace principal Components
-// 
+//
 // USO RECOMENDADO - Abordagem Namespaced (Clean Code):
 // ```typescript
 // import { Components } from '$lib/components';
-// 
+//
 // // Usando namespaces organizados
 // const { Text, Button, Icon } = Components.Atoms;
 // const { NavItem, StatCard } = Components.Molecules;
 // const { Navigation, Footer } = Components.Organisms;
-// 
+//
 // // Ou usando destructuring direto
 // const { Atoms, Molecules, Organisms } = Components;
 // const { Text } = Atoms;
@@ -127,11 +136,11 @@ export const Organisms = {
 // import { Text, Button, Icon } from '$lib/components';
 // ```
 export const Components = {
-  Atoms,
-  Molecules,
-  Organisms,
-  // Também disponível diretamente para compatibilidade
-  ...Atoms,
-  ...Molecules,
-  ...Organisms
+	Atoms,
+	Molecules,
+	Organisms,
+	// Também disponível diretamente para compatibilidade
+	...Atoms,
+	...Molecules,
+	...Organisms
 } as const;

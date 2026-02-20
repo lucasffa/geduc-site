@@ -1,5 +1,6 @@
-<!-- src/routes/about-us/+page.svelte -->
+<!-- src/routes/sobre/+page.svelte -->
 <script lang="ts">
+	import { OurTeam } from '$lib/components';
 	import OurHistory from '$lib/components/organisms/OurHistory.svelte';
 	import type { TimelineItemData } from '$lib/types/data';
 
@@ -37,9 +38,6 @@
 	];
 </script>
 
-<OurHistory
-		title="Nossa História"
-		titleColor="primary"
-		{history}
-	/>
+<OurHistory title="Nossa História" titleColor="primary" {history} />
 
+<OurTeam />

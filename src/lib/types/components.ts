@@ -1,7 +1,8 @@
 // src/lib/types/components.ts
 import type { Snippet } from 'svelte';
 import type { HTMLAttributes } from 'svelte/elements';
-import type { InitiativeCategory } from './enums';
+import type { InitiativeCategory, TeamDepartment } from './enums';
+import type { TeamMember } from './data';
 
 // ================================
 // TIPOS BASE E UTILITÁRIOS
@@ -599,14 +600,14 @@ export interface SectionHeaderProps extends BaseComponentProps {
 
 	/** Cor do titulo principal */
 	titleColor?:
-	| 'primary'
-	| 'secondary'
-	| 'accent'
-	| 'neutral'
-	| 'success'
-	| 'warning'
-	| 'error'
-	| 'info';
+		| 'primary'
+		| 'secondary'
+		| 'accent'
+		| 'neutral'
+		| 'success'
+		| 'warning'
+		| 'error'
+		| 'info';
 }
 
 export interface SocialLinksProps extends BaseComponentProps {
@@ -743,7 +744,6 @@ export interface HeroSectionProps extends BaseComponentProps {
 	decorative?: boolean;
 }
 
-
 export interface StatsSectionProps extends BaseComponentProps {
 	/** Lista de estatísticas */
 	// stats: Array<{
@@ -789,14 +789,14 @@ export interface OurImpactProps extends BaseComponentProps {
 
 	/** Cor do titulo principal da seção */
 	titleColor?:
-	| 'primary'
-	| 'secondary'
-	| 'accent'
-	| 'neutral'
-	| 'success'
-	| 'warning'
-	| 'error'
-	| 'info';
+		| 'primary'
+		| 'secondary'
+		| 'accent'
+		| 'neutral'
+		| 'success'
+		| 'warning'
+		| 'error'
+		| 'info';
 
 	/** Texto específico sobre o impacto */
 	impactText?: string;
@@ -1172,14 +1172,14 @@ export interface AboutUsProps extends BaseComponentProps {
 
 	/** Cor do titulo principal da seção */
 	titleColor:
-	| 'primary'
-	| 'secondary'
-	| 'accent'
-	| 'neutral'
-	| 'success'
-	| 'warning'
-	| 'error'
-	| 'info';
+		| 'primary'
+		| 'secondary'
+		| 'accent'
+		| 'neutral'
+		| 'success'
+		| 'warning'
+		| 'error'
+		| 'info';
 
 	/** Descrição principal */
 	description: string;
@@ -1210,4 +1210,32 @@ export interface AboutUsProps extends BaseComponentProps {
 
 	/** Background da seção */
 	background?: 'none' | 'subtle' | 'accent';
+}
+
+export interface OurTeamProps extends BaseComponentProps {
+	/** Título da seção */
+	title?: string;
+
+	/** Cor do titulo principal da seção */
+	titleColor?:
+		| 'primary'
+		| 'secondary'
+		| 'accent'
+		| 'neutral'
+		| 'success'
+		| 'warning'
+		| 'error'
+		| 'info';
+
+	/** Subtítulo / descrição da seção */
+	subtitle?: string;
+
+	/** Lista de membros da equipe */
+	members: TeamMember[];
+
+	/** Departamentos disponíveis para filtro */
+	departments?: Array<{
+		value: TeamDepartment | 'todos';
+		label: string;
+	}>;
 }
