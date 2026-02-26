@@ -150,8 +150,13 @@
 
 		<div class="our-history-content">
 			<!-- Imagem lateral opcional -->
-			<div class="our-history-media">
-				<Image src="/images/illustrations/relogios.png" alt="Nossa história" />
+			<div class="our-history-media" >
+				<Image
+					src="/images/illustrations/relogioteste.png"
+					alt="Nossa história"
+					blendMode="color-burn"
+					color="red"
+				/>
 			</div>
 
 			<!-- Timeline -->
@@ -204,6 +209,7 @@
 	}
 
 	.our-history-container {
+		/* Mudar para 100% a width */
 		max-width: var(--container-max-width-xl);
 		margin: 0 auto;
 		padding: 0 var(--spacing-lg);
