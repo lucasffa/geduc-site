@@ -4,8 +4,9 @@
 	import Image from '../atoms/Image.svelte';
 	import type { Partner } from '$lib/types/data';
 	import { onMount, onDestroy } from 'svelte';
+	import { browser } from '$app/environment';
 
-	export let title: string = 'Conheça os parceiros do **GEDUC**:';
+	export let title: string = 'Conheça os parceiros do **GEDUC:**';
 	export let partners: Partner[] = [];
 
 	let className = '';
@@ -15,15 +16,30 @@
 	let animationId: number;
 	let offset = 0;
 	const speed = 0.4;
-	const itemWidth = 50; // largura aproximada por item (logo + gap)
+	let singleSetWidth = 0;
 
 	$: duplicated = [...partners, ...partners, ...partners];
+
+	function measureTrack() {
+		if (!trackEl) return;
+		const firstItem = trackEl.querySelector('.carousel-item') as HTMLElement;
+		if (!firstItem) return;
+
+		// Pega a largura real do item incluindo o gap
+		const itemStyle = window.getComputedStyle(trackEl);
+		const gap = parseFloat(itemStyle.gap) || 0;
+		const itemWidth = firstItem.offsetWidth + gap;
+
+		singleSetWidth = itemWidth * partners.length;
+		offset = singleSetWidth;
+	}
 
 	function animate() {
 		if (trackEl) {
 			offset += speed;
-			if (offset >= partners.length * itemWidth) {
-				offset = 0;
+			// Quando ultrapassa o segundo conjunto, volta pro início do segundo
+			if (offset >= singleSetWidth * 2) {
+				offset = singleSetWidth;
 			}
 			trackEl.style.transform = `translateX(-${offset}px)`;
 		}
@@ -31,11 +47,15 @@
 	}
 
 	onMount(() => {
-		animationId = requestAnimationFrame(animate);
+		if (!browser) return;
+		requestAnimationFrame(() => {
+			measureTrack();
+			animationId = requestAnimationFrame(animate);
+		});
 	});
 
 	onDestroy(() => {
-		cancelAnimationFrame(animationId);
+		if (browser) cancelAnimationFrame(animationId);
 	});
 
 	$: classes = ['partners-section', className].filter(Boolean).join(' ');
@@ -43,7 +63,6 @@
 
 <section class={classes} aria-label="Parceiros">
 	<div class="partners-inner">
-
 		<!-- Texto -->
 		<div class="partners-text">
 			<TextBlock
@@ -76,20 +95,18 @@
 				{/each}
 			</div>
 		</div>
-
 	</div>
 </section>
 
 <style>
 	.partners-section {
-        height: 100%;
 		padding: var(--spacing-xl) 0;
 		background-color: var(--color-neutral-200);
-		
 	}
 
 	.partners-inner {
-		max-width: var(--container-max-width-xl);
+		max-width: 100%;
+		height: 100%;
 		margin: 0 auto;
 		padding: 0 var(--spacing-lg);
 		display: grid;
@@ -137,7 +154,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		height: 40px;
+		height: 100%;
 		width: 120px;
 		opacity: 0.55;
 		transition: opacity var(--transition-normal) var(--transition-timing-default);

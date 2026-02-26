@@ -151,7 +151,7 @@
 		<div class="our-history-content">
 			<!-- Imagem lateral opcional -->
 			<div class="our-history-media">
-				<Image src="/images/clock.png" alt="Nossa história" />
+				<Image src="/images/illustrations/relogios.png" alt="Nossa história" />
 			</div>
 
 			<!-- Timeline -->
@@ -278,11 +278,11 @@
 		height: 100%;
 		pointer-events: none;
 		z-index: 4;
-		background: linear-gradient(to left, white 20%, transparent);
+		background: linear-gradient(to left, var(--background-color-card) 20%, transparent);
 	}
 	.timeline-fade-container::after {
 		right: 0;
-		background: linear-gradient(to left, white 20%, transparent);
+		background: linear-gradient(to left, var(--background-color-card) 20%, transparent);
 	}
 
 	/* Esconde o fade do lado onde não há mais conteúdo */
