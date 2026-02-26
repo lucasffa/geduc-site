@@ -2,7 +2,8 @@
 <script lang="ts">
 	import { OurTeam } from '$lib/components';
 	import OurHistory from '$lib/components/organisms/OurHistory.svelte';
-	import type { TimelineItemData } from '$lib/types/data';
+	import Partners from '$lib/components/organisms/Partners.svelte';
+	import type { Partner, TimelineItemData } from '$lib/types/data';
 
 	const history: TimelineItemData[] = [
 		{
@@ -36,8 +37,42 @@
 			image: '#'
 		}
 	];
+
+	const partners: Partner[] = [
+	{
+		id: '1',
+		name: 'Parceiro 1',
+		logo: '/images/partners/partner1.png',
+		category: 'educational',
+		featured: true
+	},
+	{
+		id: '2',
+		name: 'Parceiro 2',
+		logo: '/images/partners/partner2.png',
+		category: 'nonprofit',
+		featured: true
+	},
+	{
+		id: '3',
+		name: 'Parceiro 3',
+		logo: '/images/partners/partner3.png',
+		category: 'sponsor',
+		featured: false
+	},
+	{
+		id: '4',
+		name: 'Parceiro 4',
+		logo: '/images/partners/partner4.png',
+		category: 'government',
+		featured: false
+	}
+];
+	
 </script>
 
 <OurHistory title="Nossa História" titleColor="primary" {history} />
+
+<Partners {partners} />
 
 <OurTeam />

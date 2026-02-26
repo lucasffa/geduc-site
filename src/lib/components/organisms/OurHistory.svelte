@@ -209,7 +209,7 @@
 		padding: 0 var(--spacing-lg);
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-3xl);
+		gap: var(--spacing-2xl);
 	}
 
 	/* =========================
@@ -338,7 +338,7 @@
 	.timeline::before {
 		content: '';
 		position: absolute;
-		top: calc(140px + 0.25rem + 0.35rem + 0.5em / 2);
+		top: 49%; /* Ajuste fino para centralizar na linha dos marcadores "Gambiarra" */
 		left: 0;
 		right: 0;
 		height: 3px;
