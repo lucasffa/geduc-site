@@ -150,8 +150,13 @@
 
 		<div class="our-history-content">
 			<!-- Imagem lateral opcional -->
-			<div class="our-history-media">
-				<Image src="/images/clock.png" alt="Nossa história" />
+			<div class="our-history-media" >
+				<Image
+					src="/images/illustrations/relogioteste.png"
+					alt="Nossa história"
+					blendMode="color-burn"
+					color="red"
+				/>
 			</div>
 
 			<!-- Timeline -->
@@ -204,12 +209,13 @@
 	}
 
 	.our-history-container {
+		/* Mudar para 100% a width */
 		max-width: var(--container-max-width-xl);
 		margin: 0 auto;
 		padding: 0 var(--spacing-lg);
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-3xl);
+		gap: var(--spacing-2xl);
 	}
 
 	/* =========================
@@ -278,11 +284,11 @@
 		height: 100%;
 		pointer-events: none;
 		z-index: 4;
-		background: linear-gradient(to left, white 20%, transparent);
+		background: linear-gradient(to left, var(--background-color-card) 20%, transparent);
 	}
 	.timeline-fade-container::after {
 		right: 0;
-		background: linear-gradient(to left, white 20%, transparent);
+		background: linear-gradient(to left, var(--background-color-card) 20%, transparent);
 	}
 
 	/* Esconde o fade do lado onde não há mais conteúdo */
@@ -338,7 +344,7 @@
 	.timeline::before {
 		content: '';
 		position: absolute;
-		top: calc(140px + 0.25rem + 0.35rem + 0.5em / 2);
+		top: 49%; /* Ajuste fino para centralizar na linha dos marcadores "Gambiarra" */
 		left: 0;
 		right: 0;
 		height: 3px;

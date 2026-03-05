@@ -16,6 +16,7 @@
 	export let priority: ImageProps['priority'] = false;
 	export let placeholder: ImageProps['placeholder'] = undefined;
 	export let blendMode: ImageProps['blendMode'] = undefined;
+	export let color: ImageProps['color'] = undefined;
 	// Eventos
 	export let onload: ImageProps['onload'] = undefined;
 	export let onerror: ImageProps['onerror'] = undefined;
@@ -86,6 +87,7 @@
 		style:min-width={minWidth}
 		style:max-height={maxHeight}
 		style:max-width={maxWidth}
+		style:background-color={color}
 		loading={priority ? 'eager' : loading}
 		class="image-element"
 		on:load={handleLoad}

@@ -202,6 +202,9 @@ export interface MediaProps {
 
 	/** Se deve aplicar blend mode*/
 	blendMode?: BlendType;
+
+	/** Cor de overlay para blend mode */
+	color?: ColorVariant | string;
 }
 
 // ================================
