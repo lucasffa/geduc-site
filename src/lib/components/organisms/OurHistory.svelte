@@ -210,7 +210,7 @@
 
 	.our-history-container {
 		/* Mudar para 100% a width */
-		max-width: var(--container-max-width-xl);
+		max-width: 100%;
 		margin: 0 auto;
 		padding: 0 var(--spacing-lg);
 		display: flex;
@@ -344,7 +344,7 @@
 	.timeline::before {
 		content: '';
 		position: absolute;
-		top: 49%; /* Ajuste fino para centralizar na linha dos marcadores "Gambiarra" */
+		top: 48%; /* Ajuste fino para centralizar na linha dos marcadores "Gambiarra" */
 		left: 0;
 		right: 0;
 		height: 3px;
