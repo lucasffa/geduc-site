@@ -353,20 +353,6 @@
 		}
 	}
 
-	/* Dark theme */
-	[data-theme='dark'] .initiatives-section {
-		background-color: var(--background-color-page);
-	}
-
-	[data-theme='dark'] .initiatives-section-filters {
-		background-color: var(--background-color-card);
-	}
-
-	[data-theme='dark'] .initiatives-section-empty {
-		background-color: var(--background-color-card);
-		border-color: var(--border-color-default);
-	}
-
 	/* Efeitos decorativos */
 	.initiatives-section::before {
 		content: '';

@@ -158,11 +158,6 @@
 		}
 	}
 
-	/* ─── Dark theme ─── */
-	[data-theme='dark'] .initiative-card {
-		background-color: var(--color-yellow-500, #f59e0b);
-	}
-
 	/* ─── Acessibilidade ─── */
 	@media (prefers-reduced-motion: reduce) {
 		.initiative-card:hover {
