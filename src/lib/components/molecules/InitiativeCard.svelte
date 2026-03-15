@@ -79,6 +79,8 @@
 		</Button>
 		<!-- Mexer no atomo adicionar mais cores ele ta apenas com um azul claro -->
 
+		<!-- Falar com o Lucas sobre isso -->
+
 	</div>
 </article>
 
