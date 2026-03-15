@@ -9,8 +9,8 @@
 				id: 'mentoria-lala',
 				title: 'Mentoria LALA',
 				description:
-					'Nossa mentoria para o Latin America Leadership Academy (LALA) ajuda alunos a preparar suas aplicações e desenvolver seu potencial de liderança.',
-				illustration: '#',
+					'Nossa mentoria para a Latin America Leadership Academy (LALA) ajuda a contar sua história com impacto! Com apoio individual, aulas estratégicas e uma rede que acredita no seu potencial, preparamos jovens de todo o Brasil para se destacarem no processo seletivo.',
+				illustration: 'images/illustrations/banderias-lala.png',
 				illustrationAlt: 'Mentoria LALA'
 			},
 			{

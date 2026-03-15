@@ -2,9 +2,10 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
 	import Image from '../atoms/Image.svelte';
-	import Text from '../atoms/Text.svelte';
-	import Heading from '../atoms/Heading.svelte';
 	import type { InitiativeCardProps } from '$lib/types/components';
+	import SectionHeader from './SectionHeader.svelte';
+	import TextBlock from './TextBlock.svelte';
+	import Button from '../atoms/Button.svelte';
 
 	export let id: InitiativeCardProps['id'];
 	export let title: InitiativeCardProps['title'];
@@ -28,6 +29,8 @@
 	function handleClick() {
 		dispatch('click', { id, href });
 	}
+
+	// Criar uma versão "invertida" do card para intercalar com uma clara e uma escura, assim como no figma
 </script>
 
 <article class={classes} {style} aria-label={title}>
@@ -36,8 +39,7 @@
 		<Image
 			src={illustration}
 			alt={illustrationAlt}
-			aspectRatio="square"
-			objectFit="cover"
+			objectFit="contain"
 			loading="lazy"
 			class="initiative-card-image"
 		/>
@@ -45,38 +47,52 @@
 
 	<!-- Conteúdo -->
 	<div class="initiative-card-content">
-		<Heading level={3} size="xl" weight="bold" color="primary" class="initiative-card-title">
-			{title}<span class="initiative-card-title-dot" aria-hidden="true">.</span>
-		</Heading>
+		<SectionHeader
+			{title}
+			titleColor="primary"
+			align="left"
+			headingLevel={3}
+			spacing="tight"
+			decoration={true}
+		/>
+			<!-- Mexer no atomo adicionar mais cores, eu preciso fazer o esquema de inverter na decoração tbm -->
 
-		<Text as="p" size="sm" color="secondary" leading="relaxed" class="initiative-card-description">
-			{description}
-		</Text>
+		<TextBlock
+			content={description}
+			variant="paragraphs"
+			spacing="normal"
+			align="left"
+			color="neutral"
+			weight="normal"
+			leading="relaxed"
+			class="initiative-card-description"
+			size="sm"
+		/>
 
-		<button
-			type="button"
-			class="initiative-card-button"
-			on:click={handleClick}
-			aria-label="Saiba mais sobre {title}"
+		<Button
+			variant="primary"
+			size="lg"
+			onclick={handleClick}
+			aria-label={`Saiba mais sobre ${title}`}
 		>
 			Saiba Mais
-		</button>
-	</div>
+		</Button>
+		<!-- Mexer no atomo adicionar mais cores ele ta apenas com um azul claro -->
 
-	<!-- Slot para conteúdo extra (badge, tag, etc.) -->
-	<slot />
+	</div>
 </article>
 
 <style>
 	.initiative-card {
-		display: flex;
-		flex-direction: row;
+		display: grid;
+		grid-template-columns: 1fr 1.4fr;
 		align-items: center;
-		gap: var(--spacing-xl, 1.5rem);
-		background-color: var(--color-yellow-400, #fbbf24);
+		gap: 4rem;
+		background-color: var(--color-yellow-600, #fbbf24);
 		border-radius: var(--border-radius-xl, 16px);
-		padding: var(--spacing-lg, 1.25rem);
+		padding: var(--spacing-lg, 2rem);
 		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+		margin: 0;
 		transition:
 			transform 0.2s ease,
 			box-shadow 0.2s ease;
@@ -89,12 +105,34 @@
 
 	/* Imagem */
 	.initiative-card-image-wrapper {
-		flex-shrink: 0;
-		width: 120px;
-		height: 120px;
+		width: 100%;
+		height: 220px;
+		position: relative;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 		border-radius: var(--border-radius-lg, 12px);
 		overflow: hidden;
-		background-color: rgba(0, 0, 0, 0.06);
+		/* Fundo laranja mais escuro como no design */
+		background-color: #f2a842;
+		flex-shrink: 0;
+	}
+
+	/* Garante que o componente Image preencha o wrapper corretamente */
+	.initiative-card-image-wrapper :global(.image-container) {
+		width: 100%;
+		height: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background-color: transparent;
+		overflow: visible;
+	}
+
+	.initiative-card-image-wrapper :global(.image-element) {
+		width: 85%;
+		height: 85%;
+		object-fit: contain;
 	}
 
 	/* Conteúdo */
@@ -105,57 +143,16 @@
 		gap: var(--spacing-sm, 0.5rem);
 	}
 
-	.initiative-card-title-dot {
-		color: var(--color-neutral-900, #111);
-	}
-
-	/* Botão */
-	.initiative-card-button {
-		align-self: flex-start;
-		margin-top: var(--spacing-xs, 0.25rem);
-		background-color: var(--color-primary-600, #2563eb);
-		color: #fff;
-		border: none;
-		border-radius: var(--border-radius-full, 9999px);
-		padding: 8px 22px;
-		font-size: var(--font-size-sm, 0.875rem);
-		font-weight: 600;
-		cursor: pointer;
-		transition:
-			background-color 0.2s ease,
-			transform 0.15s ease;
-		letter-spacing: 0.01em;
-	}
-
-	.initiative-card-button:hover {
-		background-color: var(--color-primary-700, #1d4ed8);
-		transform: translateY(-1px);
-	}
-
-	.initiative-card-button:active {
-		transform: translateY(0);
-	}
-
-	.initiative-card-button:focus-visible {
-		outline: 2px solid var(--color-primary-500, #3b82f6);
-		outline-offset: 3px;
-	}
-
 	/* ─── Responsividade ─── */
 	@media (max-width: 600px) {
 		.initiative-card {
-			flex-direction: column;
+			grid-template-columns: 1fr;
 			align-items: flex-start;
 		}
 
 		.initiative-card-image-wrapper {
 			width: 100%;
 			height: 160px;
-		}
-
-		.initiative-card-button {
-			align-self: stretch;
-			text-align: center;
 		}
 	}
 
@@ -167,10 +164,6 @@
 	/* ─── Acessibilidade ─── */
 	@media (prefers-reduced-motion: reduce) {
 		.initiative-card:hover {
-			transform: none;
-		}
-
-		.initiative-card-button:hover {
 			transform: none;
 		}
 	}
