@@ -13,9 +13,7 @@
 <div class="team-member-card">
 	<!-- Foto com efeito duotone azul -->
 	<div class="card-image-wrapper">
-		<div class="card-image-duotone">
-			<img src={member.avatar} alt={member.name} class="card-image" loading="lazy" />
-		</div>
+		<img src={member.avatar} alt={member.name} class="card-image" loading="lazy" />
 
 		<!-- Badge LinkedIn -->
 		{#if linkedinLink}
@@ -61,14 +59,9 @@
 		position: relative;
 		aspect-ratio: 1 / 1;
 		overflow: hidden;
-	}
-
-	/* Duotone azul via background + blend */
-	.card-image-duotone {
-		width: 100%;
-		height: 100%;
-		position: relative;
-		background-color: var(--color-primary-600, #2b4acb);
+		background-image: url('/images/team/background.png');
+		background-size: cover;
+		background-position: center;
 	}
 
 	.card-image {
@@ -76,8 +69,8 @@
 		height: 100%;
 		object-fit: cover;
 		display: block;
-		filter: grayscale(100%) contrast(1.1);
-		mix-blend-mode: screen;
+		position: relative;
+		z-index: 1;
 	}
 
 	/* Badge LinkedIn */
