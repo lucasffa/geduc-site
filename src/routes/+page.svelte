@@ -203,7 +203,7 @@
 	<svelte:fragment slot="ourImpact" let:dispatch>
 		<OurImpact
 			title={data.pageData.ourImpact.title}
-			titleColor={data.pageData.ourImpact.titleColor}	
+			titleColor={data.pageData.ourImpact.titleColor}
 			impactText={data.pageData.ourImpact.impactText}
 			background={data.pageData.ourImpact.background}
 			layout={data.pageData.ourImpact.layout}
@@ -311,7 +311,7 @@
 			contact={footerData.contact}
 			social={footerData.social}
 			copyright={footerData.copyright}
-			backToTop={footerData.backToTop}	
+			backToTop={footerData.backToTop}
 			variant={footerData.variant}
 			on:action={(e) =>
 				dispatch('footerAction', {

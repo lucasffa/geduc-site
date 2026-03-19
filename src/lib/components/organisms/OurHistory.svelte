@@ -150,7 +150,7 @@
 
 		<div class="our-history-content">
 			<!-- Imagem lateral opcional -->
-			<div class="our-history-media" >
+			<div class="our-history-media">
 				<Image
 					src="/images/illustrations/relogioteste.png"
 					alt="Nossa história"

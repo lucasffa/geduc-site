@@ -40,11 +40,12 @@
 				{title}
 				{titleColor}
 				align="center"
-				decorativeLetter={true}
+				decorativeLetter={false}
 				decoration={true}
 				decorationColor="var(--color-yellow-600)"
 				decorationPosition="bottom"
 			/>
+			<img src="/images/team/Time.png" alt="Time" class="time-image" />
 		{/if}
 
 		{#if subtitle}
@@ -104,8 +105,17 @@
 
 	/* Subtítulo */
 	.our-team-subtitle {
-		max-width: 700px;
+		max-width: 900px;
 		text-align: center;
+	}
+
+	/* Imagem Time */
+	.time-image {
+		display: block;
+		margin: calc(-2.8 * var(--spacing-md, 12px)) auto 0;
+		max-width: 185px;
+		height: auto;
+		z-index: 2;
 	}
 
 	/* Filtros de departamento */
@@ -121,7 +131,7 @@
 		border: 2px solid transparent;
 		border-radius: var(--border-radius-full, 999px);
 		background: transparent;
-		color: var(--text-color-secondary, #555);
+		color: var(--color-neutral-600, #757575);
 		font-size: var(--font-size-sm, 0.875rem);
 		font-weight: var(--font-weight-medium, 500);
 		cursor: pointer;
@@ -154,11 +164,21 @@
 		position: absolute;
 		bottom: 0;
 		right: 0;
-		width: 100%;
-		height: 40%;
+		width: 150%;
+		height: 80%;
 		background: var(--color-yellow-600, #e6a817);
 		clip-path: polygon(100% 30%, 100% 100%, 0% 100%);
 		z-index: 0;
+	}
+
+	/* Alargar a barra amarela só no OurTeam */
+	.our-team :global(.heading-decoration-line) {
+		margin: 0 -25px !important;
+	}
+
+	.our-team :global(.heading) {
+		padding-top: 12px;
+		letter-spacing: 4.8px;
 	}
 
 	/* Responsividade */

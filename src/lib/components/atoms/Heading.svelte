@@ -566,7 +566,7 @@
 		position: absolute;
 		background-color: var(--color-yellow-600);
 		transition: all var(--transition-normal) var(--transition-timing-default);
-		z-index: 1;
+		z-index: -1;
 	}
 
 	/* Posições de decoração - Text Width (padrão) */
