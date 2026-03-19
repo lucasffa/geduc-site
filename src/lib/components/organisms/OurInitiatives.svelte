@@ -1,10 +1,16 @@
 <!-- src/lib/components/organisms/OurInitiatives.svelte -->
 <script lang="ts">
 	import { createEventDispatcher, onMount } from 'svelte';
+
 	import SectionHeader from '../molecules/SectionHeader.svelte';
 	import InitiativeCard from '../molecules/InitiativeCard.svelte';
-	import type { InitiativeCardProps, OurInitiativesProps } from '$lib/types/components';
 
+	import type {
+		InitiativeCardProps,
+		OurInitiativesProps
+	} from '$lib/types/components';
+
+	// ─── Props ─────────────────────────────────────────────
 	export let sectionTitle: OurInitiativesProps['sectionTitle'] = 'Nossas iniciativas';
 	export let initiatives: OurInitiativesProps['initiatives'] = [];
 	export let background: OurInitiativesProps['background'] = 'none';
@@ -17,27 +23,32 @@
 	let style = '';
 	export { style };
 
+	// ─── Events ────────────────────────────────────────────
 	const dispatch = createEventDispatcher<{
 		initiativeClick: { initiative: InitiativeCardProps };
 		sectionLoad: { id: string };
 	}>();
 
+	// ─── Reactive Classes ─────────────────────────────────
 	$: classes = [
 		'our-initiatives',
 		`our-initiatives-background-${background}`,
-		visible ? '' : 'our-initiatives-hidden',
+		!visible && 'our-initiatives-hidden',
 		className
 	]
 		.filter(Boolean)
 		.join(' ');
 
+	// ─── Handlers ─────────────────────────────────────────
 	function handleCardClick(event: CustomEvent<{ id: string; href?: string }>) {
 		const initiative = initiatives?.find((i) => i.id === event.detail.id);
+
 		if (initiative) {
 			dispatch('initiativeClick', { initiative });
 		}
 	}
 
+	// ─── Lifecycle ────────────────────────────────────────
 	onMount(() => {
 		if (id) {
 			dispatch('sectionLoad', { id });
@@ -59,7 +70,7 @@
 		{/if}
 
 		<div class="our-initiatives-list" role="list">
-			{#each initiatives ?? [] as initiative (initiative.id)}
+			{#each initiatives ?? [] as initiative, index (initiative.id)}
 				<div role="listitem">
 					<InitiativeCard
 						id={initiative.id}
@@ -68,6 +79,7 @@
 						illustration={initiative.illustration}
 						illustrationAlt={initiative.illustrationAlt}
 						href={initiative.href}
+						variant={index % 2 === 0 ? 'dark' : 'light'}
 						on:click={handleCardClick}
 					/>
 				</div>
@@ -81,7 +93,8 @@
 <style>
 	.our-initiatives {
 		padding: var(--spacing-4xl, 4rem) 0;
-		transition: opacity var(--transition-normal, 0.3s) var(--transition-timing-default, ease);
+		transition: opacity var(--transition-normal, 0.3s)
+			var(--transition-timing-default, ease);
 	}
 
 	.our-initiatives-hidden {
@@ -93,6 +106,7 @@
 		max-width: var(--container-max-width-xl, 900px);
 		margin: 0 auto;
 		padding: 0 var(--spacing-lg, 1.5rem);
+
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-2xl, 2rem);
@@ -104,7 +118,7 @@
 		gap: var(--spacing-xl, 1.5rem);
 	}
 
-	/* ─── Backgrounds ─── */
+	/* ─── Backgrounds ───────────────────────────────────── */
 	.our-initiatives-background-none {
 		background: transparent;
 	}
@@ -114,7 +128,11 @@
 	}
 
 	.our-initiatives-background-primary {
-		background: linear-gradient(135deg, var(--color-primary-100) 0%, var(--color-primary-50) 100%);
+		background: linear-gradient(
+			135deg,
+			var(--color-primary-100) 0%,
+			var(--color-primary-50) 100%
+		);
 	}
 
 	.our-initiatives-background-gradient {
@@ -126,16 +144,20 @@
 		);
 	}
 
-	/* ─── Dark theme ─── */
+	/* ─── Dark Theme ───────────────────────────────────── */
 	[data-theme='dark'] .our-initiatives-background-muted {
 		background-color: var(--color-neutral-800);
 	}
 
 	[data-theme='dark'] .our-initiatives-background-primary {
-		background: linear-gradient(135deg, var(--color-primary-900) 0%, var(--color-primary-800) 100%);
+		background: linear-gradient(
+			135deg,
+			var(--color-primary-900) 0%,
+			var(--color-primary-800) 100%
+		);
 	}
 
-	/* ─── Responsividade ─── */
+	/* ─── Responsividade ───────────────────────────────── */
 	@media (max-width: 768px) {
 		.our-initiatives {
 			padding: var(--spacing-3xl, 3rem) 0;

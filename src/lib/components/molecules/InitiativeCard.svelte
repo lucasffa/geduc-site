@@ -1,18 +1,22 @@
 <!-- src/lib/components/molecules/InitiativeCard.svelte -->
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
+
 	import Image from '../atoms/Image.svelte';
-	import type { InitiativeCardProps } from '$lib/types/components';
 	import SectionHeader from './SectionHeader.svelte';
 	import TextBlock from './TextBlock.svelte';
 	import Button from '../atoms/Button.svelte';
 
+	import type { InitiativeCardProps } from '$lib/types/components';
+
+	// ─── Props ─────────────────────────────────────────────
 	export let id: InitiativeCardProps['id'];
 	export let title: InitiativeCardProps['title'];
 	export let description: InitiativeCardProps['description'];
 	export let illustration: InitiativeCardProps['illustration'];
 	export let illustrationAlt: InitiativeCardProps['illustrationAlt'];
 	export let href: InitiativeCardProps['href'] = undefined;
+	export let variant: 'light' | 'dark' = 'light';
 
 	let className = '';
 	export { className as class };
@@ -20,29 +24,40 @@
 	let style = '';
 	export { style };
 
+	// ─── Events ────────────────────────────────────────────
 	const dispatch = createEventDispatcher<{
 		click: { id: string; href?: string };
 	}>();
 
-	$: classes = ['initiative-card', className].filter(Boolean).join(' ');
+	// ─── Reactive Classes ─────────────────────────────────
+	$: classes = ['initiative-card', `initiative-card-${variant}`, className]
+		.filter(Boolean)
+		.join(' ');
 
+	// ─── Handlers ─────────────────────────────────────────
 	function handleClick() {
 		dispatch('click', { id, href });
 	}
 
-	// Criar uma versão "invertida" do card para intercalar com uma clara e uma escura, assim como no figma
+	$: decorationColor =
+	variant === 'dark'
+		? 'var(--color-yellow-600)'
+		: '#F2A842';
+
 </script>
 
 <article class={classes} {style} aria-label={title}>
 	<!-- Imagem -->
 	<div class="initiative-card-image-wrapper">
-		<Image
-			src={illustration}
-			alt={illustrationAlt}
-			objectFit="contain"
-			loading="lazy"
-			class="initiative-card-image"
-		/>
+		<div class="initiative-card-image-inner">
+			<Image
+				src={illustration}
+				alt={illustrationAlt}
+				objectFit="contain"
+				loading="lazy"
+				class="initiative-card-image"
+			/>
+		</div>
 	</div>
 
 	<!-- Conteúdo -->
@@ -54,8 +69,8 @@
 			headingLevel={3}
 			spacing="tight"
 			decoration={true}
+			{decorationColor}
 		/>
-			<!-- Mexer no atomo adicionar mais cores, eu preciso fazer o esquema de inverter na decoração tbm -->
 
 		<TextBlock
 			content={description}
@@ -65,8 +80,8 @@
 			color="neutral"
 			weight="normal"
 			leading="relaxed"
-			class="initiative-card-description"
 			size="sm"
+			class="initiative-card-description"
 		/>
 
 		<Button
@@ -77,24 +92,26 @@
 		>
 			Saiba Mais
 		</Button>
-		<!-- Mexer no atomo adicionar mais cores ele ta apenas com um azul claro -->
-
-		<!-- Falar com o Lucas sobre isso -->
-
 	</div>
 </article>
 
 <style>
+	/* ─── Base ─────────────────────────────────────────── */
 	.initiative-card {
 		display: grid;
 		grid-template-columns: 1fr 1.4fr;
 		align-items: center;
-		gap: 4rem;
-		background-color: var(--color-yellow-600, #fbbf24);
-		border-radius: var(--border-radius-xl, 16px);
+
+		gap: var(--spacing-2xl, 4rem);
 		padding: var(--spacing-lg, 2rem);
+
+		border-radius: var(--border-radius-xl, 20px);
 		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
 		margin: 0;
+
+		background-color: var(--color-yellow-600, #fbbf24);
+
 		transition:
 			transform 0.2s ease,
 			box-shadow 0.2s ease;
@@ -105,47 +122,83 @@
 		box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
 	}
 
-	/* Imagem */
+	/* ─── Imagem ───────────────────────────────────────── */
 	.initiative-card-image-wrapper {
 		width: 100%;
+		max-width: 420px;
+
 		height: 220px;
-		position: relative;
+		min-height: 220px;
+
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		border-radius: var(--border-radius-lg, 12px);
+
+		border-radius: var(--border-radius-2xl, 20px);
 		overflow: hidden;
-		/* Fundo laranja mais escuro como no design */
+
 		background-color: #f2a842;
+
 		flex-shrink: 0;
 	}
 
-	/* Garante que o componente Image preencha o wrapper corretamente */
-	.initiative-card-image-wrapper :global(.image-container) {
+	.initiative-card-image-inner {
 		width: 100%;
 		height: 100%;
+
 		display: flex;
 		align-items: center;
 		justify-content: center;
+	}
+
+	/* Corrige comportamento do componente Image */
+	.initiative-card-image-wrapper :global(.image-container) {
+		width: 100%;
+		height: 100%;
+
+		display: flex;
+		align-items: center;
+		justify-content: center;
+
 		background-color: transparent;
 		overflow: visible;
 	}
 
+	.initiative-card-image-wrapper :global(img),
 	.initiative-card-image-wrapper :global(.image-element) {
-		width: 85%;
-		height: 85%;
+		max-width: 100%;
+		max-height: 100%;
 		object-fit: contain;
 	}
 
-	/* Conteúdo */
+	/* ─── Conteúdo ─────────────────────────────────────── */
 	.initiative-card-content {
-		flex: 1;
 		display: flex;
 		flex-direction: column;
+		align-items: flex-start;
+
 		gap: var(--spacing-sm, 0.5rem);
+		flex: 1;
 	}
 
-	/* ─── Responsividade ─── */
+	/* ─── Variantes ───────────────────────────────────── */
+	.initiative-card-light {
+		background-color: var(--color-yellow-600, #f6cb5a);
+	}
+
+	.initiative-card-light .initiative-card-image-wrapper {
+		background-color: #f2a842;
+	}
+
+	.initiative-card-dark {
+		background-color: #f2a842;
+	}
+
+	.initiative-card-dark .initiative-card-image-wrapper {
+		background-color: #f6cb5a;
+	}
+
+	/* ─── Responsividade ──────────────────────────────── */
 	@media (max-width: 600px) {
 		.initiative-card {
 			grid-template-columns: 1fr;
@@ -158,7 +211,7 @@
 		}
 	}
 
-	/* ─── Acessibilidade ─── */
+	/* ─── Acessibilidade ──────────────────────────────── */
 	@media (prefers-reduced-motion: reduce) {
 		.initiative-card:hover {
 			transform: none;

@@ -17,24 +17,24 @@
 				id: 'workshops',
 				title: 'Workshops',
 				description:
-					'Eventos voltados a estimular criatividade, raciocínio lógico e trabalho em equipe por meio de atividades práticas.',
-				illustration: '#',
+					'Espaços abertos e acessíveis para quem quer refletir, aprender e trocar ideias. A cada encontro, trazemos temas que ampliam a visão sobre a educação e o mundo, incentivando o pensamento crítico e o protagonismo juvenil, porque aprender também é dialogar.',
+				illustration: 'images/illustrations/engrenagens.png',
 				illustrationAlt: 'Workshops educacionais'
 			},
 			{
 				id: 'programa-olimpico',
 				title: 'Programa Olímpico',
 				description:
-					'Projeto de alto impacto que oferece suporte na preparação para olimpíadas acadêmicas.',
-				illustration: '#',
+					'Por meio de aulas gravadas, oferecemos suporte nas  matérias cobradas pelas olimpíadas acadêmicas do Brasil. Queremos democratizar o acesso ao conhecimento e mostrar que todes podem brilhar nesse universo, independentemente da região em que estudam.',
+				illustration: 'images/illustrations/medalhas.png',
 				illustrationAlt: 'Programa Olímpico'
 			},
 			{
 				id: 'feira-de-atividades',
 				title: 'Feira de Atividades',
 				description:
-					'Evento pensado para alunos explorarem novas paixões e descobrirem projetos educacionais.',
-				illustration: '#',
+					'Evento pensado para quem quer explorar novas paixões, descobrir projetos inspiradores e encontrar oportunidades além da escola. Tudo isso em um só lugar e totalmente online! Participe, conheça iniciativas de todo o Brasil e mergulhe no universo das atividades extracurriculares.',
+				illustration: 'images/illustrations/atividades.png',
 				illustrationAlt: 'Feira de atividades educacionais'
 			}
 		]
