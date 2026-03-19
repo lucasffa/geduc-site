@@ -42,7 +42,7 @@
 	$: decorationColor =
 	variant === 'dark'
 		? 'var(--color-yellow-600)'
-		: '#F2A842';
+		: 'var(--color-yellow-800)';
 
 </script>
 
@@ -137,7 +137,7 @@
 		border-radius: var(--border-radius-2xl, 20px);
 		overflow: hidden;
 
-		background-color: #f2a842;
+		background-color: var(--color-yellow-800);
 
 		flex-shrink: 0;
 	}
@@ -187,15 +187,15 @@
 	}
 
 	.initiative-card-light .initiative-card-image-wrapper {
-		background-color: #f2a842;
+		background-color: var(--color-yellow-800);
 	}
 
 	.initiative-card-dark {
-		background-color: #f2a842;
+		background-color: var(--color-yellow-800);
 	}
 
 	.initiative-card-dark .initiative-card-image-wrapper {
-		background-color: #f6cb5a;
+		background-color: var(--color-yellow-600);
 	}
 
 	/* ─── Responsividade ──────────────────────────────── */
