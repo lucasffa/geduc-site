@@ -18,6 +18,17 @@
 	export let size: HeroSectionProps['size'] = 'lg';
 	export let decorative: HeroSectionProps['decorative'] = false;
 
+	// Variant: 'home' (padrão) ou 'about'
+	export let variant: 'home' | 'about' = 'home';
+
+	// Props específicas da variante about
+	export let visionTitle: string = 'Nossa vissão';
+	export let visionText: string = '';
+	export let missionText: string = '';
+	export let valuesText: string = '';
+	export let tagline: string = '';
+	export let teamImage: string = '';
+
 	// Classes adicionais
 	let className = '';
 	export { className as class };
@@ -33,8 +44,9 @@
 	// Classes CSS baseadas nas props
 	$: classes = [
 		'hero-section',
-		`hero-section-layout-${layout}`,
-		`hero-section-size-${size}`,
+		`hero-section-variant-${variant}`,
+		variant === 'home' && `hero-section-layout-${layout}`,
+		variant === 'home' && `hero-section-size-${size}`,
 		decorative && 'hero-section-decorative',
 		className
 	]
@@ -59,6 +71,7 @@
 </script>
 
 <section class={classes} style={backgroundStyle}>
+{#if variant === 'home'}
 	{#if decorative}
 		<div class="hero-section-decorations">
 			<div class="hero-decoration hero-decoration-1"></div>
@@ -69,33 +82,29 @@
 
 	<!-- Background illustrations positioned behind content -->
 	{#if media && media.type === 'illustration'}
-	
 		<div class="hero-section-media-background">
-
-				<!-- Ilustrações específicas mencionadas na hierarquia -->
-				<div class="hero-illustration hero-illustration-brain">
-					<Image
-						src="/images/illustrations/brain.png"
-						alt="Ilustração de cérebro representando conhecimento"
-						aspectRatio="square"
-						objectFit="contain"
-						blendMode="screen"
-						loading="lazy"
-						priority
-					/>
-				</div>
-				<div class="hero-illustration hero-illustration-lamp">
-					<Image
-						src="/images/illustrations/lamp.png"
-						alt="Ilustração de lâmpada representando ideias"
-						aspectRatio="auto"
-						objectFit="contain"
-						blendMode="screen"
-						loading="lazy"
-						priority
-					/>
-				</div>
-
+			<div class="hero-illustration hero-illustration-brain">
+				<Image
+					src="/images/illustrations/brain.png"
+					alt="Ilustração de cérebro representando conhecimento"
+					aspectRatio="square"
+					objectFit="contain"
+					blendMode="screen"
+					loading="lazy"
+					priority
+				/>
+			</div>
+			<div class="hero-illustration hero-illustration-lamp">
+				<Image
+					src="/images/illustrations/lamp.png"
+					alt="Ilustração de lâmpada representando ideias"
+					aspectRatio="auto"
+					objectFit="contain"
+					blendMode="screen"
+					loading="lazy"
+					priority
+				/>
+			</div>
 		</div>
 	{/if}
 
@@ -124,7 +133,6 @@
 						>
 							{highlight}
 						</Heading>
-						<!-- #TODO: USAR O ATOMO de ICONE LINHA 83 REFERENCIA -->
 					</div>
 				{/if}
 			</div>
@@ -209,6 +217,78 @@
 			style="width: 100%; height: auto; border-radius: var(--border-radius-lg);"
 		></video>
 	</Modal>
+
+{:else if variant === 'about'}
+	<!-- ========== VARIANTE ABOUT ========== -->
+
+	<!-- Seção superior: Título + Visão -->
+	<div class="hero-about-top">
+		<div class="hero-about-top-inner">
+			<div class="hero-about-title-block">
+				<Heading level={1} size="3xl" weight="bold" color="primary" class="hero-about-title">
+					{title}
+				</Heading>
+			</div>
+			{#if visionText}
+				<div class="hero-about-vision-block">
+					<Heading level={3} size="lg" weight="bold" color="primary">
+						{visionTitle}
+					</Heading>
+					<Text as="p" size="sm" color="neutral">
+						{visionText}
+					</Text>
+				</div>
+			{/if}
+		</div>
+	</div>
+
+	<!-- Banner com imagem do time -->
+	{#if teamImage}
+		<div class="hero-about-banner">
+			<div class="hero-about-banner-inner">
+				<img src={teamImage} alt="Equipe Geduca" class="hero-about-banner-img" />
+			</div>
+		</div>
+	{/if}
+
+	<!-- Info cards: Missão + Valores -->
+	{#if missionText || valuesText}
+		<div class="hero-about-cards">
+			<div class="hero-about-cards-inner">
+				{#if missionText}
+					<div class="hero-about-card">
+						<div class="hero-about-card-icon">
+							<img src="/images/illustrations/target.png" alt="Missão" />
+						</div>
+						<div class="hero-about-card-content">
+							<Heading level={4} size="md" weight="bold" color="primary">
+								Nossa missão
+							</Heading>
+							<Text as="p" size="sm" color="neutral">
+								{missionText}
+							</Text>
+						</div>
+					</div>
+				{/if}
+				{#if valuesText}
+					<div class="hero-about-card">
+						<div class="hero-about-card-icon">
+							<img src="/images/illustrations/gears.png" alt="Valores" />
+						</div>
+						<div class="hero-about-card-content">
+							<Heading level={4} size="md" weight="bold" color="primary">
+								Nossos valores
+							</Heading>
+							<Text as="p" size="sm" color="neutral">
+								{valuesText}
+							</Text>
+						</div>
+					</div>
+				{/if}
+			</div>
+		</div>
+	{/if}
+{/if}
 
 	<slot />
 </section>
@@ -693,6 +773,124 @@
 		}
 		to {
 			transform: translateY(0);
+		}
+	}
+
+	/* ========================================
+	 * VARIANTE ABOUT
+	 * ======================================== */
+	.hero-section-variant-about {
+		min-height: auto;
+		display: flex;
+		flex-direction: column;
+		background: var(--color-neutral-0, #fff);
+	}
+
+	/* Seção superior: Título + Visão */
+	.hero-about-top {
+		padding: var(--spacing-3xl) var(--spacing-lg) var(--spacing-xl);
+	}
+
+	.hero-about-top-inner {
+		max-width: var(--container-max-width-xl);
+		margin: 0 auto;
+		display: grid;
+		grid-template-columns: 1fr 1.5fr;
+		gap: var(--spacing-2xl);
+		align-items: start;
+	}
+
+	.hero-about-title-block :global(.hero-about-title) {
+		font-style: italic;
+		line-height: var(--line-height-tight);
+	}
+
+	.hero-about-vision-block {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-sm);
+	}
+
+	/* Banner imagem */
+	.hero-about-banner {
+		padding: 0 var(--spacing-lg);
+	}
+
+	.hero-about-banner-inner {
+		max-width: var(--container-max-width-xl);
+		margin: 0 auto;
+	}
+
+	.hero-about-banner-img {
+		width: 100%;
+		height: auto;
+		display: block;
+		border-radius: var(--border-radius-xl);
+	}
+
+	/* Info cards */
+	.hero-about-cards {
+		padding: var(--spacing-xl) var(--spacing-lg) var(--spacing-3xl);
+	}
+
+	.hero-about-cards-inner {
+		max-width: var(--container-max-width-xl);
+		margin: 0 auto;
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: var(--spacing-2xl);
+	}
+
+	.hero-about-card {
+		display: flex;
+		gap: var(--spacing-lg);
+		align-items: flex-start;
+	}
+
+	.hero-about-card-icon {
+		flex-shrink: 0;
+		width: 64px;
+		height: 64px;
+	}
+
+	.hero-about-card-icon img {
+		width: 100%;
+		height: 100%;
+		object-fit: contain;
+	}
+
+	.hero-about-card-content {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-xs);
+	}
+
+	/* Responsividade About */
+	@media (max-width: 768px) {
+		.hero-about-top-inner {
+			grid-template-columns: 1fr;
+			gap: var(--spacing-lg);
+		}
+
+		.hero-about-banner-inner {
+			grid-template-columns: 1fr;
+			text-align: center;
+		}
+
+		.hero-about-banner {
+			margin: 0 var(--spacing-sm);
+			border-radius: var(--border-radius-xl);
+		}
+
+		.hero-about-cards-inner {
+			grid-template-columns: 1fr;
+			gap: var(--spacing-xl);
+		}
+
+		.hero-about-card {
+			flex-direction: column;
+			align-items: center;
+			text-align: center;
 		}
 	}
 </style>
