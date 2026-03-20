@@ -1,6 +1,7 @@
 <!-- src/routes/sobre/+page.svelte -->
 <script lang="ts">
 	import { OurTeam } from '$lib/components';
+	import HeroSection from '$lib/components/organisms/HeroSection.svelte';
 	import OurHistory from '$lib/components/organisms/OurHistory.svelte';
 	import Partners from '$lib/components/organisms/Partners.svelte';
 	import type { Partner, TimelineItemData, TeamMember } from '$lib/types/data';
@@ -229,6 +230,16 @@
 		}
 	];
 </script>
+
+<HeroSection
+	variant="about"
+	title="Missão, visão e valores"
+	visionTitle="Nossa vissão"
+	visionText="Por meio das nossas iniciativas, queremos transformar a educação para formar seres humanos, respeitando todas as cores, sexualidades, gêneros e etnias."
+	teamImage="/images/team/HeroImage.png"
+	missionText="Humanizar a educação, oferecendo aos jovens experiências que vão além da escola para que se apaixonem pelo aprendizado e descubram um mundo de possibilidades!"
+	valuesText="Acreditamos no poder da empatia, amor e experiência. São esses os pilares que nos guiam e tornam a educação capaz de transformar vidas verdadeiramente."
+/>
 
 <OurHistory title="Nossa História" titleColor="primary" {history} />
 
