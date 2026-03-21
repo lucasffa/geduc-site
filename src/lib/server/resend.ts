@@ -1,7 +1,18 @@
 import { Resend } from 'resend';
 import { env } from '$env/dynamic/private';
+import { cache, CacheKeys } from '$lib/server/cache';
 
-function getResendClient(): Resend {
+/**
+ * Tri-mode Resend client:
+ * 1. System key (env RESEND_API_KEY) — for invitations, auth emails
+ * 2. User key (cached after login) — per-user Resend key
+ * 3. Org key (cached after admin login) — organization-wide Resend key
+ *
+ * Priority for certificate sending: user key > org key > system key
+ */
+
+/** System-level Resend client from env var */
+export function getSystemResendClient(): Resend {
 	const apiKey = env.RESEND_API_KEY;
 	if (!apiKey) {
 		throw new Error('RESEND_API_KEY is not set');
@@ -9,14 +20,46 @@ function getResendClient(): Resend {
 	return new Resend(apiKey);
 }
 
+/** User-level Resend client from cache (decrypted at login, TTL=0) */
+export function getUserResendClient(userId: string): Resend | null {
+	const key = cache.get<string>(CacheKeys.apiKeyUser(userId));
+	if (!key) return null;
+	return new Resend(key);
+}
+
+/** Organization-level Resend client from cache (decrypted by admin at login, TTL=0) */
+export function getOrgResendClient(orgId: string): Resend | null {
+	const key = cache.get<string>(CacheKeys.apiKeyOrg(orgId));
+	if (!key) return null;
+	return new Resend(key);
+}
+
+/**
+ * Get best available Resend client for certificate sending.
+ * Priority: user key > org key > system key
+ */
+export function getResendClientForCertificates(userId: string, orgId?: string): Resend {
+	const userClient = getUserResendClient(userId);
+	if (userClient) return userClient;
+
+	if (orgId) {
+		const orgClient = getOrgResendClient(orgId);
+		if (orgClient) return orgClient;
+	}
+
+	return getSystemResendClient();
+}
+
 export async function sendCertificateEmail(
 	to: string,
 	participantName: string,
 	pdfBuffer: Uint8Array,
-	filename: string
+	filename: string,
+	userId: string,
+	orgId?: string
 ): Promise<{ success: boolean; error?: string }> {
 	try {
-		const resend = getResendClient();
+		const resend = getResendClientForCertificates(userId, orgId);
 		const fromEmail = env.RESEND_FROM_EMAIL || 'certificados@geduc.org';
 
 		await resend.emails.send({
@@ -61,7 +104,9 @@ export async function sendTestEmail(
 	testEmail: string,
 	participantName: string,
 	pdfBuffer: Uint8Array,
-	filename: string
+	filename: string,
+	userId: string,
+	orgId?: string
 ): Promise<{ success: boolean; error?: string }> {
-	return sendCertificateEmail(testEmail, participantName, pdfBuffer, filename);
+	return sendCertificateEmail(testEmail, participantName, pdfBuffer, filename, userId, orgId);
 }

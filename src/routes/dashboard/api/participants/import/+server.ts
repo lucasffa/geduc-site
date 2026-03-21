@@ -1,12 +1,19 @@
 import { json } from '@sveltejs/kit';
+import { randomUUID } from 'node:crypto';
 import type { RequestHandler } from './$types';
-import { db } from '$lib/server/db';
-import { participants } from '$lib/server/db/schema';
+import { requirePermission } from '$lib/server/middleware/auth';
+import { logAudit } from '$lib/server/middleware/audit';
+import { participants } from '$lib/server/db/schema-org';
 import { parseSpreadsheet } from '$lib/server/spreadsheet-parser';
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async (event) => {
+	requirePermission(event, 'canImportSpreadsheet');
+
+	const orgDb = event.locals.orgDb;
+	if (!orgDb) return json({ error: 'Organização não configurada' }, { status: 400 });
+
 	try {
-		const formData = await request.formData();
+		const formData = await event.request.formData();
 		const file = formData.get('file') as File | null;
 
 		if (!file) {
@@ -26,16 +33,26 @@ export const POST: RequestHandler = async ({ request }) => {
 		// Insert valid rows into the database
 		const inserted = [];
 		for (const row of result.rows) {
-			const [created] = await db.insert(participants).values({
+			const id = randomUUID();
+			orgDb.insert(participants).values({
+				id,
 				name: row.nome,
 				email: row.email,
 				role: row.cargo,
 				status: 'inscrito',
 				enrollmentDate: row.dataInscricao,
 				cycleEndDate: row.dataFimCiclo
-			}).returning();
-			inserted.push(created);
+			}).run();
+			inserted.push({ id, name: row.nome });
 		}
+
+		logAudit(event, {
+			whatTable: 'participants',
+			whatRecordId: 'batch-import',
+			how: 'CREATE',
+			why: `Importação de planilha: ${inserted.length} participantes importados de "${file.name}"`,
+			howManyAffected: inserted.length
+		});
 
 		return json({
 			imported: inserted.length,

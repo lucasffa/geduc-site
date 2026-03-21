@@ -1,0 +1,86 @@
+import { sqliteTable, text, integer, primaryKey } from 'drizzle-orm/sqlite-core';
+import { sql } from 'drizzle-orm';
+
+// ============================================================
+// PARTICIPANTS
+// ============================================================
+export const participants = sqliteTable('participants', {
+	id: text('id').primaryKey(),
+	name: text('name').notNull(),
+	email: text('email').notNull(),
+	role: text('role').notNull(),
+	status: text('status').notNull().default('inscrito'),
+	enrollmentDate: text('enrollment_date'),
+	cycleEndDate: text('cycle_end_date'),
+	workloadHours: integer('workload_hours'),
+	notes: text('notes'),
+	isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
+	deletedAt: text('deleted_at'),
+	deletedBy: text('deleted_by'),
+	createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+	updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`)
+});
+
+// ============================================================
+// STATUS HISTORY
+// ============================================================
+export const statusHistory = sqliteTable('status_history', {
+	id: text('id').primaryKey(),
+	participantId: text('participant_id')
+		.notNull()
+		.references(() => participants.id, { onDelete: 'cascade' }),
+	fromStatus: text('from_status'),
+	toStatus: text('to_status').notNull(),
+	changedAt: text('changed_at').notNull().default(sql`(datetime('now'))`),
+	changedBy: text('changed_by')
+});
+
+// ============================================================
+// CERTIFICATES
+// ============================================================
+export const certificates = sqliteTable('certificates', {
+	id: text('id').primaryKey(),
+	participantId: text('participant_id')
+		.notNull()
+		.references(() => participants.id, { onDelete: 'cascade' }),
+	templateName: text('template_name'),
+	workloadHours: integer('workload_hours'),
+	periodStart: text('period_start'),
+	periodEnd: text('period_end'),
+	pdfPath: text('pdf_path'),
+	sentAt: text('sent_at'),
+	sentToEmail: text('sent_to_email'),
+	status: text('status').notNull().default('gerado'),
+	isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
+	deletedAt: text('deleted_at'),
+	deletedBy: text('deleted_by'),
+	createdAt: text('created_at').notNull().default(sql`(datetime('now'))`)
+});
+
+// ============================================================
+// WORKGROUPS
+// ============================================================
+export const workgroups = sqliteTable('workgroups', {
+	id: text('id').primaryKey(),
+	name: text('name').notNull(),
+	description: text('description'),
+	isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
+	deletedAt: text('deleted_at'),
+	deletedBy: text('deleted_by'),
+	createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+	updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`)
+});
+
+// ============================================================
+// USER <-> WORKGROUP (junction)
+// ============================================================
+export const userWorkgroups = sqliteTable(
+	'user_workgroups',
+	{
+		userId: text('user_id').notNull(),
+		workgroupId: text('workgroup_id')
+			.notNull()
+			.references(() => workgroups.id, { onDelete: 'cascade' })
+	},
+	(table) => [primaryKey({ columns: [table.userId, table.workgroupId] })]
+);

@@ -1,11 +1,19 @@
 import { json } from '@sveltejs/kit';
+import { randomUUID } from 'node:crypto';
 import type { RequestHandler } from './$types';
-import { db } from '$lib/server/db';
-import { participants } from '$lib/server/db/schema';
+import { participants } from '$lib/server/db/schema-org';
 import { participantSchema } from '$lib/validations/participant';
-import { eq, ilike, or, sql, count } from 'drizzle-orm';
+import { requirePermission } from '$lib/server/middleware/auth';
+import { logAudit } from '$lib/server/middleware/audit';
+import { eq, sql, count, isNull, and } from 'drizzle-orm';
 
-export const GET: RequestHandler = async ({ url }) => {
+export const GET: RequestHandler = (event) => {
+	requirePermission(event, 'canViewDashboard');
+
+	const orgDb = event.locals.orgDb;
+	if (!orgDb) return json({ data: [], pagination: { page: 1, limit: 50, total: 0, totalPages: 0 } });
+
+	const { url } = event;
 	const status = url.searchParams.get('status');
 	const role = url.searchParams.get('role');
 	const search = url.searchParams.get('search');
@@ -14,42 +22,26 @@ export const GET: RequestHandler = async ({ url }) => {
 	const offset = (page - 1) * limit;
 
 	try {
-		const conditions = [];
-		if (status) {
-			conditions.push(eq(participants.status, status));
-		}
-		if (role) {
-			conditions.push(eq(participants.role, role));
-		}
+		const conditions = [isNull(participants.deletedAt)];
+		if (status) conditions.push(eq(participants.status, status));
+		if (role) conditions.push(eq(participants.role, role));
 		if (search) {
 			conditions.push(
-				or(
-					ilike(participants.name, `%${search}%`),
-					ilike(participants.email, `%${search}%`)
-				)!
+				sql`(LOWER(${participants.name}) LIKE ${`%${search.toLowerCase()}%`} OR LOWER(${participants.email}) LIKE ${`%${search.toLowerCase()}%`})`
 			);
 		}
 
-		const whereClause = conditions.length > 0
-			? conditions.reduce((acc, cond) => sql`${acc} AND ${cond}`)
-			: undefined;
+		const where = sql.join(conditions, sql` AND `);
 
-		const [data, totalResult] = await Promise.all([
-			db.select().from(participants)
-				.where(whereClause)
-				.limit(limit)
-				.offset(offset)
-				.orderBy(participants.createdAt),
-			db.select({ count: count() }).from(participants).where(whereClause)
-		]);
+		const data = orgDb.select().from(participants).where(where).limit(limit).offset(offset).orderBy(sql`${participants.createdAt} DESC`).all();
+		const totalResult = orgDb.select({ count: count() }).from(participants).where(where).get();
 
 		return json({
 			data,
 			pagination: {
-				page,
-				limit,
-				total: totalResult[0].count,
-				totalPages: Math.ceil(totalResult[0].count / limit)
+				page, limit,
+				total: totalResult?.count ?? 0,
+				totalPages: Math.ceil((totalResult?.count ?? 0) / limit)
 			}
 		});
 	} catch (error) {
@@ -58,25 +50,41 @@ export const GET: RequestHandler = async ({ url }) => {
 	}
 };
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async (event) => {
+	requirePermission(event, 'canManageParticipants');
+
+	const orgDb = event.locals.orgDb;
+	if (!orgDb) return json({ error: 'Organização não configurada' }, { status: 400 });
+
 	try {
-		const body = await request.json();
+		const body = await event.request.json();
 		const parsed = participantSchema.safeParse(body);
 
 		if (!parsed.success) {
 			return json({ error: 'Dados inválidos', details: parsed.error.flatten() }, { status: 400 });
 		}
 
-		const [created] = await db.insert(participants).values({
+		const id = randomUUID();
+		orgDb.insert(participants).values({
+			id,
 			name: parsed.data.name,
 			email: parsed.data.email,
 			role: parsed.data.role,
-			status: parsed.data.status,
+			status: parsed.data.status || 'inscrito',
 			enrollmentDate: parsed.data.enrollmentDate || null,
 			cycleEndDate: parsed.data.cycleEndDate || null,
 			workloadHours: parsed.data.workloadHours || null,
 			notes: parsed.data.notes || null
-		}).returning();
+		}).run();
+
+		const created = orgDb.select().from(participants).where(eq(participants.id, id)).get();
+
+		logAudit(event, {
+			whatTable: 'participants',
+			whatRecordId: id,
+			how: 'CREATE',
+			why: 'Participante criado via formulário'
+		});
 
 		return json(created, { status: 201 });
 	} catch (error) {

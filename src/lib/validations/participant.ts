@@ -28,7 +28,7 @@ export const importRowSchema = z.object({
 });
 
 export const certificateConfigSchema = z.object({
-	participantIds: z.array(z.number().int().positive()).min(1, 'Selecione ao menos um participante'),
+	participantIds: z.array(z.string().uuid()).min(1, 'Selecione ao menos um participante'),
 	workloadHours: z.number().int().positive('Carga horária deve ser positiva'),
 	periodStart: z.string().min(1, 'Data início é obrigatória'),
 	periodEnd: z.string().min(1, 'Data fim é obrigatória'),
@@ -36,11 +36,11 @@ export const certificateConfigSchema = z.object({
 });
 
 export const sendCertificateSchema = z.object({
-	certificateIds: z.array(z.number().int().positive()).min(1)
+	certificateIds: z.array(z.string().uuid()).min(1)
 });
 
 export const testEmailSchema = z.object({
-	certificateId: z.number().int().positive(),
+	certificateId: z.string().uuid(),
 	testEmail: z.string().email('E-mail de teste inválido')
 });
 

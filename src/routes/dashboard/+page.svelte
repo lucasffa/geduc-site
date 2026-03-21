@@ -1,145 +1,168 @@
-<script lang="ts">
-	import { onMount } from 'svelte';
+<script>
+	import TimelineView from '$lib/components/organisms/TimelineView.svelte';
+	import PermissionGate from '$lib/components/molecules/PermissionGate.svelte';
 	import { STATUS_LABELS } from '$lib/constants/participant-status';
-	import type { ParticipantStatus } from '$lib/constants/participant-status';
-	import type { StatsData } from '$lib/types/dashboard';
 
-	let stats: StatsData | null = $state(null);
-	let loading = $state(true);
+	export let data;
 
-	onMount(async () => {
-		try {
-			const res = await fetch('/dashboard/api/stats');
-			if (res.ok) {
-				stats = await res.json();
-			}
-		} catch (e) {
-			console.error('Erro ao carregar estatísticas:', e);
-		} finally {
-			loading = false;
-		}
-	});
-
-	function formatDate(dateStr: string | null): string {
-		if (!dateStr) return '';
-		return new Date(dateStr).toLocaleDateString('pt-BR', {
-			day: '2-digit',
-			month: 'short',
-			year: 'numeric',
-			hour: '2-digit',
-			minute: '2-digit'
-		});
-	}
+	$: stats = data.stats;
+	$: permissions = data.permissions;
 </script>
 
 <svelte:head>
-	<title>Dashboard | GEDUC</title>
+	<title>Dashboard — {data.brandName}</title>
 </svelte:head>
 
-<div class="dashboard-header">
-	<h1>Visão Geral</h1>
-</div>
+<div class="dashboard-overview">
+	<h1 class="page-title">Visão Geral</h1>
 
-{#if loading}
-	<div class="loading-overlay">
-		<div class="loading-spinner"></div>
-	</div>
-{:else if stats}
 	<div class="stats-grid">
-		<div class="stat-card" style="--card-accent: var(--color-primary-600)">
-			<div class="stat-label">Total de Participantes</div>
-			<div class="stat-value">{stats.total}</div>
+		<div class="stat-card">
+			<span class="stat-value">{stats.total}</span>
+			<span class="stat-label">Total de Participantes</span>
 		</div>
-
-		{#each Object.entries(stats.byStatus) as [status, count]}
-			<div class="stat-card" style="--card-accent: var(--color-blue-500)">
-				<div class="stat-label">{STATUS_LABELS[status as ParticipantStatus] || status}</div>
-				<div class="stat-value">{count}</div>
-			</div>
-		{/each}
-
-		<div class="stat-card" style="--card-accent: var(--color-green-600)">
-			<div class="stat-label">Certificados Gerados</div>
-			<div class="stat-value">{stats.certificates.total}</div>
+		<div class="stat-card stat-card-info">
+			<span class="stat-value">{stats.certificates.total}</span>
+			<span class="stat-label">Certificados Gerados</span>
 		</div>
-
-		<div class="stat-card" style="--card-accent: var(--color-green-800)">
-			<div class="stat-label">Certificados Enviados</div>
-			<div class="stat-value">{stats.certificates.sent}</div>
+		<div class="stat-card stat-card-success">
+			<span class="stat-value">{stats.certificates.sent}</span>
+			<span class="stat-label">Certificados Enviados</span>
+		</div>
+		<div class="stat-card stat-card-warning">
+			<span class="stat-value">{stats.certificates.total - stats.certificates.sent}</span>
+			<span class="stat-label">Certificados Pendentes</span>
 		</div>
 	</div>
 
-	<!-- Distribuição por Cargo -->
-	{#if Object.keys(stats.byRole).length > 0}
-		<div class="data-table-wrapper" style="margin-bottom: var(--spacing-2xl)">
-			<div class="table-toolbar">
-				<h3 style="font-size: var(--font-size-md); font-weight: var(--font-weight-semibold); color: var(--color-primary-900);">Distribuição por Cargo</h3>
-			</div>
-			<table class="data-table">
-				<thead>
-					<tr>
-						<th>Cargo</th>
-						<th>Quantidade</th>
-						<th>Proporção</th>
-					</tr>
-				</thead>
-				<tbody>
-					{#each Object.entries(stats.byRole) as [role, count]}
-						<tr>
-							<td style="text-transform: capitalize; font-weight: var(--font-weight-medium);">{role}</td>
-							<td>{count}</td>
-							<td>
-								<div style="display: flex; align-items: center; gap: var(--spacing-sm);">
-									<div style="flex: 1; max-width: 200px; height: 8px; background: var(--color-neutral-200); border-radius: var(--border-radius-full); overflow: hidden;">
-										<div style="height: 100%; width: {stats.total > 0 ? (count / stats.total * 100) : 0}%; background: var(--color-primary-600); border-radius: var(--border-radius-full); transition: width var(--transition-normal);"></div>
-									</div>
-									<span style="font-size: var(--font-size-xs); color: var(--text-color-subtle);">
-										{stats.total > 0 ? Math.round(count / stats.total * 100) : 0}%
-									</span>
-								</div>
-							</td>
-						</tr>
-					{/each}
-				</tbody>
-			</table>
-		</div>
-	{/if}
-
-	<!-- Atividade Recente -->
-	<div class="data-table-wrapper">
-		<div class="table-toolbar">
-			<h3 style="font-size: var(--font-size-md); font-weight: var(--font-weight-semibold); color: var(--color-primary-900);">Atividade Recente</h3>
-		</div>
-		{#if stats.recentActivity && stats.recentActivity.length > 0}
-			<div style="padding: var(--spacing-lg);">
-				<div class="timeline">
-					{#each stats.recentActivity as activity}
-						<div class="timeline-item">
-							<div class="timeline-date">{formatDate(activity.changedAt)}</div>
-							<div class="timeline-content">
-								<strong>{activity.participantName || 'Participante'}</strong>
-								{#if activity.fromStatus}
-									mudou de <span class="status-badge status-badge--{activity.fromStatus}">{STATUS_LABELS[activity.fromStatus as ParticipantStatus] || activity.fromStatus}</span>
-									para
-								{:else}
-									registrado como
-								{/if}
-								<span class="status-badge status-badge--{activity.toStatus}">{STATUS_LABELS[activity.toStatus as ParticipantStatus] || activity.toStatus}</span>
-							</div>
+	<div class="dashboard-sections">
+		<PermissionGate allowed={permissions.canViewStats}>
+			<section class="dashboard-section">
+				<h2 class="section-title">Por Status</h2>
+				<div class="status-grid">
+					{#each Object.entries(stats.byStatus) as [status, statusCount]}
+						<div class="status-item">
+							<span class="status-count">{statusCount}</span>
+							<span class="status-name">{STATUS_LABELS[status] || status}</span>
 						</div>
 					{/each}
 				</div>
-			</div>
-		{:else}
-			<div class="empty-state">
-				<h3>Nenhuma atividade recente</h3>
-				<p>As mudanças de status dos participantes aparecerão aqui.</p>
-			</div>
-		{/if}
+			</section>
+
+			<section class="dashboard-section">
+				<h2 class="section-title">Por Cargo</h2>
+				<div class="status-grid">
+					{#each Object.entries(stats.byRole) as [role, roleCount]}
+						<div class="status-item">
+							<span class="status-count">{roleCount}</span>
+							<span class="status-name">{role}</span>
+						</div>
+					{/each}
+				</div>
+			</section>
+		</PermissionGate>
+
+		<section class="dashboard-section">
+			<h2 class="section-title">Atividade Recente</h2>
+			<TimelineView entries={stats.recentActivity} />
+		</section>
 	</div>
-{:else}
-	<div class="empty-state">
-		<h3>Bem-vindo ao Dashboard GEDUC</h3>
-		<p>Comece importando uma planilha na seção de Participantes.</p>
-	</div>
-{/if}
+</div>
+
+<style>
+	.dashboard-overview {
+		max-width: 1200px;
+	}
+
+	.page-title {
+		font-size: var(--font-size-xl);
+		font-weight: var(--font-weight-bold);
+		color: var(--color-neutral-900);
+		margin: 0 0 var(--spacing-xl);
+	}
+
+	.stats-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+		gap: var(--spacing-md);
+		margin-bottom: var(--spacing-xl);
+	}
+
+	.stat-card {
+		background: var(--color-neutral-0);
+		border-radius: var(--border-radius-lg);
+		padding: var(--spacing-lg);
+		border: 1px solid var(--color-neutral-200);
+		border-top: 3px solid var(--color-primary-500);
+	}
+
+	.stat-card-info {
+		border-top-color: var(--color-blue-500);
+	}
+
+	.stat-card-success {
+		border-top-color: var(--color-green-500);
+	}
+
+	.stat-card-warning {
+		border-top-color: var(--color-yellow-500);
+	}
+
+	.stat-value {
+		display: block;
+		font-size: var(--font-size-2xl);
+		font-weight: var(--font-weight-bold);
+		color: var(--color-neutral-900);
+	}
+
+	.stat-label {
+		font-size: var(--font-size-sm);
+		color: var(--color-neutral-500);
+		margin-top: var(--spacing-xxs);
+	}
+
+	.dashboard-sections {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-xl);
+	}
+
+	.dashboard-section {
+		background: var(--color-neutral-0);
+		border-radius: var(--border-radius-lg);
+		padding: var(--spacing-lg);
+		border: 1px solid var(--color-neutral-200);
+	}
+
+	.section-title {
+		font-size: var(--font-size-base);
+		font-weight: var(--font-weight-medium);
+		color: var(--color-neutral-800);
+		margin: 0 0 var(--spacing-md);
+	}
+
+	.status-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+		gap: var(--spacing-sm);
+	}
+
+	.status-item {
+		padding: var(--spacing-sm);
+		background: var(--color-neutral-50);
+		border-radius: var(--border-radius-md);
+		text-align: center;
+	}
+
+	.status-count {
+		display: block;
+		font-size: var(--font-size-lg);
+		font-weight: var(--font-weight-bold);
+		color: var(--color-primary-700);
+	}
+
+	.status-name {
+		font-size: var(--font-size-xs);
+		color: var(--color-neutral-600);
+	}
+</style>

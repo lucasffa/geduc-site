@@ -1,41 +1,47 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { db } from '$lib/server/db';
-import { participants, certificates, statusHistory } from '$lib/server/db/schema';
-import { sql, count, eq } from 'drizzle-orm';
+import { requirePermission } from '$lib/server/middleware/auth';
+import { participants, certificates, statusHistory } from '$lib/server/db/schema-org';
+import { sql, count, eq, isNull } from 'drizzle-orm';
 
-export const GET: RequestHandler = async () => {
+export const GET: RequestHandler = (event) => {
+	requirePermission(event, 'canViewStats');
+
+	const orgDb = event.locals.orgDb;
+	if (!orgDb) return json({ total: 0, byStatus: {}, byRole: {}, certificates: { total: 0, sent: 0 }, recentActivity: [] });
+
 	try {
-		// Total participants
-		const [totalResult] = await db.select({ count: count() }).from(participants);
+		// Total participants (active only)
+		const totalResult = orgDb.select({ count: count() }).from(participants)
+			.where(isNull(participants.deletedAt)).get();
 
 		// Count by status
-		const byStatus = await db
-			.select({
-				status: participants.status,
-				count: count()
-			})
+		const byStatus = orgDb
+			.select({ status: participants.status, count: count() })
 			.from(participants)
-			.groupBy(participants.status);
+			.where(isNull(participants.deletedAt))
+			.groupBy(participants.status)
+			.all();
 
 		// Count by role
-		const byRole = await db
-			.select({
-				role: participants.role,
-				count: count()
-			})
+		const byRole = orgDb
+			.select({ role: participants.role, count: count() })
 			.from(participants)
-			.groupBy(participants.role);
+			.where(isNull(participants.deletedAt))
+			.groupBy(participants.role)
+			.all();
 
 		// Certificates stats
-		const [certTotal] = await db.select({ count: count() }).from(certificates);
-		const [certSent] = await db
+		const certTotal = orgDb.select({ count: count() }).from(certificates)
+			.where(isNull(certificates.deletedAt)).get();
+		const certSent = orgDb
 			.select({ count: count() })
 			.from(certificates)
-			.where(eq(certificates.status, 'enviado'));
+			.where(eq(certificates.status, 'enviado'))
+			.get();
 
 		// Recent activity (last 10 status changes)
-		const recentActivity = await db
+		const recentActivity = orgDb
 			.select({
 				id: statusHistory.id,
 				participantId: statusHistory.participantId,
@@ -48,15 +54,16 @@ export const GET: RequestHandler = async () => {
 			.from(statusHistory)
 			.leftJoin(participants, eq(statusHistory.participantId, participants.id))
 			.orderBy(sql`${statusHistory.changedAt} DESC`)
-			.limit(10);
+			.limit(10)
+			.all();
 
 		return json({
-			total: totalResult.count,
+			total: totalResult?.count ?? 0,
 			byStatus: Object.fromEntries(byStatus.map((s) => [s.status, s.count])),
 			byRole: Object.fromEntries(byRole.map((r) => [r.role, r.count])),
 			certificates: {
-				total: certTotal.count,
-				sent: certSent.count
+				total: certTotal?.count ?? 0,
+				sent: certSent?.count ?? 0
 			},
 			recentActivity
 		});

@@ -1,21 +1,238 @@
-import { drizzle } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
-import * as schema from './schema';
-import { env } from '$env/dynamic/private';
+import Database from 'better-sqlite3';
+import { drizzle } from 'drizzle-orm/better-sqlite3';
+import * as systemSchema from './schema-system';
+import * as orgSchema from './schema-org';
+import path from 'node:path';
+import fs from 'node:fs';
 
-let _db: ReturnType<typeof drizzle<typeof schema>> | null = null;
+const DB_DIR = process.env.DB_DIR || path.resolve('data');
+const ORGS_DIR = path.join(DB_DIR, 'orgs');
 
-function getDb() {
-	if (!_db) {
-		if (!env.DATABASE_URL) throw new Error('DATABASE_URL is not set');
-		const client = postgres(env.DATABASE_URL);
-		_db = drizzle(client, { schema });
-	}
-	return _db;
+// ============================================================
+// Ensure directories exist
+// ============================================================
+function ensureDirs() {
+	if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR, { recursive: true });
+	if (!fs.existsSync(ORGS_DIR)) fs.mkdirSync(ORGS_DIR, { recursive: true });
 }
 
-export const db = new Proxy({} as ReturnType<typeof drizzle<typeof schema>>, {
-	get(_target, prop) {
-		return (getDb() as Record<string | symbol, unknown>)[prop];
+// ============================================================
+// System DB (singleton)
+// ============================================================
+export type SystemDb = ReturnType<typeof drizzle<typeof systemSchema>>;
+
+let _systemDb: SystemDb | null = null;
+
+export function getSystemDb(): SystemDb {
+	if (!_systemDb) {
+		ensureDirs();
+		const dbPath = path.join(DB_DIR, 'system.db');
+		const sqlite = new Database(dbPath);
+		sqlite.pragma('journal_mode = WAL');
+		sqlite.pragma('foreign_keys = ON');
+		_systemDb = drizzle(sqlite, { schema: systemSchema });
 	}
-});
+	return _systemDb;
+}
+
+// ============================================================
+// Org DB pool (cached)
+// ============================================================
+export type OrgDb = ReturnType<typeof drizzle<typeof orgSchema>>;
+
+const orgDbPool = new Map<string, OrgDb>();
+
+export function getOrgDb(slug: string): OrgDb {
+	const cached = orgDbPool.get(slug);
+	if (cached) return cached;
+
+	ensureDirs();
+	const dbPath = path.join(ORGS_DIR, `${slug}.db`);
+	if (!fs.existsSync(dbPath)) {
+		throw new Error(`Organization database not found: ${slug}`);
+	}
+
+	const sqlite = new Database(dbPath);
+	sqlite.pragma('journal_mode = WAL');
+	sqlite.pragma('foreign_keys = ON');
+	const db = drizzle(sqlite, { schema: orgSchema });
+	orgDbPool.set(slug, db);
+	return db;
+}
+
+// ============================================================
+// Create new org DB (with schema applied)
+// ============================================================
+export function createOrgDb(slug: string): OrgDb {
+	ensureDirs();
+	const dbPath = path.join(ORGS_DIR, `${slug}.db`);
+	if (fs.existsSync(dbPath)) {
+		throw new Error(`Organization database already exists: ${slug}`);
+	}
+
+	const sqlite = new Database(dbPath);
+	sqlite.pragma('journal_mode = WAL');
+	sqlite.pragma('foreign_keys = ON');
+
+	// Create tables
+	sqlite.exec(`
+		CREATE TABLE IF NOT EXISTS participants (
+			id TEXT PRIMARY KEY,
+			name TEXT NOT NULL,
+			email TEXT NOT NULL,
+			role TEXT NOT NULL,
+			status TEXT NOT NULL DEFAULT 'inscrito',
+			enrollment_date TEXT,
+			cycle_end_date TEXT,
+			workload_hours INTEGER,
+			notes TEXT,
+			is_active INTEGER NOT NULL DEFAULT 1,
+			deleted_at TEXT,
+			deleted_by TEXT,
+			created_at TEXT NOT NULL DEFAULT (datetime('now')),
+			updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+		);
+
+		CREATE TABLE IF NOT EXISTS status_history (
+			id TEXT PRIMARY KEY,
+			participant_id TEXT NOT NULL REFERENCES participants(id) ON DELETE CASCADE,
+			from_status TEXT,
+			to_status TEXT NOT NULL,
+			changed_at TEXT NOT NULL DEFAULT (datetime('now')),
+			changed_by TEXT
+		);
+
+		CREATE TABLE IF NOT EXISTS certificates (
+			id TEXT PRIMARY KEY,
+			participant_id TEXT NOT NULL REFERENCES participants(id) ON DELETE CASCADE,
+			template_name TEXT,
+			workload_hours INTEGER,
+			period_start TEXT,
+			period_end TEXT,
+			pdf_path TEXT,
+			sent_at TEXT,
+			sent_to_email TEXT,
+			status TEXT NOT NULL DEFAULT 'gerado',
+			is_active INTEGER NOT NULL DEFAULT 1,
+			deleted_at TEXT,
+			deleted_by TEXT,
+			created_at TEXT NOT NULL DEFAULT (datetime('now'))
+		);
+
+		CREATE TABLE IF NOT EXISTS workgroups (
+			id TEXT PRIMARY KEY,
+			name TEXT NOT NULL,
+			description TEXT,
+			is_active INTEGER NOT NULL DEFAULT 1,
+			deleted_at TEXT,
+			deleted_by TEXT,
+			created_at TEXT NOT NULL DEFAULT (datetime('now')),
+			updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+		);
+
+		CREATE TABLE IF NOT EXISTS user_workgroups (
+			user_id TEXT NOT NULL,
+			workgroup_id TEXT NOT NULL REFERENCES workgroups(id) ON DELETE CASCADE,
+			PRIMARY KEY (user_id, workgroup_id)
+		);
+	`);
+
+	const db = drizzle(sqlite, { schema: orgSchema });
+	orgDbPool.set(slug, db);
+	return db;
+}
+
+// ============================================================
+// Initialize system DB tables
+// ============================================================
+export function initSystemDb(): void {
+	const db = getSystemDb();
+	const sqlite = (db as unknown as { session: { client: Database.Database } }).session.client;
+
+	sqlite.exec(`
+		CREATE TABLE IF NOT EXISTS organizations (
+			id TEXT PRIMARY KEY,
+			name TEXT NOT NULL,
+			slug TEXT NOT NULL UNIQUE,
+			brand_name TEXT,
+			logo_url TEXT,
+			primary_color TEXT DEFAULT '#324acb',
+			is_active INTEGER NOT NULL DEFAULT 1,
+			deleted_at TEXT,
+			deleted_by TEXT,
+			created_at TEXT NOT NULL DEFAULT (datetime('now')),
+			updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+		);
+
+		CREATE TABLE IF NOT EXISTS users (
+			id TEXT PRIMARY KEY,
+			email TEXT NOT NULL UNIQUE,
+			name TEXT NOT NULL,
+			password_hash TEXT NOT NULL,
+			role TEXT NOT NULL CHECK(role IN ('sysadmin', 'admin', 'volunteer', 'mentee', 'dumb')),
+			organization_id TEXT REFERENCES organizations(id),
+			is_active INTEGER NOT NULL DEFAULT 1,
+			last_login_at TEXT,
+			deleted_at TEXT,
+			deleted_by TEXT,
+			created_at TEXT NOT NULL DEFAULT (datetime('now')),
+			updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+		);
+
+		CREATE TABLE IF NOT EXISTS sessions (
+			id TEXT PRIMARY KEY,
+			user_id TEXT NOT NULL REFERENCES users(id),
+			expires_at TEXT NOT NULL,
+			created_at TEXT NOT NULL DEFAULT (datetime('now'))
+		);
+
+		CREATE TABLE IF NOT EXISTS invitations (
+			id TEXT PRIMARY KEY,
+			token TEXT NOT NULL UNIQUE,
+			email TEXT NOT NULL,
+			role TEXT NOT NULL CHECK(role IN ('admin', 'volunteer', 'mentee', 'dumb')),
+			organization_id TEXT NOT NULL REFERENCES organizations(id),
+			invited_by TEXT NOT NULL REFERENCES users(id),
+			expires_at TEXT NOT NULL,
+			accepted_at TEXT,
+			created_at TEXT NOT NULL DEFAULT (datetime('now'))
+		);
+
+		CREATE TABLE IF NOT EXISTS api_keys (
+			id TEXT PRIMARY KEY,
+			owner_type TEXT NOT NULL CHECK(owner_type IN ('user', 'organization')),
+			owner_id TEXT NOT NULL,
+			service TEXT NOT NULL DEFAULT 'resend',
+			encrypted_key TEXT NOT NULL,
+			iv TEXT NOT NULL,
+			salt TEXT NOT NULL,
+			hash_digest TEXT NOT NULL,
+			label TEXT,
+			is_active INTEGER NOT NULL DEFAULT 1,
+			deleted_at TEXT,
+			deleted_by TEXT,
+			anonymized_at TEXT,
+			created_at TEXT NOT NULL DEFAULT (datetime('now')),
+			updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+		);
+
+		CREATE TABLE IF NOT EXISTS audit_log (
+			id TEXT PRIMARY KEY,
+			who TEXT NOT NULL REFERENCES users(id),
+			what_table TEXT NOT NULL,
+			what_record_id TEXT,
+			how TEXT NOT NULL CHECK(how IN ('CREATE', 'READ', 'UPDATE', 'DELETE')),
+			why TEXT NOT NULL,
+			"when" TEXT NOT NULL DEFAULT (datetime('now')),
+			where_ip TEXT,
+			how_many_affected INTEGER DEFAULT 1,
+			organization_id TEXT,
+			hash_digest TEXT NOT NULL
+		);
+
+		CREATE INDEX IF NOT EXISTS audit_log_who_idx ON audit_log(who);
+		CREATE INDEX IF NOT EXISTS audit_log_where_ip_idx ON audit_log(where_ip);
+		CREATE INDEX IF NOT EXISTS audit_log_when_idx ON audit_log("when");
+		CREATE INDEX IF NOT EXISTS audit_log_org_when_idx ON audit_log(organization_id, "when");
+	`);
+}

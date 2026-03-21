@@ -1,136 +1,93 @@
-<script lang="ts">
-	import { onMount } from 'svelte';
-	import { STATUS_LABELS, VALID_TRANSITIONS, PARTICIPANT_ROLES, ROLE_LABELS, PARTICIPANT_STATUSES } from '$lib/constants/participant-status';
-	import type { ParticipantStatus } from '$lib/constants/participant-status';
-	import type { Participant, ImportResult, PaginationData, ToastData, StatusHistoryEntry } from '$lib/types/dashboard';
+<script>
+	import DataTable from '$lib/components/organisms/DataTable.svelte';
+	import Badge from '$lib/components/atoms/Badge.svelte';
+	import Button from '$lib/components/atoms/Button.svelte';
+	import PermissionGate from '$lib/components/molecules/PermissionGate.svelte';
+	import FilterBar from '$lib/components/molecules/FilterBar.svelte';
+	import { goto } from '$app/navigation';
+	import { page as pageStore } from '$app/stores';
+	import { STATUS_LABELS, VALID_TRANSITIONS, PARTICIPANT_STATUSES, PARTICIPANT_ROLES, ROLE_LABELS } from '$lib/constants/participant-status';
+	import { addToast } from '$lib/stores/dashboard';
 
-	// State
-	let participants: Participant[] = $state([]);
-	let loading = $state(true);
-	let searchQuery = $state('');
-	let filterStatus = $state('');
-	let filterRole = $state('');
-	let page = $state(1);
-	let pagination: PaginationData = $state({ page: 1, limit: 25, total: 0, totalPages: 0 });
+	export let data;
+
+	$: participants = data.participants;
+	$: pagination = data.pagination;
+	$: permissions = data.permissions;
+
+	let search = $pageStore.url.searchParams.get('search') || '';
+	let filterValues = {
+		status: $pageStore.url.searchParams.get('status') || '',
+		role: $pageStore.url.searchParams.get('role') || ''
+	};
 
 	// Modals
-	let showImportModal = $state(false);
-	let showEditModal = $state(false);
-	let showHistoryModal = $state(false);
-	let showCreateModal = $state(false);
+	let showCreateModal = false;
+	let showEditModal = false;
+	let showHistoryModal = false;
+	let editParticipant = null;
+	let statusHistoryEntries = [];
 
-	// Import
-	let importFile: File | null = $state(null);
-	let importResult: ImportResult | null = $state(null);
-	let importing = $state(false);
-	let dragging = $state(false);
+	// Form
+	let newParticipant = { name: '', email: '', role: 'mentorado', notes: '' };
+	let saving = false;
 
-	// Edit
-	let editParticipant: Participant | null = $state(null);
-	let saving = $state(false);
+	const columns = [
+		{ key: 'name', label: 'Nome' },
+		{ key: 'email', label: 'E-mail' },
+		{ key: 'role', label: 'Cargo', width: '120px' },
+		{ key: 'status', label: 'Status', width: '150px' },
+		{ key: 'createdAt', label: 'Criado em', width: '120px' }
+	];
 
-	// History
-	let historyData: StatusHistoryEntry[] = $state([]);
-	let historyParticipant: Participant | null = $state(null);
+	const statusFilters = PARTICIPANT_STATUSES.map(s => ({ value: s, label: STATUS_LABELS[s] || s }));
+	const roleFilters = PARTICIPANT_ROLES.map(r => ({ value: r, label: ROLE_LABELS[r] || r }));
 
-	// Toast
-	let toast: ToastData | null = $state(null);
-	let toastTimeout: ReturnType<typeof setTimeout> | null = $state(null);
-
-	// Create
-	let newParticipant = $state({
-		name: '', email: '', role: 'mentorado', status: 'inscrito' as const,
-		enrollmentDate: '', cycleEndDate: '', workloadHours: '' as string | number, notes: ''
-	});
-
-	function showToast(message: string, type = 'success') {
-		if (toastTimeout) clearTimeout(toastTimeout);
-		toast = { message, type };
-		toastTimeout = setTimeout(() => { toast = null; }, 4000);
+	function updateUrl(params) {
+		const url = new URL($pageStore.url);
+		for (const [k, v] of Object.entries(params)) {
+			if (v) url.searchParams.set(k, v);
+			else url.searchParams.delete(k);
+		}
+		goto(url.toString(), { replaceState: true, invalidateAll: true });
 	}
 
-	async function loadParticipants() {
-		loading = true;
-		try {
-			const params = new URLSearchParams();
-			params.set('page', String(page));
-			params.set('limit', '25');
-			if (searchQuery) params.set('search', searchQuery);
-			if (filterStatus) params.set('status', filterStatus);
-			if (filterRole) params.set('role', filterRole);
+	function handleSearch(e) {
+		search = e.detail.value;
+		updateUrl({ search, page: '1' });
+	}
 
-			const res = await fetch(`/dashboard/api/participants?${params}`);
-			if (res.ok) {
-				const data = await res.json();
-				participants = data.data;
-				pagination = data.pagination;
-			}
-		} catch (e) {
-			console.error('Erro:', e);
-			showToast('Erro ao carregar participantes', 'error');
+	function handleFilter(e) {
+		filterValues = e.detail.values;
+		updateUrl({ ...filterValues, page: '1' });
+	}
+
+	function handlePage(e) {
+		updateUrl({ page: String(e.detail.page) });
+	}
+
+	// CRUD operations via fetch
+	async function createParticipant() {
+		saving = true;
+		try {
+			const res = await fetch('/dashboard/api/participants', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(newParticipant)
+			});
+			if (!res.ok) throw new Error((await res.json()).error || 'Erro');
+			addToast('Participante criado com sucesso', 'success');
+			showCreateModal = false;
+			newParticipant = { name: '', email: '', role: 'mentorado', notes: '' };
+			goto($pageStore.url.toString(), { invalidateAll: true });
+		} catch (err) {
+			addToast(err.message, 'error');
 		} finally {
-			loading = false;
+			saving = false;
 		}
 	}
 
-	onMount(() => { loadParticipants(); });
-
-	let searchDebounce: ReturnType<typeof setTimeout> | undefined;
-	function onSearch(e: Event) {
-		searchQuery = (e.target as HTMLInputElement).value;
-		clearTimeout(searchDebounce);
-		searchDebounce = setTimeout(() => { page = 1; loadParticipants(); }, 300);
-	}
-
-	function onFilterChange() {
-		page = 1;
-		loadParticipants();
-	}
-
-	// Import
-	function handleDrop(e: DragEvent) {
-		e.preventDefault();
-		dragging = false;
-		const file = e.dataTransfer?.files?.[0];
-		if (file) importFile = file;
-	}
-
-	function handleFileSelect(e: Event) {
-		const file = (e.target as HTMLInputElement).files?.[0];
-		if (file) importFile = file;
-	}
-
-	async function doImport() {
-		if (!importFile) return;
-		importing = true;
-		importResult = null;
-		try {
-			const fd = new FormData();
-			fd.append('file', importFile);
-			const res = await fetch('/dashboard/api/participants/import', { method: 'POST', body: fd });
-			const data = await res.json();
-			if (res.ok) {
-				importResult = data;
-				showToast(`${data.imported} participantes importados com sucesso!`);
-				loadParticipants();
-			} else {
-				importResult = data;
-				showToast(data.error || 'Erro na importação', 'error');
-			}
-		} catch (_e) {
-			showToast('Erro na importação', 'error');
-		} finally {
-			importing = false;
-		}
-	}
-
-	// Edit
-	function openEdit(p: Participant) {
-		editParticipant = { ...p };
-		showEditModal = true;
-	}
-
-	async function saveEdit() {
+	async function updateParticipant() {
 		if (!editParticipant) return;
 		saving = true;
 		try {
@@ -142,260 +99,174 @@
 					email: editParticipant.email,
 					role: editParticipant.role,
 					notes: editParticipant.notes,
-					workloadHours: editParticipant.workloadHours ? Number(editParticipant.workloadHours) : null,
-					enrollmentDate: editParticipant.enrollmentDate || null,
-					cycleEndDate: editParticipant.cycleEndDate || null
+					workloadHours: editParticipant.workloadHours
 				})
 			});
-			if (res.ok) {
-				showToast('Participante atualizado');
-				showEditModal = false;
-				loadParticipants();
-			} else {
-				const err = await res.json();
-				showToast(err.error || 'Erro ao salvar', 'error');
-			}
-		} catch (_e) {
-			showToast('Erro ao salvar', 'error');
+			if (!res.ok) throw new Error((await res.json()).error || 'Erro');
+			addToast('Participante atualizado', 'success');
+			showEditModal = false;
+			goto($pageStore.url.toString(), { invalidateAll: true });
+		} catch (err) {
+			addToast(err.message, 'error');
 		} finally {
 			saving = false;
 		}
 	}
 
-	// Status change
-	async function changeStatus(participantId: number, newStatus: ParticipantStatus) {
+	async function changeStatus(participantId, newStatus) {
 		try {
 			const res = await fetch(`/dashboard/api/participants/${participantId}/status`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ newStatus })
 			});
-			if (res.ok) {
-				showToast(`Status alterado para ${STATUS_LABELS[newStatus]}`);
-				loadParticipants();
-			} else {
-				const err = await res.json();
-				showToast(err.error || 'Erro na transição', 'error');
-			}
-		} catch (_e) {
-			showToast('Erro na transição de status', 'error');
+			if (!res.ok) throw new Error((await res.json()).error || 'Erro');
+			addToast('Status atualizado', 'success');
+			goto($pageStore.url.toString(), { invalidateAll: true });
+		} catch (err) {
+			addToast(err.message, 'error');
 		}
 	}
 
-	// Delete
-	async function deleteParticipant(id: number) {
-		if (!confirm('Tem certeza que deseja remover este participante?')) return;
+	async function deleteParticipant(id) {
+		if (!confirm('Deseja realmente excluir este participante?')) return;
 		try {
 			const res = await fetch(`/dashboard/api/participants/${id}`, { method: 'DELETE' });
-			if (res.ok) {
-				showToast('Participante removido');
-				loadParticipants();
-			}
-		} catch (_e) {
-			showToast('Erro ao remover', 'error');
+			if (!res.ok) throw new Error((await res.json()).error || 'Erro');
+			addToast('Participante removido', 'success');
+			goto($pageStore.url.toString(), { invalidateAll: true });
+		} catch (err) {
+			addToast(err.message, 'error');
 		}
 	}
 
-	// History
-	async function openHistory(p: Participant) {
-		historyParticipant = p;
-		showHistoryModal = true;
+	async function loadHistory(participantId) {
 		try {
-			const res = await fetch(`/dashboard/api/participants/${p.id}/history`);
-			if (res.ok) {
-				const data = await res.json();
-				historyData = data.history;
-			}
-		} catch (e) {
-			console.error(e);
+			const res = await fetch(`/dashboard/api/participants/${participantId}/history`);
+			statusHistoryEntries = await res.json();
+			showHistoryModal = true;
+		} catch {
+			addToast('Erro ao carregar histórico', 'error');
 		}
 	}
 
-	// Create
-	async function createParticipant() {
-		saving = true;
-		try {
-			const res = await fetch('/dashboard/api/participants', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					...newParticipant,
-					workloadHours: newParticipant.workloadHours ? Number(newParticipant.workloadHours) : null,
-					enrollmentDate: newParticipant.enrollmentDate || null,
-					cycleEndDate: newParticipant.cycleEndDate || null
-				})
-			});
-			if (res.ok) {
-				showToast('Participante criado');
-				showCreateModal = false;
-				newParticipant = { name: '', email: '', role: 'mentorado', status: 'inscrito', enrollmentDate: '', cycleEndDate: '', workloadHours: '', notes: '' };
-				loadParticipants();
-			} else {
-				const err = await res.json();
-				showToast(err.error || 'Erro ao criar', 'error');
-			}
-		} catch (_e) {
-			showToast('Erro ao criar', 'error');
-		} finally {
-			saving = false;
-		}
-	}
-
-	function formatDate(dateStr: string | null): string {
-		if (!dateStr) return '—';
-		return new Date(dateStr + 'T00:00:00').toLocaleDateString('pt-BR');
-	}
-
-	function formatDateTime(dateStr: string | null): string {
-		if (!dateStr) return '';
-		return new Date(dateStr).toLocaleDateString('pt-BR', {
-			day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
-		});
+	function openEdit(row) {
+		editParticipant = { ...row };
+		showEditModal = true;
 	}
 </script>
 
 <svelte:head>
-	<title>Participantes | Dashboard GEDUC</title>
+	<title>Participantes — {data.brandName}</title>
 </svelte:head>
 
-<div class="dashboard-header">
-	<h1>Participantes</h1>
-	<div style="display: flex; gap: var(--spacing-sm);">
-		<button class="btn btn-secondary" onclick={() => { showImportModal = true; importFile = null; importResult = null; }}>
-			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-			Importar Planilha
-		</button>
-		<button class="btn btn-primary" onclick={() => { showCreateModal = true; }}>
-			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-			Novo Participante
-		</button>
-	</div>
-</div>
-
-<!-- Filters -->
-<div class="data-table-wrapper">
-	<div class="table-toolbar">
-		<div class="table-toolbar-left">
-			<input type="text" class="search-input" placeholder="Buscar por nome ou e-mail..." value={searchQuery} oninput={onSearch} />
-			<select class="filter-select" bind:value={filterStatus} onchange={onFilterChange}>
-				<option value="">Todos os status</option>
-				{#each PARTICIPANT_STATUSES as s}
-					<option value={s}>{STATUS_LABELS[s]}</option>
-				{/each}
-			</select>
-			<select class="filter-select" bind:value={filterRole} onchange={onFilterChange}>
-				<option value="">Todos os cargos</option>
-				{#each PARTICIPANT_ROLES as r}
-					<option value={r}>{ROLE_LABELS[r]}</option>
-				{/each}
-			</select>
-		</div>
-		<span style="font-size: var(--font-size-xs); color: var(--text-color-subtle);">{pagination.total} participante{pagination.total !== 1 ? 's' : ''}</span>
+<div class="participants-page">
+	<div class="page-header">
+		<h1 class="page-title">Participantes</h1>
+		<PermissionGate allowed={permissions.canManageParticipants}>
+			<Button variant="primary" size="sm" onclick={() => showCreateModal = true}>
+				+ Novo Participante
+			</Button>
+		</PermissionGate>
 	</div>
 
-	{#if loading}
-		<div class="loading-overlay"><div class="loading-spinner"></div></div>
-	{:else if participants.length === 0}
-		<div class="empty-state">
-			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-			<h3>Nenhum participante encontrado</h3>
-			<p>Importe uma planilha ou adicione manualmente.</p>
-		</div>
-	{:else}
-		<div style="overflow-x: auto;">
-			<table class="data-table">
-				<thead><tr><th>Nome</th><th>Cargo</th><th>Status</th><th>Inscrição</th><th>Fim de Ciclo</th><th>Ações</th></tr></thead>
-				<tbody>
-					{#each participants as p}
-						<tr>
-							<td><div class="participant-name">{p.name}</div><div class="participant-email">{p.email}</div></td>
-							<td style="text-transform: capitalize;">{p.role}</td>
-							<td><span class="status-badge status-badge--{p.status}">{STATUS_LABELS[p.status] || p.status}</span></td>
-							<td>{formatDate(p.enrollmentDate)}</td>
-							<td>{formatDate(p.cycleEndDate)}</td>
-							<td>
-								<div class="actions-cell">
-									<button class="btn btn-sm btn-outline" onclick={() => openEdit(p)}>Editar</button>
-									{#if VALID_TRANSITIONS[p.status]?.length > 0}
-										<select class="filter-select" style="font-size: 11px; padding: 2px 6px;"
-											onchange={(e) => { const t = e.target as HTMLSelectElement; if (t.value) { changeStatus(p.id, t.value as ParticipantStatus); t.value = ''; } }}>
-											<option value="">Status →</option>
-											{#each VALID_TRANSITIONS[p.status] as nextStatus}
-												<option value={nextStatus}>{STATUS_LABELS[nextStatus]}</option>
-											{/each}
-										</select>
-									{/if}
-									<button class="btn btn-sm btn-outline" onclick={() => openHistory(p)}>Histórico</button>
-									<button class="btn btn-sm btn-danger" onclick={() => deleteParticipant(p.id)}>×</button>
-								</div>
-							</td>
-						</tr>
-					{/each}
-				</tbody>
-			</table>
-		</div>
-		{#if pagination.totalPages > 1}
-			<div class="pagination">
-				<button disabled={page <= 1} onclick={() => { page--; loadParticipants(); }}>← Anterior</button>
-				<span class="page-info">Página {page} de {pagination.totalPages}</span>
-				<button disabled={page >= pagination.totalPages} onclick={() => { page++; loadParticipants(); }}>Próxima →</button>
-			</div>
-		{/if}
-	{/if}
-</div>
+	<DataTable
+		{columns}
+		data={participants}
+		{search}
+		page={pagination.page}
+		totalPages={pagination.totalPages}
+		total={pagination.total}
+		on:search={handleSearch}
+		on:page={handlePage}
+	>
+		<svelte:fragment slot="toolbar">
+			<FilterBar
+				filters={[
+					{ name: 'status', label: 'status', options: statusFilters },
+					{ name: 'role', label: 'cargo', options: roleFilters }
+				]}
+				values={filterValues}
+				on:filter={handleFilter}
+			/>
+		</svelte:fragment>
 
-<!-- Import Modal -->
-{#if showImportModal}
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div class="modal-overlay" onclick={() => { showImportModal = false; }} onkeydown={(e) => { if (e.key === 'Escape') showImportModal = false; }}>
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div class="modal" onclick={(e) => e.stopPropagation()} onkeydown={() => {}}>
-			<div class="modal-header">
-				<h3>Importar Planilha</h3>
-				<button class="modal-close" onclick={() => { showImportModal = false; }}>✕</button>
-			</div>
-			<div class="modal-body">
-				{#if !importResult}
-					<!-- svelte-ignore a11y_no_static_element_interactions -->
-					<div class="dropzone" class:dragging ondragover={(e) => { e.preventDefault(); dragging = true; }} ondragleave={() => { dragging = false; }} ondrop={handleDrop} onclick={() => document.getElementById('file-input')?.click()} onkeydown={() => {}}>
-						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-						{#if importFile}
-							<p><strong>{importFile.name}</strong></p>
-							<p style="font-size: var(--font-size-xs); margin-top: var(--spacing-xs);">Clique em "Importar" para processar</p>
-						{:else}
-							<p><span class="dropzone-cta">Clique para selecionar</span> ou arraste o arquivo aqui</p>
-							<p style="font-size: var(--font-size-xs); margin-top: var(--spacing-xs);">Formatos aceitos: .xlsx, .xls, .csv</p>
-						{/if}
-					</div>
-					<input id="file-input" type="file" accept=".xlsx,.xls,.csv" style="display: none;" onchange={handleFileSelect} />
-					<div style="margin-top: var(--spacing-lg); padding: var(--spacing-md); background: var(--color-neutral-50); border-radius: var(--border-radius-lg); font-size: var(--font-size-xs); color: var(--text-color-subtle);">
-						<strong>Colunas esperadas:</strong> nome, e-mail, cargo/função, data de inscrição/admissão, data de fim de ciclo
-					</div>
-				{:else}
-					<div style="text-align: center; padding: var(--spacing-lg);">
-						{#if importResult.imported > 0}
-							<div style="font-size: var(--font-size-3xl); color: var(--color-green-600); margin-bottom: var(--spacing-sm);">✓</div>
-							<h3 style="color: var(--color-green-700);">{importResult.imported} participantes importados</h3>
-						{/if}
-						{#if importResult.errors?.length > 0}
-							<div style="margin-top: var(--spacing-md); text-align: left; max-height: 200px; overflow-y: auto;">
-								<p style="font-weight: var(--font-weight-semibold); margin-bottom: var(--spacing-sm); color: var(--color-red-600);">Erros ({importResult.errors.length}):</p>
-								{#each importResult.errors as err}
-									<p style="font-size: var(--font-size-xs); color: var(--color-red-600);">Linha {err.row}: {err.message}</p>
-								{/each}
-							</div>
-						{/if}
-					</div>
-				{/if}
-			</div>
-			<div class="modal-footer">
-				<button class="btn btn-secondary" onclick={() => { showImportModal = false; }}>{importResult ? 'Fechar' : 'Cancelar'}</button>
-				{#if !importResult}
-					<button class="btn btn-primary" disabled={!importFile || importing} onclick={doImport}>
-						{#if importing}<span class="loading-spinner" style="width: 14px; height: 14px;"></span>{/if} Importar
+		<svelte:fragment slot="cell" let:row let:column let:value>
+			{#if column === 'status'}
+				<Badge text={STATUS_LABELS[value] || value} variant="status" />
+			{:else if column === 'role'}
+				<Badge text={ROLE_LABELS[value] || value} variant="role" />
+			{:else if column === 'createdAt'}
+				{value ? new Date(value).toLocaleDateString('pt-BR') : '—'}
+			{:else}
+				{value ?? '—'}
+			{/if}
+		</svelte:fragment>
+
+		<svelte:fragment slot="actions" let:row>
+			<PermissionGate allowed={permissions.canManageParticipants}>
+				<div class="action-buttons">
+					<button class="action-btn" on:click={() => openEdit(row)} title="Editar">
+						✏️
 					</button>
-				{/if}
-			</div>
+					<button class="action-btn" on:click={() => loadHistory(row.id)} title="Histórico">
+						📋
+					</button>
+					{#if VALID_TRANSITIONS[row.status]?.length > 0}
+						<select
+							class="status-select"
+							on:change={(e) => { changeStatus(row.id, e.target.value); e.target.value = ''; }}
+						>
+							<option value="">Status →</option>
+							{#each VALID_TRANSITIONS[row.status] || [] as t}
+								<option value={t}>{STATUS_LABELS[t] || t}</option>
+							{/each}
+						</select>
+					{/if}
+					<PermissionGate allowed={permissions.canDeleteParticipants}>
+						<button class="action-btn action-btn-danger" on:click={() => deleteParticipant(row.id)} title="Excluir">
+							🗑️
+						</button>
+					</PermissionGate>
+				</div>
+			</PermissionGate>
+		</svelte:fragment>
+	</DataTable>
+</div>
+
+<!-- Create Modal -->
+{#if showCreateModal}
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<div class="modal-overlay" on:click={() => showCreateModal = false} on:keydown={() => showCreateModal = false}>
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div class="modal-content" on:click|stopPropagation on:keydown|stopPropagation>
+			<h2>Novo Participante</h2>
+			<form on:submit|preventDefault={createParticipant}>
+				<div class="form-group">
+					<label for="new-name">Nome</label>
+					<input id="new-name" bind:value={newParticipant.name} required />
+				</div>
+				<div class="form-group">
+					<label for="new-email">E-mail</label>
+					<input id="new-email" type="email" bind:value={newParticipant.email} required />
+				</div>
+				<div class="form-group">
+					<label for="new-role">Cargo</label>
+					<select id="new-role" bind:value={newParticipant.role}>
+						{#each PARTICIPANT_ROLES as r}
+							<option value={r}>{ROLE_LABELS[r] || r}</option>
+						{/each}
+					</select>
+				</div>
+				<div class="form-group">
+					<label for="new-notes">Observações</label>
+					<textarea id="new-notes" bind:value={newParticipant.notes} rows="3"></textarea>
+				</div>
+				<div class="modal-actions">
+					<Button variant="ghost" onclick={() => showCreateModal = false}>Cancelar</Button>
+					<Button type="submit" variant="primary" loading={saving}>Criar</Button>
+				</div>
+			</form>
 		</div>
 	</div>
 {/if}
@@ -403,98 +274,213 @@
 <!-- Edit Modal -->
 {#if showEditModal && editParticipant}
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div class="modal-overlay" onclick={() => { showEditModal = false; }} onkeydown={(e) => { if (e.key === 'Escape') showEditModal = false; }}>
+	<div class="modal-overlay" on:click={() => showEditModal = false} on:keydown={() => showEditModal = false}>
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div class="modal" onclick={(e) => e.stopPropagation()} onkeydown={() => {}}>
-			<div class="modal-header"><h3>Editar Participante</h3><button class="modal-close" onclick={() => { showEditModal = false; }}>✕</button></div>
-			<div class="modal-body">
-				<div class="form-row">
-					<div class="form-group"><label for="edit-name">Nome</label><input id="edit-name" class="form-control" bind:value={editParticipant.name} /></div>
-					<div class="form-group"><label for="edit-email">E-mail</label><input id="edit-email" class="form-control" type="email" bind:value={editParticipant.email} /></div>
+		<div class="modal-content" on:click|stopPropagation on:keydown|stopPropagation>
+			<h2>Editar Participante</h2>
+			<form on:submit|preventDefault={updateParticipant}>
+				<div class="form-group">
+					<label for="edit-name">Nome</label>
+					<input id="edit-name" bind:value={editParticipant.name} required />
 				</div>
-				<div class="form-row">
-					<div class="form-group"><label for="edit-role">Cargo</label><select id="edit-role" class="form-control" bind:value={editParticipant.role}>{#each PARTICIPANT_ROLES as r}<option value={r}>{ROLE_LABELS[r]}</option>{/each}</select></div>
-					<div class="form-group"><label for="edit-hours">Carga Horária (horas)</label><input id="edit-hours" class="form-control" type="number" bind:value={editParticipant.workloadHours} /></div>
+				<div class="form-group">
+					<label for="edit-email">E-mail</label>
+					<input id="edit-email" type="email" bind:value={editParticipant.email} required />
 				</div>
-				<div class="form-row">
-					<div class="form-group"><label for="edit-enrollment">Data de Inscrição</label><input id="edit-enrollment" class="form-control" type="date" bind:value={editParticipant.enrollmentDate} /></div>
-					<div class="form-group"><label for="edit-cycle-end">Fim de Ciclo</label><input id="edit-cycle-end" class="form-control" type="date" bind:value={editParticipant.cycleEndDate} /></div>
+				<div class="form-group">
+					<label for="edit-role">Cargo</label>
+					<select id="edit-role" bind:value={editParticipant.role}>
+						{#each PARTICIPANT_ROLES as r}
+							<option value={r}>{ROLE_LABELS[r] || r}</option>
+						{/each}
+					</select>
 				</div>
-				<div class="form-group"><label for="edit-notes">Observações</label><textarea id="edit-notes" class="form-control" rows="3" bind:value={editParticipant.notes}></textarea></div>
-			</div>
-			<div class="modal-footer">
-				<button class="btn btn-secondary" onclick={() => { showEditModal = false; }}>Cancelar</button>
-				<button class="btn btn-primary" disabled={saving} onclick={saveEdit}>{#if saving}<span class="loading-spinner" style="width: 14px; height: 14px;"></span>{/if} Salvar</button>
-			</div>
-		</div>
-	</div>
-{/if}
-
-<!-- Create Modal -->
-{#if showCreateModal}
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div class="modal-overlay" onclick={() => { showCreateModal = false; }} onkeydown={(e) => { if (e.key === 'Escape') showCreateModal = false; }}>
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div class="modal" onclick={(e) => e.stopPropagation()} onkeydown={() => {}}>
-			<div class="modal-header"><h3>Novo Participante</h3><button class="modal-close" onclick={() => { showCreateModal = false; }}>✕</button></div>
-			<div class="modal-body">
-				<div class="form-row">
-					<div class="form-group"><label for="new-name">Nome *</label><input id="new-name" class="form-control" bind:value={newParticipant.name} required /></div>
-					<div class="form-group"><label for="new-email">E-mail *</label><input id="new-email" class="form-control" type="email" bind:value={newParticipant.email} required /></div>
+				<div class="form-group">
+					<label for="edit-hours">Carga Horária</label>
+					<input id="edit-hours" type="number" bind:value={editParticipant.workloadHours} />
 				</div>
-				<div class="form-row">
-					<div class="form-group"><label for="new-role">Cargo</label><select id="new-role" class="form-control" bind:value={newParticipant.role}>{#each PARTICIPANT_ROLES as r}<option value={r}>{ROLE_LABELS[r]}</option>{/each}</select></div>
-					<div class="form-group"><label for="new-hours">Carga Horária (horas)</label><input id="new-hours" class="form-control" type="number" bind:value={newParticipant.workloadHours} /></div>
+				<div class="form-group">
+					<label for="edit-notes">Observações</label>
+					<textarea id="edit-notes" bind:value={editParticipant.notes} rows="3"></textarea>
 				</div>
-				<div class="form-row">
-					<div class="form-group"><label for="new-enrollment">Data de Inscrição</label><input id="new-enrollment" class="form-control" type="date" bind:value={newParticipant.enrollmentDate} /></div>
-					<div class="form-group"><label for="new-cycle-end">Fim de Ciclo</label><input id="new-cycle-end" class="form-control" type="date" bind:value={newParticipant.cycleEndDate} /></div>
+				<div class="modal-actions">
+					<Button variant="ghost" onclick={() => showEditModal = false}>Cancelar</Button>
+					<Button type="submit" variant="primary" loading={saving}>Salvar</Button>
 				</div>
-				<div class="form-group"><label for="new-notes">Observações</label><textarea id="new-notes" class="form-control" rows="3" bind:value={newParticipant.notes}></textarea></div>
-			</div>
-			<div class="modal-footer">
-				<button class="btn btn-secondary" onclick={() => { showCreateModal = false; }}>Cancelar</button>
-				<button class="btn btn-primary" disabled={saving || !newParticipant.name || !newParticipant.email} onclick={createParticipant}>
-					{#if saving}<span class="loading-spinner" style="width: 14px; height: 14px;"></span>{/if} Criar
-				</button>
-			</div>
+			</form>
 		</div>
 	</div>
 {/if}
 
 <!-- History Modal -->
-{#if showHistoryModal && historyParticipant}
+{#if showHistoryModal}
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div class="modal-overlay" onclick={() => { showHistoryModal = false; }} onkeydown={(e) => { if (e.key === 'Escape') showHistoryModal = false; }}>
+	<div class="modal-overlay" on:click={() => showHistoryModal = false} on:keydown={() => showHistoryModal = false}>
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div class="modal" onclick={(e) => e.stopPropagation()} onkeydown={() => {}}>
-			<div class="modal-header"><h3>Histórico — {historyParticipant.name}</h3><button class="modal-close" onclick={() => { showHistoryModal = false; }}>✕</button></div>
-			<div class="modal-body">
-				{#if historyData.length > 0}
-					<div class="timeline">
-						{#each historyData as h}
-							<div class="timeline-item">
-								<div class="timeline-date">{formatDateTime(h.changedAt)}</div>
-								<div class="timeline-content">
-									{#if h.fromStatus}
-										<span class="status-badge status-badge--{h.fromStatus}">{STATUS_LABELS[h.fromStatus as ParticipantStatus] || h.fromStatus}</span> →
-									{/if}
-									<span class="status-badge status-badge--{h.toStatus}">{STATUS_LABELS[h.toStatus as ParticipantStatus] || h.toStatus}</span>
-									{#if h.changedBy}<span style="font-size: var(--font-size-xs); color: var(--text-color-subtle);"> por {h.changedBy}</span>{/if}
-								</div>
-							</div>
-						{/each}
-					</div>
-				{:else}
-					<div class="empty-state" style="padding: var(--spacing-xl);"><p>Nenhum histórico de status registrado.</p></div>
-				{/if}
+		<div class="modal-content" on:click|stopPropagation on:keydown|stopPropagation>
+			<h2>Histórico de Status</h2>
+			{#if statusHistoryEntries.length === 0}
+				<p class="empty-text">Nenhum histórico encontrado.</p>
+			{:else}
+				<div class="history-list">
+					{#each statusHistoryEntries as entry}
+						<div class="history-item">
+							<span class="history-date">{new Date(entry.changedAt).toLocaleString('pt-BR')}</span>
+							<span>{entry.fromStatus || '—'} → <strong>{entry.toStatus}</strong></span>
+						</div>
+					{/each}
+				</div>
+			{/if}
+			<div class="modal-actions">
+				<Button variant="ghost" onclick={() => showHistoryModal = false}>Fechar</Button>
 			</div>
-			<div class="modal-footer"><button class="btn btn-secondary" onclick={() => { showHistoryModal = false; }}>Fechar</button></div>
 		</div>
 	</div>
 {/if}
 
-<!-- Toast -->
-{#if toast}
-	<div class="toast toast--{toast.type}">{toast.message}</div>
-{/if}
+<style>
+	.participants-page {
+		max-width: 1200px;
+	}
+
+	.page-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: var(--spacing-lg);
+	}
+
+	.page-title {
+		font-size: var(--font-size-xl);
+		font-weight: var(--font-weight-bold);
+		color: var(--color-neutral-900);
+		margin: 0;
+	}
+
+	.action-buttons {
+		display: flex;
+		gap: var(--spacing-xxs);
+		align-items: center;
+	}
+
+	.action-btn {
+		background: none;
+		border: none;
+		cursor: pointer;
+		padding: 2px 4px;
+		font-size: var(--font-size-sm);
+		border-radius: var(--border-radius-sm);
+	}
+
+	.action-btn:hover {
+		background: var(--color-neutral-100);
+	}
+
+	.action-btn-danger:hover {
+		background: var(--color-red-100);
+	}
+
+	.status-select {
+		font-size: var(--font-size-xs);
+		padding: 2px 4px;
+		border: 1px solid var(--color-neutral-300);
+		border-radius: var(--border-radius-sm);
+		background: var(--color-neutral-0);
+		cursor: pointer;
+	}
+
+	/* Modal styles */
+	.modal-overlay {
+		position: fixed;
+		inset: 0;
+		background: rgba(0, 0, 0, 0.5);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 1000;
+		backdrop-filter: blur(2px);
+	}
+
+	.modal-content {
+		background: var(--color-neutral-0);
+		border-radius: var(--border-radius-xl);
+		padding: var(--spacing-xl);
+		max-width: 500px;
+		width: 90%;
+		max-height: 90vh;
+		overflow-y: auto;
+		box-shadow: var(--shadow-xl);
+	}
+
+	.modal-content h2 {
+		margin: 0 0 var(--spacing-lg);
+		font-size: var(--font-size-lg);
+		color: var(--color-neutral-900);
+	}
+
+	.modal-actions {
+		display: flex;
+		justify-content: flex-end;
+		gap: var(--spacing-sm);
+		margin-top: var(--spacing-lg);
+	}
+
+	.form-group {
+		margin-bottom: var(--spacing-md);
+	}
+
+	.form-group label {
+		display: block;
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-medium);
+		color: var(--color-neutral-700);
+		margin-bottom: var(--spacing-xs);
+	}
+
+	.form-group input,
+	.form-group select,
+	.form-group textarea {
+		width: 100%;
+		padding: var(--spacing-sm) var(--spacing-md);
+		border: 1px solid var(--color-neutral-300);
+		border-radius: var(--border-radius-md);
+		font-size: var(--font-size-base);
+		font-family: var(--font-family-sans);
+		box-sizing: border-box;
+	}
+
+	.form-group input:focus,
+	.form-group select:focus,
+	.form-group textarea:focus {
+		outline: none;
+		border-color: var(--color-primary-500);
+		box-shadow: 0 0 0 3px rgba(50, 74, 203, 0.1);
+	}
+
+	.empty-text {
+		text-align: center;
+		color: var(--color-neutral-400);
+		font-size: var(--font-size-sm);
+	}
+
+	.history-list {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-sm);
+	}
+
+	.history-item {
+		padding: var(--spacing-sm);
+		background: var(--color-neutral-50);
+		border-radius: var(--border-radius-md);
+		font-size: var(--font-size-sm);
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+	}
+
+	.history-date {
+		font-size: var(--font-size-xs);
+		color: var(--color-neutral-500);
+	}
+</style>

@@ -1,16 +1,23 @@
 import { json } from '@sveltejs/kit';
+import { randomUUID } from 'node:crypto';
 import type { RequestHandler } from './$types';
-import { db } from '$lib/server/db';
-import { participants, certificates } from '$lib/server/db/schema';
+import { requirePermission } from '$lib/server/middleware/auth';
+import { logAudit } from '$lib/server/middleware/audit';
+import { participants, certificates } from '$lib/server/db/schema-org';
 import { certificateConfigSchema } from '$lib/validations/participant';
 import { generateCertificatePdf, getCertificatesDir, getTemplatesDir } from '$lib/server/certificate-generator';
-import { eq, inArray } from 'drizzle-orm';
+import { eq, inArray, isNull, and } from 'drizzle-orm';
 import fs from 'fs';
 import path from 'path';
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async (event) => {
+	requirePermission(event, 'canManageCertificates');
+
+	const orgDb = event.locals.orgDb;
+	if (!orgDb) return json({ error: 'Organização não configurada' }, { status: 400 });
+
 	try {
-		const body = await request.json();
+		const body = await event.request.json();
 		const parsed = certificateConfigSchema.safeParse(body);
 
 		if (!parsed.success) {
@@ -19,11 +26,15 @@ export const POST: RequestHandler = async ({ request }) => {
 
 		const { participantIds, workloadHours, periodStart, periodEnd, templateName } = parsed.data;
 
-		// Get participants
-		const participantList = await db
+		// Get participants (active, not deleted)
+		const participantList = orgDb
 			.select()
 			.from(participants)
-			.where(inArray(participants.id, participantIds));
+			.where(and(
+				inArray(participants.id, participantIds),
+				isNull(participants.deletedAt)
+			))
+			.all();
 
 		if (participantList.length === 0) {
 			return json({ error: 'Nenhum participante encontrado' }, { status: 404 });
@@ -55,7 +66,9 @@ export const POST: RequestHandler = async ({ request }) => {
 			fs.writeFileSync(filePath, pdfBytes);
 
 			// Save to DB
-			const [cert] = await db.insert(certificates).values({
+			const certId = randomUUID();
+			orgDb.insert(certificates).values({
+				id: certId,
 				participantId: p.id,
 				templateName: templateName || 'default',
 				workloadHours,
@@ -63,16 +76,25 @@ export const POST: RequestHandler = async ({ request }) => {
 				periodEnd,
 				pdfPath: `/certificates/${filename}`,
 				status: 'gerado'
-			}).returning();
+			}).run();
 
 			// Update participant status
-			await db
+			orgDb
 				.update(participants)
-				.set({ status: 'certificado_processando', updatedAt: new Date() })
-				.where(eq(participants.id, p.id));
+				.set({ status: 'certificado_processando', updatedAt: new Date().toISOString() })
+				.where(eq(participants.id, p.id))
+				.run();
 
-			generated.push(cert);
+			generated.push({ id: certId, participantId: p.id });
 		}
+
+		logAudit(event, {
+			whatTable: 'certificates',
+			whatRecordId: 'batch-generate',
+			how: 'CREATE',
+			why: `${generated.length} certificados gerados`,
+			howManyAffected: generated.length
+		});
 
 		return json({ generated, count: generated.length }, { status: 201 });
 	} catch (error) {
