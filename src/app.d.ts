@@ -1,9 +1,15 @@
-// See https://svelte.dev/docs/kit/types#app.d.ts
-// for information about these interfaces
+import type { UserSession, FeatureFlags, OrganizationInfo } from '$lib/types/auth';
+import type { OrgDb } from '$lib/server/db';
+
 declare global {
 	namespace App {
 		// interface Error {}
-		// interface Locals {}
+		interface Locals {
+			user: UserSession | null;
+			organization: OrganizationInfo | null;
+			permissions: FeatureFlags;
+			orgDb: OrgDb | null;
+		}
 		// interface PageData {}
 		// interface PageState {}
 		// interface Platform {}

@@ -21,4 +21,6 @@ e2e
 *.spec.ts
 playwright.config.ts
 vitest-setup-client.ts
+data
+package-lock.json
 

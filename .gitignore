@@ -26,11 +26,11 @@ vite.config.ts.timestamp-*
 # Paraglide
 src/lib/paraglide
 
-# Inlang
-project.inlang
+# Inlang (project.inlang is needed for build, do not ignore)
+
+# SQLite data
+data/
 
 # Pnpm
-pnpm-lock.yaml
 pnpm-workspace.yaml
-pnpm-workspace.yaml.timestamp-*
 pnpm-workspace.yaml.timestamp-*

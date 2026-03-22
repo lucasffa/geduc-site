@@ -1,0 +1,12 @@
+import { redirect } from '@sveltejs/kit';
+import type { PageServerLoad } from './$types';
+
+export const load: PageServerLoad = async ({ locals }) => {
+	if (!locals.user) throw redirect(302, '/auth/login');
+	if (!locals.permissions.canManageCertificates) throw redirect(302, '/dashboard');
+
+	return {
+		user: locals.user,
+		permissions: locals.permissions
+	};
+};
