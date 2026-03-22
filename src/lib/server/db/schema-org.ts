@@ -72,6 +72,15 @@ export const workgroups = sqliteTable('workgroups', {
 });
 
 // ============================================================
+// ORG SETTINGS
+// ============================================================
+export const orgSettings = sqliteTable('org_settings', {
+	key: text('key').primaryKey(),
+	value: text('value').notNull(),
+	updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`)
+});
+
+// ============================================================
 // USER <-> WORKGROUP (junction)
 // ============================================================
 export const userWorkgroups = sqliteTable(

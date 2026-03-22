@@ -2,6 +2,7 @@ import Database from 'better-sqlite3';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
 import * as systemSchema from './schema-system';
 import * as orgSchema from './schema-org';
+import { DEFAULT_CUSTOM_ROLES } from '$lib/constants/participant-status';
 import path from 'node:path';
 import fs from 'node:fs';
 
@@ -55,6 +56,18 @@ export function getOrgDb(slug: string): OrgDb {
 	const sqlite = new Database(dbPath);
 	sqlite.pragma('journal_mode = WAL');
 	sqlite.pragma('foreign_keys = ON');
+
+	// Migration: ensure org_settings table exists
+	sqlite.exec(`
+		CREATE TABLE IF NOT EXISTS org_settings (
+			key TEXT PRIMARY KEY,
+			value TEXT NOT NULL,
+			updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+		);
+		INSERT OR IGNORE INTO org_settings (key, value) VALUES ('enforce_status_transitions', 'true');
+		INSERT OR IGNORE INTO org_settings (key, value) VALUES ('custom_roles', '${JSON.stringify(DEFAULT_CUSTOM_ROLES)}');
+	`);
+
 	const db = drizzle(sqlite, { schema: orgSchema });
 	orgDbPool.set(slug, db);
 	return db;
@@ -135,6 +148,15 @@ export function createOrgDb(slug: string): OrgDb {
 			workgroup_id TEXT NOT NULL REFERENCES workgroups(id) ON DELETE CASCADE,
 			PRIMARY KEY (user_id, workgroup_id)
 		);
+
+		CREATE TABLE IF NOT EXISTS org_settings (
+			key TEXT PRIMARY KEY,
+			value TEXT NOT NULL,
+			updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+		);
+
+		INSERT OR IGNORE INTO org_settings (key, value) VALUES ('enforce_status_transitions', 'true');
+		INSERT OR IGNORE INTO org_settings (key, value) VALUES ('custom_roles', '${JSON.stringify(DEFAULT_CUSTOM_ROLES)}');
 	`);
 
 	const db = drizzle(sqlite, { schema: orgSchema });

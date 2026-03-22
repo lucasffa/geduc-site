@@ -53,7 +53,7 @@
 	}
 
 	.badge-role {
-		background: var(--color-primary-100);
+		background: var(--color-primary-500);
 		color: var(--color-primary-700);
 	}
 

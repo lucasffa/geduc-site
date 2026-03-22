@@ -6,6 +6,8 @@
 	import Button from '$lib/components/atoms/Button.svelte';
 
 	export let isOpen = false;
+	export let mode = 'create';
+	export let workgroup = null;
 	export let saving = false;
 
 	const dispatch = createEventDispatcher();
@@ -13,21 +15,34 @@
 	let name = '';
 	let description = '';
 
-	$: if (isOpen) {
+	// Reset on open (create mode)
+	let prevIsOpen = false;
+	$: if (isOpen && !prevIsOpen && mode === 'create') {
 		name = '';
 		description = '';
 	}
+	$: prevIsOpen = isOpen;
+
+	// Populate on edit
+	$: if (mode === 'edit' && workgroup) {
+		name = workgroup.name || '';
+		description = workgroup.description || '';
+	}
+
+	$: title = mode === 'create' ? 'Novo Grupo de Trabalho' : `Editar "${workgroup?.name || ''}"`;
+	$: canSave = name.trim().length > 0 && !saving;
 
 	function handleClose() {
 		dispatch('close');
 	}
 
 	function handleSave() {
-		dispatch('save', { name, description });
+		if (!canSave) return;
+		dispatch('save', { name: name.trim(), description: description.trim() });
 	}
 </script>
 
-<Modal {isOpen} onClose={handleClose} size="md" title="Novo Grupo de Trabalho">
+<Modal {isOpen} onClose={handleClose} size="md" {title}>
 	<form on:submit|preventDefault={handleSave}>
 		<FormField label="Nome" id="grp-name" required>
 			<input
@@ -38,7 +53,7 @@
 			/>
 		</FormField>
 
-		<FormField label="Descricao" id="grp-desc">
+		<FormField label="Descrição" id="grp-desc">
 			<textarea
 				id="grp-desc"
 				class="form-input"
@@ -47,13 +62,14 @@
 			></textarea>
 		</FormField>
 
-		<!-- Hidden submit button so Enter key works -->
 		<button type="submit" hidden></button>
 	</form>
 
 	<svelte:fragment slot="footer">
-		<Button variant="ghost" onclick={handleClose}>Cancelar</Button>
-		<Button variant="primary" loading={saving} onclick={handleSave}>Criar</Button>
+		<Button variant="ghost" on:click={handleClose}>Cancelar</Button>
+		<Button variant="primary" disabled={!canSave} loading={saving} on:click={handleSave}>
+			{mode === 'create' ? 'Criar' : 'Salvar'}
+		</Button>
 	</svelte:fragment>
 </Modal>
 

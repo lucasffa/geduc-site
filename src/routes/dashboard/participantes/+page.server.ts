@@ -1,6 +1,7 @@
 import type { PageServerLoad } from './$types';
 import { isNull, like, sql, count, eq } from 'drizzle-orm';
-import { participants, statusHistory } from '$lib/server/db/schema-org';
+import { participants, statusHistory, orgSettings } from '$lib/server/db/schema-org';
+import { DEFAULT_CUSTOM_ROLES } from '$lib/constants/participant-status';
 
 export const load: PageServerLoad = ({ locals, url }) => {
 	const orgDb = locals.orgDb;
@@ -49,9 +50,29 @@ export const load: PageServerLoad = ({ locals, url }) => {
 		.offset((page - 1) * limit)
 		.all();
 
+	// Load org settings
+	const enforceTransitionsSetting = orgDb
+		.select()
+		.from(orgSettings)
+		.where(eq(orgSettings.key, 'enforce_status_transitions'))
+		.get();
+	const enforceStatusTransitions = enforceTransitionsSetting?.value !== 'false';
+
+	const rolesSetting = orgDb
+		.select()
+		.from(orgSettings)
+		.where(eq(orgSettings.key, 'custom_roles'))
+		.get();
+	let customRoles = DEFAULT_CUSTOM_ROLES;
+	if (rolesSetting?.value) {
+		try { customRoles = JSON.parse(rolesSetting.value); } catch {}
+	}
+
 	return {
 		participants: rows,
 		pagination: { page, limit, total, totalPages },
-		permissions: locals.permissions
+		permissions: locals.permissions,
+		enforceStatusTransitions,
+		customRoles
 	};
 };

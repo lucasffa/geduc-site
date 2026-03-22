@@ -29,9 +29,9 @@
 </script>
 
 <section class="config-section">
-	<h2>White-Label / Marca</h2>
+	<h2>Organização</h2>
 	<form on:submit|preventDefault={handleSubmit}>
-		<FormField label="Nome da Marca" id="brand-name">
+		<FormField label="Nome da Organização" id="brand-name">
 			<input
 				id="brand-name"
 				bind:value={brandNameLocal}

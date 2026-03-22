@@ -7,9 +7,10 @@
 	import PageHeader from '$lib/components/molecules/PageHeader.svelte';
 	import ParticipantFormModal from '$lib/components/organisms/dashboard/ParticipantFormModal.svelte';
 	import StatusHistoryModal from '$lib/components/organisms/dashboard/StatusHistoryModal.svelte';
+	import ImportSpreadsheetModal from '$lib/components/organisms/dashboard/ImportSpreadsheetModal.svelte';
 	import { goto } from '$app/navigation';
 	import { page as pageStore } from '$app/stores';
-	import { STATUS_LABELS, VALID_TRANSITIONS, PARTICIPANT_STATUSES, PARTICIPANT_ROLES, ROLE_LABELS } from '$lib/constants/participant-status';
+	import { STATUS_LABELS, VALID_TRANSITIONS, PARTICIPANT_STATUSES, ROLE_CATEGORY_LABELS } from '$lib/constants/participant-status';
 	import { addToast } from '$lib/stores/dashboard';
 
 	export let data;
@@ -17,6 +18,16 @@
 	$: participants = data.participants;
 	$: pagination = data.pagination;
 	$: permissions = data.permissions;
+	$: enforceTransitions = data.enforceStatusTransitions ?? true;
+	$: customRoles = data.customRoles || { voluntario: [], mentorado: [] };
+	$: allRoles = [...customRoles.voluntario, ...customRoles.mentorado];
+
+	function getAvailableStatuses(status) {
+		if (enforceTransitions) {
+			return VALID_TRANSITIONS[status] || [];
+		}
+		return PARTICIPANT_STATUSES.filter(s => s !== status);
+	}
 
 	let search = $pageStore.url.searchParams.get('search') || '';
 	let filterValues = {
@@ -28,6 +39,7 @@
 	let showCreateModal = false;
 	let showEditModal = false;
 	let showHistoryModal = false;
+	let showImportModal = false;
 	let editParticipant = null;
 	let statusHistoryEntries = [];
 
@@ -43,7 +55,7 @@
 	];
 
 	const statusFilters = PARTICIPANT_STATUSES.map(s => ({ value: s, label: STATUS_LABELS[s] || s }));
-	const roleFilters = PARTICIPANT_ROLES.map(r => ({ value: r, label: ROLE_LABELS[r] || r }));
+	$: roleFilters = allRoles.map(r => ({ value: r, label: r }));
 
 	function updateUrl(params) {
 		const url = new URL($pageStore.url);
@@ -165,9 +177,14 @@
 <div class="participants-page">
 	<PageHeader title="Participantes">
 		<PermissionGate allowed={permissions.canManageParticipants}>
-			<Button variant="primary" size="sm" onclick={() => showCreateModal = true}>
-				+ Novo Participante
-			</Button>
+			<div class="header-actions">
+				<Button variant="ghost" size="sm" on:click={() => showImportModal = true}>
+					Importar Planilha
+				</Button>
+				<Button variant="primary" size="sm" on:click={() => showCreateModal = true}>
+					+ Novo Participante
+				</Button>
+			</div>
 		</PermissionGate>
 	</PageHeader>
 
@@ -196,7 +213,7 @@
 			{#if column === 'status'}
 				<Badge text={STATUS_LABELS[value] || value} variant="status" />
 			{:else if column === 'role'}
-				<Badge text={ROLE_LABELS[value] || value} variant="role" />
+				<Badge text={value || '—'} variant="role" />
 			{:else if column === 'createdAt'}
 				{value ? new Date(value).toLocaleDateString('pt-BR') : '\u2014'}
 			{:else}
@@ -213,13 +230,13 @@
 					<button class="action-btn" on:click={() => loadHistory(row.id)} title="Historico">
 						📋
 					</button>
-					{#if VALID_TRANSITIONS[row.status]?.length > 0}
+					{#if getAvailableStatuses(row.status).length > 0}
 						<select
 							class="status-select"
 							on:change={(e) => { changeStatus(row.id, e.target.value); e.target.value = ''; }}
 						>
 							<option value="">Status →</option>
-							{#each VALID_TRANSITIONS[row.status] || [] as t}
+							{#each getAvailableStatuses(row.status) as t}
 								<option value={t}>{STATUS_LABELS[t] || t}</option>
 							{/each}
 						</select>
@@ -240,8 +257,7 @@
 	isOpen={showCreateModal}
 	mode="create"
 	{saving}
-	roles={PARTICIPANT_ROLES}
-	roleLabels={ROLE_LABELS}
+	{customRoles}
 	on:close={() => showCreateModal = false}
 	on:save={handleCreateSave}
 />
@@ -252,8 +268,7 @@
 	mode="edit"
 	participant={editParticipant}
 	{saving}
-	roles={PARTICIPANT_ROLES}
-	roleLabels={ROLE_LABELS}
+	{customRoles}
 	on:close={() => showEditModal = false}
 	on:save={handleEditSave}
 />
@@ -265,9 +280,22 @@
 	on:close={() => showHistoryModal = false}
 />
 
+<!-- Import Modal -->
+<ImportSpreadsheetModal
+	isOpen={showImportModal}
+	on:close={() => showImportModal = false}
+	on:imported={() => goto($pageStore.url.toString(), { invalidateAll: true })}
+/>
+
 <style>
 	.participants-page {
 		max-width: 1200px;
+	}
+
+	.header-actions {
+		display: flex;
+		gap: var(--spacing-sm);
+		align-items: center;
 	}
 
 	.action-buttons {

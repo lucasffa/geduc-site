@@ -4,6 +4,7 @@
 	import Modal from '$lib/components/organisms/Modal.svelte';
 	import FormField from '$lib/components/molecules/FormField.svelte';
 	import Button from '$lib/components/atoms/Button.svelte';
+	import { ROLE_CATEGORY_LABELS, DEFAULT_CUSTOM_ROLES } from '$lib/constants/participant-status';
 
 	export let isOpen = false;
 	/** @type {'create' | 'edit'} */
@@ -11,34 +12,36 @@
 	/** @type {{ id?: any, name?: string, email?: string, role?: string, notes?: string, workloadHours?: number } | null} */
 	export let participant = null;
 	export let saving = false;
-	/** @type {readonly string[] | string[]} */
-	export let roles = [];
-	/** @type {Record<string, string>} */
-	export let roleLabels = {};
+	/** @type {{ voluntario: string[], mentorado: string[] }} */
+	export let customRoles = DEFAULT_CUSTOM_ROLES;
 
 	const dispatch = createEventDispatcher();
 
 	let name = '';
 	let email = '';
-	let role = 'mentorado';
+	let role = '';
 	let notes = '';
 	let workloadHours = 0;
 
-	$: if (isOpen) {
+	$: allRoles = [...(customRoles?.voluntario || []), ...(customRoles?.mentorado || [])];
+
+	let prevIsOpen = false;
+	$: if (isOpen && !prevIsOpen) {
 		if (mode === 'edit' && participant) {
 			name = participant.name || '';
 			email = participant.email || '';
-			role = participant.role || 'mentorado';
+			role = participant.role || '';
 			notes = participant.notes || '';
 			workloadHours = participant.workloadHours || 0;
 		} else if (mode === 'create') {
 			name = '';
 			email = '';
-			role = 'mentorado';
+			role = allRoles[0] || '';
 			notes = '';
 			workloadHours = 0;
 		}
 	}
+	$: prevIsOpen = isOpen;
 
 	$: title = mode === 'create' ? 'Novo Participante' : 'Editar Participante';
 	$: submitLabel = mode === 'create' ? 'Criar' : 'Salvar';
@@ -72,29 +75,39 @@
 
 		<FormField label="Cargo" id="{mode}-role">
 			<select id="{mode}-role" bind:value={role} class="form-input">
-				{#each roles as r}
-					<option value={r}>{roleLabels[r] || r}</option>
-				{/each}
+				{#if customRoles?.voluntario?.length}
+					<optgroup label={ROLE_CATEGORY_LABELS.voluntario}>
+						{#each customRoles.voluntario as r}
+							<option value={r}>{r}</option>
+						{/each}
+					</optgroup>
+				{/if}
+				{#if customRoles?.mentorado?.length}
+					<optgroup label={ROLE_CATEGORY_LABELS.mentorado}>
+						{#each customRoles.mentorado as r}
+							<option value={r}>{r}</option>
+						{/each}
+					</optgroup>
+				{/if}
 			</select>
 		</FormField>
 
 		{#if mode === 'edit'}
-			<FormField label="Carga Horaria" id="edit-hours">
+			<FormField label="Carga Horária" id="edit-hours">
 				<input id="edit-hours" type="number" bind:value={workloadHours} class="form-input" />
 			</FormField>
 		{/if}
 
-		<FormField label="Observacoes" id="{mode}-notes">
+		<FormField label="Observações" id="{mode}-notes">
 			<textarea id="{mode}-notes" bind:value={notes} rows="3" class="form-input"></textarea>
 		</FormField>
 
-		<!-- Hidden submit button so form submit works; footer buttons below -->
 		<button type="submit" hidden></button>
 	</form>
 
 	<svelte:fragment slot="footer">
-		<Button variant="ghost" onclick={handleClose}>Cancelar</Button>
-		<Button variant="primary" loading={saving} onclick={handleSubmit}>{submitLabel}</Button>
+		<Button variant="ghost" on:click={handleClose}>Cancelar</Button>
+		<Button variant="primary" loading={saving} on:click={handleSubmit}>{submitLabel}</Button>
 	</svelte:fragment>
 </Modal>
 

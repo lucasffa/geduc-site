@@ -5,24 +5,25 @@
 	import Badge from '$lib/components/atoms/Badge.svelte';
 	import WorkgroupFormModal from '$lib/components/organisms/dashboard/WorkgroupFormModal.svelte';
 	import { addToast } from '$lib/stores/dashboard';
-	import { goto } from '$app/navigation';
-	import { page as pageStore } from '$app/stores';
+	import { invalidateAll } from '$app/navigation';
 
 	export let data;
 
 	$: groups = data.workgroups;
 
 	let showCreateModal = false;
+	let showEditModal = false;
+	let editWorkgroup = null;
 	let saving = false;
 
 	const columns = [
 		{ key: 'name', label: 'Nome' },
-		{ key: 'description', label: 'Descricao' },
-		{ key: 'isActive', label: 'Ativo', width: '80px' },
+		{ key: 'description', label: 'Descrição' },
+		{ key: 'isActive', label: 'Status', width: '100px' },
 		{ key: 'createdAt', label: 'Criado em', width: '120px' }
 	];
 
-	async function handleCreateWorkgroup(event) {
+	async function handleCreate(event) {
 		const { name, description } = event.detail;
 		saving = true;
 		try {
@@ -34,7 +35,7 @@
 			if (!res.ok) throw new Error((await res.json()).error || 'Erro');
 			addToast('Grupo criado com sucesso', 'success');
 			showCreateModal = false;
-			goto($pageStore.url.toString(), { invalidateAll: true });
+			invalidateAll();
 		} catch (err) {
 			addToast(err.message, 'error');
 		} finally {
@@ -42,15 +43,56 @@
 		}
 	}
 
-	async function deleteWorkgroup(id) {
-		if (!confirm('Excluir grupo de trabalho?')) return;
+	function openEdit(row) {
+		editWorkgroup = row;
+		showEditModal = true;
+	}
+
+	async function handleEdit(event) {
+		if (!editWorkgroup) return;
+		const { name, description } = event.detail;
+		saving = true;
 		try {
-			const res = await fetch(`/dashboard/api/workgroups/${id}`, { method: 'DELETE' });
-			if (!res.ok) throw new Error('Erro');
-			addToast('Grupo removido', 'success');
-			goto($pageStore.url.toString(), { invalidateAll: true });
+			const res = await fetch(`/dashboard/api/workgroups/${editWorkgroup.id}`, {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ name, description })
+			});
+			if (!res.ok) throw new Error((await res.json()).error || 'Erro');
+			addToast('Grupo atualizado', 'success');
+			showEditModal = false;
+			invalidateAll();
 		} catch (err) {
 			addToast(err.message, 'error');
+		} finally {
+			saving = false;
+		}
+	}
+
+	async function toggleActive(row) {
+		try {
+			const res = await fetch(`/dashboard/api/workgroups/${row.id}`, {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ isActive: !row.isActive })
+			});
+			if (!res.ok) throw new Error('Erro');
+			addToast(`Grupo ${row.isActive ? 'desativado' : 'ativado'}`, 'success');
+			invalidateAll();
+		} catch {
+			addToast('Erro ao alterar status', 'error');
+		}
+	}
+
+	async function deleteWorkgroup(row) {
+		if (!confirm(`Excluir "${row.name}"? Esta ação é um soft delete.`)) return;
+		try {
+			const res = await fetch(`/dashboard/api/workgroups/${row.id}`, { method: 'DELETE' });
+			if (!res.ok) throw new Error('Erro');
+			addToast('Grupo removido', 'success');
+			invalidateAll();
+		} catch {
+			addToast('Erro ao excluir', 'error');
 		}
 	}
 </script>
@@ -61,7 +103,7 @@
 
 <div class="workgroups-page">
 	<PageHeader title="Grupos de Trabalho">
-		<Button variant="primary" size="sm" onclick={() => showCreateModal = true}>
+		<Button variant="primary" size="sm" on:click={() => showCreateModal = true}>
 			+ Novo Grupo
 		</Button>
 	</PageHeader>
@@ -82,23 +124,46 @@
 		</svelte:fragment>
 
 		<svelte:fragment slot="actions" let:row>
-			<button class="action-btn action-btn-danger" on:click={() => deleteWorkgroup(row.id)}>
-				Excluir
-			</button>
+			<div class="actions-group">
+				<button class="action-btn" on:click={() => openEdit(row)}>
+					Editar
+				</button>
+				<button class="action-btn" on:click={() => toggleActive(row)}>
+					{row.isActive ? 'Desativar' : 'Ativar'}
+				</button>
+				<button class="action-btn action-btn-danger" on:click={() => deleteWorkgroup(row)}>
+					Excluir
+				</button>
+			</div>
 		</svelte:fragment>
 	</DataTable>
 </div>
 
 <WorkgroupFormModal
 	isOpen={showCreateModal}
+	mode="create"
 	{saving}
 	on:close={() => showCreateModal = false}
-	on:save={handleCreateWorkgroup}
+	on:save={handleCreate}
+/>
+
+<WorkgroupFormModal
+	isOpen={showEditModal}
+	mode="edit"
+	workgroup={editWorkgroup}
+	{saving}
+	on:close={() => { showEditModal = false; editWorkgroup = null; }}
+	on:save={handleEdit}
 />
 
 <style>
 	.workgroups-page {
 		max-width: 1200px;
+	}
+
+	.actions-group {
+		display: flex;
+		gap: var(--spacing-sm);
 	}
 
 	.action-btn {
@@ -107,13 +172,14 @@
 		cursor: pointer;
 		padding: 2px 4px;
 		font-size: var(--font-size-sm);
+		color: var(--color-primary-500);
+	}
+
+	.action-btn:hover {
+		text-decoration: underline;
 	}
 
 	.action-btn-danger {
 		color: var(--color-error);
-	}
-
-	.action-btn-danger:hover {
-		text-decoration: underline;
 	}
 </style>

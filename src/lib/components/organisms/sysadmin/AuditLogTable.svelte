@@ -20,6 +20,16 @@
 			default: return 'neutral';
 		}
 	}
+
+	/** Anonimiza nomes no texto: "Ana Rita Vasconcelos" → "A* R*" */
+	function anonymizeNames(text) {
+		if (!text) return '—';
+		return text.replace(/"([^"]+)"/g, (_, name) => {
+			const parts = name.trim().split(/\s+/);
+			const anon = parts.slice(0, 2).map(p => p[0].toUpperCase() + '*').join(' ');
+			return anon;
+		});
+	}
 </script>
 
 <div class="table-wrapper">
@@ -27,9 +37,10 @@
 		<thead>
 			<tr>
 				<th>Quando</th>
-				<th>Quem</th>
+				<th>Quem (autor)</th>
 				<th>Ação</th>
 				<th>Tabela</th>
+				<th>Objeto</th>
 				<th>Motivo</th>
 				<th>IP</th>
 				<th>Organização</th>
@@ -42,14 +53,15 @@
 					<td class="td-when">{new Date(entry.when).toLocaleString('pt-BR')}</td>
 					<td>{entry.userName || entry.who}</td>
 					<td><Badge variant={howVariant(entry.how)} text={entry.how} size="sm" /></td>
-					<td><code>{entry.whatTable}</code>{#if entry.whatRecordId}<br/><small>{entry.whatRecordId}</small>{/if}</td>
-					<td class="td-why">{entry.why}</td>
+					<td><code>{entry.whatTable}</code></td>
+					<td class="td-object">{#if entry.whatRecordId}<code class="record-id">{entry.whatRecordId}</code>{:else}—{/if}</td>
+					<td class="td-why">{anonymizeNames(entry.why)}</td>
 					<td class="td-ip">{entry.whereIp || '—'}</td>
 					<td class="td-org">{entry.whereOrganization || '—'}</td>
 					<td>{entry.howManyAffected}</td>
 				</tr>
 			{:else}
-				<tr><td colspan="8" class="empty">Nenhuma entrada de auditoria</td></tr>
+				<tr><td colspan="9" class="empty">Nenhuma entrada de auditoria</td></tr>
 			{/each}
 		</tbody>
 	</table>
@@ -117,6 +129,14 @@
 	.td-org {
 		font-size: var(--font-size-xs);
 		white-space: nowrap;
+	}
+
+	.td-object {
+		font-size: var(--font-size-xs);
+	}
+
+	.record-id {
+		word-break: break-all;
 	}
 
 	code {

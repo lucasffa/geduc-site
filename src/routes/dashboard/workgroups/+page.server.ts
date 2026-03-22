@@ -1,6 +1,6 @@
 import type { PageServerLoad } from './$types';
 import { requirePermission } from '$lib/server/middleware/auth';
-import { isNull } from 'drizzle-orm';
+import { isNull, sql } from 'drizzle-orm';
 import { workgroups } from '$lib/server/db/schema-org';
 
 export const load: PageServerLoad = (event) => {
@@ -13,6 +13,10 @@ export const load: PageServerLoad = (event) => {
 		.select()
 		.from(workgroups)
 		.where(isNull(workgroups.deletedAt))
+		.orderBy(
+			sql`${workgroups.isActive} DESC`,
+			sql`${workgroups.createdAt} DESC`
+		)
 		.all();
 
 	return { workgroups: rows, permissions: event.locals.permissions };

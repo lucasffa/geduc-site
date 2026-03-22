@@ -3,9 +3,11 @@
 	import { addToast } from '$lib/stores/dashboard';
 	import { invalidateAll } from '$app/navigation';
 	import PageHeader from '$lib/components/molecules/PageHeader.svelte';
+	import Button from '$lib/components/atoms/Button.svelte';
 	import UserFilters from '$lib/components/organisms/sysadmin/UserFilters.svelte';
 	import UserTable from '$lib/components/organisms/sysadmin/UserTable.svelte';
 	import UserEditModal from '$lib/components/organisms/sysadmin/UserEditModal.svelte';
+	import UserCreateModal from '$lib/components/organisms/sysadmin/UserCreateModal.svelte';
 
 	export let data;
 
@@ -14,6 +16,8 @@
 	let filterOrg = '';
 	let showEditModal = false;
 	let editUser = null;
+	let showCreateModal = false;
+	let creating = false;
 
 	$: filtered = data.users.filter(u => {
 		const matchSearch = !search || u.name.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase());
@@ -74,6 +78,30 @@
 		}
 	}
 
+	async function createUser(e) {
+		const formData = e.detail;
+		creating = true;
+		try {
+			const res = await fetch('/sysadmin/api/users', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(formData)
+			});
+			const result = await res.json();
+			if (res.ok) {
+				addToast(`Usuário "${formData.name}" criado!`, 'success');
+				showCreateModal = false;
+				invalidateAll();
+			} else {
+				addToast(result.error || 'Erro ao criar', 'error');
+			}
+		} catch {
+			addToast('Erro ao criar usuário', 'error');
+		} finally {
+			creating = false;
+		}
+	}
+
 	async function deleteUser(e) {
 		const user = e.detail;
 		if (!confirm(`Excluir "${user.name}"? (soft delete)`)) return;
@@ -96,7 +124,9 @@
 	<title>Usuários | Sysadmin</title>
 </svelte:head>
 
-<PageHeader title="Usuários do Sistema" subtitle="{data.users.length} usuário(s) no total" />
+<PageHeader title="Usuários do Sistema" subtitle="{data.users.length} usuário(s) no total">
+	<Button variant="primary" on:click={() => { showCreateModal = true; }}>Novo Usuário</Button>
+</PageHeader>
 
 <UserFilters
 	{search}
@@ -115,6 +145,16 @@
 	on:edit={(e) => openEdit(e.detail)}
 	on:toggle={toggleActive}
 	on:delete={deleteUser}
+/>
+
+<UserCreateModal
+	isOpen={showCreateModal}
+	organizations={data.organizations}
+	roles={ROLES}
+	roleLabels={ROLE_LABELS}
+	saving={creating}
+	on:close={() => { showCreateModal = false; }}
+	on:save={createUser}
 />
 
 <UserEditModal

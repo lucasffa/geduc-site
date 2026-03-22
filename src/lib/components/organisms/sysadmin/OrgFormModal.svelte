@@ -20,6 +20,8 @@
 	let primaryColor = '#324acb';
 
 	// Auto-slug for create mode
+	let slugManuallyEdited = false;
+
 	$: autoSlug = name
 		.toLowerCase()
 		.normalize('NFD')
@@ -27,12 +29,13 @@
 		.replace(/[^a-z0-9]+/g, '-')
 		.replace(/^-|-$/g, '');
 
-	$: if (mode === 'create' && (!slug || slug === prevAutoSlug)) {
+	$: if (mode === 'create' && !slugManuallyEdited) {
 		slug = autoSlug;
 	}
 
-	let prevAutoSlug = '';
-	$: prevAutoSlug = autoSlug;
+	function onSlugInput() {
+		slugManuallyEdited = true;
+	}
 
 	// When org changes (edit mode), populate fields
 	$: if (mode === 'edit' && org) {
@@ -43,13 +46,16 @@
 	}
 
 	// Reset fields when modal opens in create mode
-	$: if (isOpen && mode === 'create') {
+	let prevIsOpen = false;
+	$: if (isOpen && !prevIsOpen && mode === 'create') {
 		name = '';
 		slug = '';
+		slugManuallyEdited = false;
 		brandName = '';
 		logoUrl = '';
 		primaryColor = '#324acb';
 	}
+	$: prevIsOpen = isOpen;
 
 	$: title = mode === 'create' ? 'Nova Organização' : `Editar "${org?.name || ''}"`;
 
@@ -86,7 +92,7 @@
 			<input id="org-name" class="form-control" bind:value={name} placeholder="Ex: GEDUC Campinas" />
 		</FormField>
 		<FormField label="Slug" id="org-slug" required>
-			<input id="org-slug" class="form-control" bind:value={slug} placeholder="geduc-campinas" />
+			<input id="org-slug" class="form-control" bind:value={slug} on:input={onSlugInput} placeholder="geduc-campinas" />
 			<small>Identificador único, usado no banco de dados</small>
 		</FormField>
 	{:else}

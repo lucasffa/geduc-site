@@ -20,7 +20,8 @@
 	let role = 'volunteer';
 	let organizationId = '';
 
-	$: if (isOpen) {
+	let prevIsOpen = false;
+	$: if (isOpen && !prevIsOpen) {
 		name = '';
 		email = '';
 		password = '';
@@ -28,9 +29,13 @@
 		role = 'volunteer';
 		organizationId = '';
 	}
+	$: prevIsOpen = isOpen;
 
-	$: canSave = name.trim().length >= 2 && email.includes('@') && password.length >= 8 && password === confirmPassword && !saving;
+	$: nameInvalid = name.length > 0 && name.trim().length < 2;
+	$: emailInvalid = email.length > 0 && !email.includes('@');
+	$: passwordInvalid = password.length > 0 && password.length < 8;
 	$: passwordMismatch = confirmPassword.length > 0 && password !== confirmPassword;
+	$: canSave = name.trim().length >= 2 && email.includes('@') && password.length >= 8 && password === confirmPassword && !saving;
 
 	function handleClose() {
 		dispatch('close');
@@ -50,19 +55,28 @@
 
 <Modal {isOpen} onClose={handleClose} size="md" title="Criar Usuário (sem convite)">
 	<FormField label="Nome" id="create-user-name" required>
-		<input id="create-user-name" class="form-control" bind:value={name} placeholder="Nome completo" />
+		<input id="create-user-name" class="form-control" class:input-error={nameInvalid} bind:value={name} placeholder="Nome completo" />
+		{#if nameInvalid}
+			<small class="error-text">Nome deve ter ao menos 2 caracteres</small>
+		{/if}
 	</FormField>
 
 	<FormField label="E-mail" id="create-user-email" required>
-		<input id="create-user-email" class="form-control" type="email" bind:value={email} placeholder="email@exemplo.com" />
+		<input id="create-user-email" class="form-control" class:input-error={emailInvalid} type="email" bind:value={email} placeholder="email@exemplo.com" />
+		{#if emailInvalid}
+			<small class="error-text">E-mail inválido</small>
+		{/if}
 	</FormField>
 
 	<FormField label="Senha" id="create-user-password" required>
-		<input id="create-user-password" class="form-control" type="password" bind:value={password} placeholder="Mínimo 8 caracteres" />
+		<input id="create-user-password" class="form-control" class:input-error={passwordInvalid} type="password" bind:value={password} placeholder="Mínimo 8 caracteres" />
+		{#if passwordInvalid}
+			<small class="error-text">Senha deve ter ao menos 8 caracteres</small>
+		{/if}
 	</FormField>
 
 	<FormField label="Confirmar Senha" id="create-user-confirm" required>
-		<input id="create-user-confirm" class="form-control" type="password" bind:value={confirmPassword} placeholder="Repita a senha" />
+		<input id="create-user-confirm" class="form-control" class:input-error={passwordMismatch} type="password" bind:value={confirmPassword} placeholder="Repita a senha" />
 		{#if passwordMismatch}
 			<small class="error-text">Senhas não conferem</small>
 		{/if}
@@ -105,5 +119,9 @@
 	.error-text {
 		color: var(--color-error);
 		font-size: var(--font-size-xs);
+	}
+
+	.input-error {
+		border-color: var(--color-error);
 	}
 </style>
