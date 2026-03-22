@@ -3,13 +3,15 @@ import { redirect } from '@sveltejs/kit';
 import { validateSession } from '$lib/server/auth';
 import { resolvePermissions } from '$lib/server/auth/permissions';
 import { getSystemDb, getOrgDb, initSystemDb } from '$lib/server/db';
+import { ensureSysadmin } from '$lib/server/db/seed';
 import { organizations } from '$lib/server/db/schema-system';
 import { eq, and, isNull } from 'drizzle-orm';
 import { ROLE_PERMISSIONS } from '$lib/constants/feature-flags';
 import type { OrganizationInfo } from '$lib/types/auth';
 
-// Initialize system DB on server start
+// Initialize system DB + ensure sysadmin on server start (idempotent)
 initSystemDb();
+ensureSysadmin().catch((err) => console.error('[seed] Failed to ensure sysadmin:', err));
 
 export const handle: Handle = ({ event, resolve }) => {
 	// Default locals

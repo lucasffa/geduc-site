@@ -15,6 +15,16 @@ export const PATCH: RequestHandler = async (event) => {
 	const user = db.select().from(users).where(eq(users.id, id)).get();
 	if (!user) return json({ error: 'Usuário não encontrado' }, { status: 404 });
 
+	// Block promoting anyone to sysadmin — only one sysadmin allowed (created via env)
+	if (body.role === 'sysadmin') {
+		return json({ error: 'Não é permitido atribuir o cargo sysadmin via interface' }, { status: 403 });
+	}
+
+	// Block demoting the existing sysadmin
+	if (user.role === 'sysadmin' && body.role !== undefined && body.role !== 'sysadmin') {
+		return json({ error: 'Não é possível alterar o cargo do sysadmin' }, { status: 403 });
+	}
+
 	const updates: Record<string, unknown> = { updatedAt: new Date().toISOString() };
 	if (body.role !== undefined) updates.role = body.role;
 	if (body.isActive !== undefined) updates.isActive = body.isActive;
@@ -41,6 +51,11 @@ export const DELETE: RequestHandler = async (event) => {
 
 	const user = db.select().from(users).where(eq(users.id, id)).get();
 	if (!user) return json({ error: 'Usuário não encontrado' }, { status: 404 });
+
+	// Prevent deleting the sysadmin
+	if (user.role === 'sysadmin') {
+		return json({ error: 'Não é possível excluir o sysadmin' }, { status: 403 });
+	}
 
 	// Prevent self-deletion
 	if (id === event.locals.user!.id) {

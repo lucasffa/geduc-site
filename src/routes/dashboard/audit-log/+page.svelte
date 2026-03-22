@@ -1,6 +1,7 @@
 <script>
 	import DataTable from '$lib/components/organisms/DataTable.svelte';
 	import Badge from '$lib/components/atoms/Badge.svelte';
+	import PageHeader from '$lib/components/molecules/PageHeader.svelte';
 
 	export let data;
 
@@ -31,7 +32,7 @@
 </svelte:head>
 
 <div class="audit-page">
-	<h1 class="page-title">Log de Auditoria</h1>
+	<PageHeader title="Log de Auditoria" />
 
 	<DataTable
 		{columns}
@@ -53,5 +54,4 @@
 
 <style>
 	.audit-page { max-width: 1400px; }
-	.page-title { font-size: var(--font-size-xl); font-weight: var(--font-weight-bold); color: var(--color-neutral-900); margin: 0 0 var(--spacing-lg); }
 </style>

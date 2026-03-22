@@ -4,6 +4,9 @@
 	import Button from '$lib/components/atoms/Button.svelte';
 	import PermissionGate from '$lib/components/molecules/PermissionGate.svelte';
 	import FilterBar from '$lib/components/molecules/FilterBar.svelte';
+	import PageHeader from '$lib/components/molecules/PageHeader.svelte';
+	import ParticipantFormModal from '$lib/components/organisms/dashboard/ParticipantFormModal.svelte';
+	import StatusHistoryModal from '$lib/components/organisms/dashboard/StatusHistoryModal.svelte';
 	import { goto } from '$app/navigation';
 	import { page as pageStore } from '$app/stores';
 	import { STATUS_LABELS, VALID_TRANSITIONS, PARTICIPANT_STATUSES, PARTICIPANT_ROLES, ROLE_LABELS } from '$lib/constants/participant-status';
@@ -29,7 +32,6 @@
 	let statusHistoryEntries = [];
 
 	// Form
-	let newParticipant = { name: '', email: '', role: 'mentorado', notes: '' };
 	let saving = false;
 
 	const columns = [
@@ -67,7 +69,8 @@
 	}
 
 	// CRUD operations via fetch
-	async function createParticipant() {
+	async function handleCreateSave(e) {
+		const newParticipant = e.detail;
 		saving = true;
 		try {
 			const res = await fetch('/dashboard/api/participants', {
@@ -78,7 +81,6 @@
 			if (!res.ok) throw new Error((await res.json()).error || 'Erro');
 			addToast('Participante criado com sucesso', 'success');
 			showCreateModal = false;
-			newParticipant = { name: '', email: '', role: 'mentorado', notes: '' };
 			goto($pageStore.url.toString(), { invalidateAll: true });
 		} catch (err) {
 			addToast(err.message, 'error');
@@ -87,19 +89,19 @@
 		}
 	}
 
-	async function updateParticipant() {
-		if (!editParticipant) return;
+	async function handleEditSave(e) {
+		const updatedData = e.detail;
 		saving = true;
 		try {
-			const res = await fetch(`/dashboard/api/participants/${editParticipant.id}`, {
+			const res = await fetch(`/dashboard/api/participants/${updatedData.id}`, {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
-					name: editParticipant.name,
-					email: editParticipant.email,
-					role: editParticipant.role,
-					notes: editParticipant.notes,
-					workloadHours: editParticipant.workloadHours
+					name: updatedData.name,
+					email: updatedData.email,
+					role: updatedData.role,
+					notes: updatedData.notes,
+					workloadHours: updatedData.workloadHours
 				})
 			});
 			if (!res.ok) throw new Error((await res.json()).error || 'Erro');
@@ -146,7 +148,7 @@
 			statusHistoryEntries = await res.json();
 			showHistoryModal = true;
 		} catch {
-			addToast('Erro ao carregar histórico', 'error');
+			addToast('Erro ao carregar historico', 'error');
 		}
 	}
 
@@ -161,14 +163,13 @@
 </svelte:head>
 
 <div class="participants-page">
-	<div class="page-header">
-		<h1 class="page-title">Participantes</h1>
+	<PageHeader title="Participantes">
 		<PermissionGate allowed={permissions.canManageParticipants}>
 			<Button variant="primary" size="sm" onclick={() => showCreateModal = true}>
 				+ Novo Participante
 			</Button>
 		</PermissionGate>
-	</div>
+	</PageHeader>
 
 	<DataTable
 		{columns}
@@ -197,9 +198,9 @@
 			{:else if column === 'role'}
 				<Badge text={ROLE_LABELS[value] || value} variant="role" />
 			{:else if column === 'createdAt'}
-				{value ? new Date(value).toLocaleDateString('pt-BR') : '—'}
+				{value ? new Date(value).toLocaleDateString('pt-BR') : '\u2014'}
 			{:else}
-				{value ?? '—'}
+				{value ?? '\u2014'}
 			{/if}
 		</svelte:fragment>
 
@@ -209,7 +210,7 @@
 					<button class="action-btn" on:click={() => openEdit(row)} title="Editar">
 						✏️
 					</button>
-					<button class="action-btn" on:click={() => loadHistory(row.id)} title="Histórico">
+					<button class="action-btn" on:click={() => loadHistory(row.id)} title="Historico">
 						📋
 					</button>
 					{#if VALID_TRANSITIONS[row.status]?.length > 0}
@@ -235,126 +236,38 @@
 </div>
 
 <!-- Create Modal -->
-{#if showCreateModal}
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div class="modal-overlay" on:click={() => showCreateModal = false} on:keydown={() => showCreateModal = false}>
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div class="modal-content" on:click|stopPropagation on:keydown|stopPropagation>
-			<h2>Novo Participante</h2>
-			<form on:submit|preventDefault={createParticipant}>
-				<div class="form-group">
-					<label for="new-name">Nome</label>
-					<input id="new-name" bind:value={newParticipant.name} required />
-				</div>
-				<div class="form-group">
-					<label for="new-email">E-mail</label>
-					<input id="new-email" type="email" bind:value={newParticipant.email} required />
-				</div>
-				<div class="form-group">
-					<label for="new-role">Cargo</label>
-					<select id="new-role" bind:value={newParticipant.role}>
-						{#each PARTICIPANT_ROLES as r}
-							<option value={r}>{ROLE_LABELS[r] || r}</option>
-						{/each}
-					</select>
-				</div>
-				<div class="form-group">
-					<label for="new-notes">Observações</label>
-					<textarea id="new-notes" bind:value={newParticipant.notes} rows="3"></textarea>
-				</div>
-				<div class="modal-actions">
-					<Button variant="ghost" onclick={() => showCreateModal = false}>Cancelar</Button>
-					<Button type="submit" variant="primary" loading={saving}>Criar</Button>
-				</div>
-			</form>
-		</div>
-	</div>
-{/if}
+<ParticipantFormModal
+	isOpen={showCreateModal}
+	mode="create"
+	{saving}
+	roles={PARTICIPANT_ROLES}
+	roleLabels={ROLE_LABELS}
+	on:close={() => showCreateModal = false}
+	on:save={handleCreateSave}
+/>
 
 <!-- Edit Modal -->
-{#if showEditModal && editParticipant}
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div class="modal-overlay" on:click={() => showEditModal = false} on:keydown={() => showEditModal = false}>
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div class="modal-content" on:click|stopPropagation on:keydown|stopPropagation>
-			<h2>Editar Participante</h2>
-			<form on:submit|preventDefault={updateParticipant}>
-				<div class="form-group">
-					<label for="edit-name">Nome</label>
-					<input id="edit-name" bind:value={editParticipant.name} required />
-				</div>
-				<div class="form-group">
-					<label for="edit-email">E-mail</label>
-					<input id="edit-email" type="email" bind:value={editParticipant.email} required />
-				</div>
-				<div class="form-group">
-					<label for="edit-role">Cargo</label>
-					<select id="edit-role" bind:value={editParticipant.role}>
-						{#each PARTICIPANT_ROLES as r}
-							<option value={r}>{ROLE_LABELS[r] || r}</option>
-						{/each}
-					</select>
-				</div>
-				<div class="form-group">
-					<label for="edit-hours">Carga Horária</label>
-					<input id="edit-hours" type="number" bind:value={editParticipant.workloadHours} />
-				</div>
-				<div class="form-group">
-					<label for="edit-notes">Observações</label>
-					<textarea id="edit-notes" bind:value={editParticipant.notes} rows="3"></textarea>
-				</div>
-				<div class="modal-actions">
-					<Button variant="ghost" onclick={() => showEditModal = false}>Cancelar</Button>
-					<Button type="submit" variant="primary" loading={saving}>Salvar</Button>
-				</div>
-			</form>
-		</div>
-	</div>
-{/if}
+<ParticipantFormModal
+	isOpen={showEditModal}
+	mode="edit"
+	participant={editParticipant}
+	{saving}
+	roles={PARTICIPANT_ROLES}
+	roleLabels={ROLE_LABELS}
+	on:close={() => showEditModal = false}
+	on:save={handleEditSave}
+/>
 
 <!-- History Modal -->
-{#if showHistoryModal}
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div class="modal-overlay" on:click={() => showHistoryModal = false} on:keydown={() => showHistoryModal = false}>
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div class="modal-content" on:click|stopPropagation on:keydown|stopPropagation>
-			<h2>Histórico de Status</h2>
-			{#if statusHistoryEntries.length === 0}
-				<p class="empty-text">Nenhum histórico encontrado.</p>
-			{:else}
-				<div class="history-list">
-					{#each statusHistoryEntries as entry}
-						<div class="history-item">
-							<span class="history-date">{new Date(entry.changedAt).toLocaleString('pt-BR')}</span>
-							<span>{entry.fromStatus || '—'} → <strong>{entry.toStatus}</strong></span>
-						</div>
-					{/each}
-				</div>
-			{/if}
-			<div class="modal-actions">
-				<Button variant="ghost" onclick={() => showHistoryModal = false}>Fechar</Button>
-			</div>
-		</div>
-	</div>
-{/if}
+<StatusHistoryModal
+	isOpen={showHistoryModal}
+	entries={statusHistoryEntries}
+	on:close={() => showHistoryModal = false}
+/>
 
 <style>
 	.participants-page {
 		max-width: 1200px;
-	}
-
-	.page-header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		margin-bottom: var(--spacing-lg);
-	}
-
-	.page-title {
-		font-size: var(--font-size-xl);
-		font-weight: var(--font-weight-bold);
-		color: var(--color-neutral-900);
-		margin: 0;
 	}
 
 	.action-buttons {
@@ -387,100 +300,5 @@
 		border-radius: var(--border-radius-sm);
 		background: var(--color-neutral-0);
 		cursor: pointer;
-	}
-
-	/* Modal styles */
-	.modal-overlay {
-		position: fixed;
-		inset: 0;
-		background: rgba(0, 0, 0, 0.5);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		z-index: 1000;
-		backdrop-filter: blur(2px);
-	}
-
-	.modal-content {
-		background: var(--color-neutral-0);
-		border-radius: var(--border-radius-xl);
-		padding: var(--spacing-xl);
-		max-width: 500px;
-		width: 90%;
-		max-height: 90vh;
-		overflow-y: auto;
-		box-shadow: var(--shadow-xl);
-	}
-
-	.modal-content h2 {
-		margin: 0 0 var(--spacing-lg);
-		font-size: var(--font-size-lg);
-		color: var(--color-neutral-900);
-	}
-
-	.modal-actions {
-		display: flex;
-		justify-content: flex-end;
-		gap: var(--spacing-sm);
-		margin-top: var(--spacing-lg);
-	}
-
-	.form-group {
-		margin-bottom: var(--spacing-md);
-	}
-
-	.form-group label {
-		display: block;
-		font-size: var(--font-size-sm);
-		font-weight: var(--font-weight-medium);
-		color: var(--color-neutral-700);
-		margin-bottom: var(--spacing-xs);
-	}
-
-	.form-group input,
-	.form-group select,
-	.form-group textarea {
-		width: 100%;
-		padding: var(--spacing-sm) var(--spacing-md);
-		border: 1px solid var(--color-neutral-300);
-		border-radius: var(--border-radius-md);
-		font-size: var(--font-size-base);
-		font-family: var(--font-family-sans);
-		box-sizing: border-box;
-	}
-
-	.form-group input:focus,
-	.form-group select:focus,
-	.form-group textarea:focus {
-		outline: none;
-		border-color: var(--color-primary-500);
-		box-shadow: 0 0 0 3px rgba(50, 74, 203, 0.1);
-	}
-
-	.empty-text {
-		text-align: center;
-		color: var(--color-neutral-400);
-		font-size: var(--font-size-sm);
-	}
-
-	.history-list {
-		display: flex;
-		flex-direction: column;
-		gap: var(--spacing-sm);
-	}
-
-	.history-item {
-		padding: var(--spacing-sm);
-		background: var(--color-neutral-50);
-		border-radius: var(--border-radius-md);
-		font-size: var(--font-size-sm);
-		display: flex;
-		flex-direction: column;
-		gap: 2px;
-	}
-
-	.history-date {
-		font-size: var(--font-size-xs);
-		color: var(--color-neutral-500);
 	}
 </style>
