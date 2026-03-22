@@ -11,6 +11,22 @@
 	/** @type {number} */
 	export let total = 0;
 
+	const TRUNCATE_AT = 15;
+	const sensitiveColumns = ['whatRecordId', 'whereIp'];
+
+	/** Track which cells are expanded (key = `rowIndex-colKey`) */
+	let expanded = {};
+	/** Track which sensitive columns are revealed per row */
+	let revealed = {};
+
+	function toggleExpand(key) {
+		expanded = { ...expanded, [key]: !expanded[key] };
+	}
+
+	function toggleReveal(key) {
+		revealed = { ...revealed, [key]: !revealed[key] };
+	}
+
 	function howVariant(how) {
 		switch (how) {
 			case 'CREATE': return 'success';
@@ -48,17 +64,137 @@
 			</tr>
 		</thead>
 		<tbody>
-			{#each entries as entry}
+			{#each entries as entry, i}
+				{@const cols = {
+					when: entry.when ? new Date(entry.when).toLocaleString('pt-BR') : '—',
+					userName: entry.userName || entry.who || '—',
+					how: entry.how,
+					whatTable: entry.whatTable || '—',
+					whatRecordId: entry.whatRecordId || '',
+					why: anonymizeNames(entry.why),
+					whereIp: entry.whereIp || '',
+					whereOrganization: entry.whereOrganization || '—',
+					howManyAffected: String(entry.howManyAffected ?? '—')
+				}}
 				<tr>
-					<td class="td-when">{new Date(entry.when).toLocaleString('pt-BR')}</td>
-					<td>{entry.userName || entry.who}</td>
+					<!-- Quando -->
+					<td class="td-when">{cols.when}</td>
+
+					<!-- Quem -->
+					<td>
+						{@const key = `${i}-userName`}
+						{@const val = cols.userName}
+						{#if val.length > TRUNCATE_AT}
+							{#if expanded[key]}
+								<span class="cell-full">{val}<button class="toggle-btn" on:click={() => toggleExpand(key)} title="Comprimir">−</button></span>
+							{:else}
+								<span class="cell-truncated">{val.slice(0, TRUNCATE_AT)}<button class="toggle-btn" on:click={() => toggleExpand(key)} title="Expandir">…</button></span>
+							{/if}
+						{:else}
+							{val}
+						{/if}
+					</td>
+
+					<!-- Ação -->
 					<td><Badge variant={howVariant(entry.how)} text={entry.how} size="sm" /></td>
-					<td><code>{entry.whatTable}</code></td>
-					<td class="td-object">{#if entry.whatRecordId}<code class="record-id">{entry.whatRecordId}</code>{:else}—{/if}</td>
-					<td class="td-why">{anonymizeNames(entry.why)}</td>
-					<td class="td-ip">{entry.whereIp || '—'}</td>
-					<td class="td-org">{entry.whereOrganization || '—'}</td>
-					<td>{entry.howManyAffected}</td>
+
+					<!-- Tabela -->
+					<td>
+						{@const key = `${i}-whatTable`}
+						{@const val = cols.whatTable}
+						{#if val.length > TRUNCATE_AT}
+							{#if expanded[key]}
+								<code class="cell-full">{val}<button class="toggle-btn" on:click={() => toggleExpand(key)} title="Comprimir">−</button></code>
+							{:else}
+								<code class="cell-truncated">{val.slice(0, TRUNCATE_AT)}<button class="toggle-btn" on:click={() => toggleExpand(key)} title="Expandir">…</button></code>
+							{/if}
+						{:else}
+							<code>{val}</code>
+						{/if}
+					</td>
+
+					<!-- Objeto (sensível) -->
+					<td class="td-object">
+						{@const rKey = `${i}-whatRecordId`}
+						{#if !cols.whatRecordId}
+							—
+						{:else if !revealed[rKey]}
+							<button class="eye-btn" on:click={() => toggleReveal(rKey)} title="Mostrar">👁️‍🗨️</button>
+						{:else}
+							{@const val = cols.whatRecordId}
+							<span class="sensitive-revealed">
+								<button class="eye-btn eye-open" on:click={() => toggleReveal(rKey)} title="Esconder">👁️</button>
+								{#if val.length > TRUNCATE_AT}
+									{@const eKey = `${i}-whatRecordId-exp`}
+									{#if expanded[eKey]}
+										<code class="record-id cell-full">{val}<button class="toggle-btn" on:click={() => toggleExpand(eKey)} title="Comprimir">−</button></code>
+									{:else}
+										<code class="record-id cell-truncated">{val.slice(0, TRUNCATE_AT)}<button class="toggle-btn" on:click={() => toggleExpand(eKey)} title="Expandir">…</button></code>
+									{/if}
+								{:else}
+									<code class="record-id">{val}</code>
+								{/if}
+							</span>
+						{/if}
+					</td>
+
+					<!-- Motivo -->
+					<td class="td-why">
+						{@const key = `${i}-why`}
+						{@const val = cols.why}
+						{#if val.length > TRUNCATE_AT}
+							{#if expanded[key]}
+								<span class="cell-full">{val}<button class="toggle-btn" on:click={() => toggleExpand(key)} title="Comprimir">−</button></span>
+							{:else}
+								<span class="cell-truncated">{val.slice(0, TRUNCATE_AT)}<button class="toggle-btn" on:click={() => toggleExpand(key)} title="Expandir">…</button></span>
+							{/if}
+						{:else}
+							{val}
+						{/if}
+					</td>
+
+					<!-- IP (sensível) -->
+					<td class="td-ip">
+						{@const rKey = `${i}-whereIp`}
+						{#if !cols.whereIp}
+							—
+						{:else if !revealed[rKey]}
+							<button class="eye-btn" on:click={() => toggleReveal(rKey)} title="Mostrar">👁️‍🗨️</button>
+						{:else}
+							{@const val = cols.whereIp}
+							<span class="sensitive-revealed">
+								<button class="eye-btn eye-open" on:click={() => toggleReveal(rKey)} title="Esconder">👁️</button>
+								{#if val.length > TRUNCATE_AT}
+									{@const eKey = `${i}-whereIp-exp`}
+									{#if expanded[eKey]}
+										<span class="cell-full">{val}<button class="toggle-btn" on:click={() => toggleExpand(eKey)} title="Comprimir">−</button></span>
+									{:else}
+										<span class="cell-truncated">{val.slice(0, TRUNCATE_AT)}<button class="toggle-btn" on:click={() => toggleExpand(eKey)} title="Expandir">…</button></span>
+									{/if}
+								{:else}
+									{val}
+								{/if}
+							</span>
+						{/if}
+					</td>
+
+					<!-- Organização -->
+					<td class="td-org">
+						{@const key = `${i}-whereOrganization`}
+						{@const val = cols.whereOrganization}
+						{#if val.length > TRUNCATE_AT}
+							{#if expanded[key]}
+								<span class="cell-full">{val}<button class="toggle-btn" on:click={() => toggleExpand(key)} title="Comprimir">−</button></span>
+							{:else}
+								<span class="cell-truncated">{val.slice(0, TRUNCATE_AT)}<button class="toggle-btn" on:click={() => toggleExpand(key)} title="Expandir">…</button></span>
+							{/if}
+						{:else}
+							{val}
+						{/if}
+					</td>
+
+					<!-- Qtd -->
+					<td>{entry.howManyAffected ?? '—'}</td>
 				</tr>
 			{:else}
 				<tr><td colspan="9" class="empty">Nenhuma entrada de auditoria</td></tr>
@@ -117,8 +253,6 @@
 
 	.td-why {
 		max-width: 300px;
-		overflow: hidden;
-		text-overflow: ellipsis;
 	}
 
 	.td-ip {
@@ -146,9 +280,53 @@
 		font-size: var(--font-size-xs);
 	}
 
-	small {
-		color: var(--text-color-subtle);
-		font-size: var(--font-size-xs);
+	/* Truncate / Expand */
+	.cell-truncated,
+	.cell-full {
+		display: inline;
+		word-break: break-all;
+	}
+
+	.toggle-btn {
+		display: inline;
+		background: none;
+		border: none;
+		color: var(--color-primary-500);
+		cursor: pointer;
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-bold);
+		padding: 0 2px;
+		line-height: 1;
+		vertical-align: baseline;
+	}
+
+	.toggle-btn:hover {
+		color: var(--color-primary-700);
+	}
+
+	/* Eye reveal for sensitive columns */
+	.eye-btn {
+		background: none;
+		border: none;
+		cursor: pointer;
+		font-size: var(--font-size-sm);
+		padding: 0;
+		line-height: 1;
+		opacity: 0.6;
+	}
+
+	.eye-btn:hover {
+		opacity: 1;
+	}
+
+	.eye-open {
+		opacity: 0.8;
+	}
+
+	.sensitive-revealed {
+		display: inline-flex;
+		align-items: baseline;
+		gap: 4px;
 	}
 
 	.empty {

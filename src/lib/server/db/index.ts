@@ -68,6 +68,18 @@ export function getOrgDb(slug: string): OrgDb {
 		INSERT OR IGNORE INTO org_settings (key, value) VALUES ('custom_roles', '${JSON.stringify(DEFAULT_CUSTOM_ROLES)}');
 	`);
 
+	// Migration: ensure participant_views table exists
+	sqlite.exec(`
+		CREATE TABLE IF NOT EXISTS participant_views (
+			id TEXT PRIMARY KEY,
+			name TEXT NOT NULL,
+			filters TEXT NOT NULL DEFAULT '{}',
+			position INTEGER NOT NULL DEFAULT 0,
+			created_at TEXT NOT NULL DEFAULT (datetime('now')),
+			updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+		);
+	`);
+
 	const db = drizzle(sqlite, { schema: orgSchema });
 	orgDbPool.set(slug, db);
 	return db;
@@ -152,6 +164,15 @@ export function createOrgDb(slug: string): OrgDb {
 		CREATE TABLE IF NOT EXISTS org_settings (
 			key TEXT PRIMARY KEY,
 			value TEXT NOT NULL,
+			updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+		);
+
+		CREATE TABLE IF NOT EXISTS participant_views (
+			id TEXT PRIMARY KEY,
+			name TEXT NOT NULL,
+			filters TEXT NOT NULL DEFAULT '{}',
+			position INTEGER NOT NULL DEFAULT 0,
+			created_at TEXT NOT NULL DEFAULT (datetime('now')),
 			updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 		);
 

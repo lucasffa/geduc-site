@@ -20,8 +20,36 @@
 	export let totalPages = 1;
 	export let total = 0;
 	export let emptyMessage = 'Nenhum registro encontrado.';
+	export let selectable = false;
+	/** @type {Set<string>} */
+	export let selectedIds = new Set();
 
 	const dispatch = createEventDispatcher();
+
+	$: allPageIds = data.map((r) => r.id).filter(Boolean);
+	$: allSelected = selectable && allPageIds.length > 0 && allPageIds.every((id) => selectedIds.has(id));
+	$: someSelected = selectable && allPageIds.some((id) => selectedIds.has(id)) && !allSelected;
+
+	function toggleAll() {
+		if (allSelected) {
+			const next = new Set(selectedIds);
+			for (const id of allPageIds) next.delete(id);
+			selectedIds = next;
+		} else {
+			const next = new Set(selectedIds);
+			for (const id of allPageIds) next.add(id);
+			selectedIds = next;
+		}
+		dispatch('selectionChange', { ids: selectedIds });
+	}
+
+	function toggleRow(id) {
+		const next = new Set(selectedIds);
+		if (next.has(id)) next.delete(id);
+		else next.add(id);
+		selectedIds = next;
+		dispatch('selectionChange', { ids: selectedIds });
+	}
 </script>
 
 <div class="data-table-wrapper">
@@ -50,6 +78,17 @@
 			<table class="data-table">
 				<thead>
 					<tr>
+						{#if selectable}
+							<th style="width: 40px">
+								<input
+									type="checkbox"
+									checked={allSelected}
+									indeterminate={someSelected}
+									on:change={toggleAll}
+									class="select-checkbox"
+								/>
+							</th>
+						{/if}
 						{#each columns as col}
 							<th style={col.width ? `width: ${col.width}` : ''}>{col.label}</th>
 						{/each}
@@ -60,7 +99,17 @@
 				</thead>
 				<tbody>
 					{#each data as row, i}
-						<tr>
+						<tr class:selected-row={selectable && selectedIds.has(row.id)}>
+							{#if selectable}
+								<td>
+									<input
+										type="checkbox"
+										checked={selectedIds.has(row.id)}
+										on:change={() => toggleRow(row.id)}
+										class="select-checkbox"
+									/>
+								</td>
+							{/if}
 							{#each columns as col}
 								<td>
 									<slot name="cell" {row} column={col.key} value={row[col.key]}>
@@ -153,6 +202,16 @@
 	.data-table-empty p {
 		margin: 0;
 		font-size: var(--font-size-sm);
+	}
+
+	.select-checkbox {
+		cursor: pointer;
+		width: 16px;
+		height: 16px;
+	}
+
+	.selected-row {
+		background: var(--color-primary-50, #f0f4ff);
 	}
 
 	:global(.data-table-wrapper .pagination) {

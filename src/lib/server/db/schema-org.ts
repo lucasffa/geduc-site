@@ -81,6 +81,18 @@ export const orgSettings = sqliteTable('org_settings', {
 });
 
 // ============================================================
+// PARTICIPANT VIEWS
+// ============================================================
+export const participantViews = sqliteTable('participant_views', {
+	id: text('id').primaryKey(),
+	name: text('name').notNull(),
+	filters: text('filters').notNull().default('{}'),
+	position: integer('position').notNull().default(0),
+	createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+	updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`)
+});
+
+// ============================================================
 // USER <-> WORKGROUP (junction)
 // ============================================================
 export const userWorkgroups = sqliteTable(
