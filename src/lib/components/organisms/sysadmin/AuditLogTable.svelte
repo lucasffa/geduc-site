@@ -32,6 +32,7 @@
 				<th>Tabela</th>
 				<th>Motivo</th>
 				<th>IP</th>
+				<th>Organização</th>
 				<th>Qtd</th>
 			</tr>
 		</thead>
@@ -44,10 +45,11 @@
 					<td><code>{entry.whatTable}</code>{#if entry.whatRecordId}<br/><small>{entry.whatRecordId}</small>{/if}</td>
 					<td class="td-why">{entry.why}</td>
 					<td class="td-ip">{entry.whereIp || '—'}</td>
+					<td class="td-org">{entry.whereOrganization || '—'}</td>
 					<td>{entry.howManyAffected}</td>
 				</tr>
 			{:else}
-				<tr><td colspan="7" class="empty">Nenhuma entrada de auditoria</td></tr>
+				<tr><td colspan="8" class="empty">Nenhuma entrada de auditoria</td></tr>
 			{/each}
 		</tbody>
 	</table>
@@ -110,6 +112,11 @@
 	.td-ip {
 		font-family: monospace;
 		font-size: var(--font-size-xs);
+	}
+
+	.td-org {
+		font-size: var(--font-size-xs);
+		white-space: nowrap;
 	}
 
 	code {

@@ -227,6 +227,7 @@ export function initSystemDb(): void {
 			where_ip TEXT,
 			how_many_affected INTEGER DEFAULT 1,
 			organization_id TEXT,
+			where_organization TEXT,
 			hash_digest TEXT NOT NULL
 		);
 
@@ -235,4 +236,11 @@ export function initSystemDb(): void {
 		CREATE INDEX IF NOT EXISTS audit_log_when_idx ON audit_log("when");
 		CREATE INDEX IF NOT EXISTS audit_log_org_when_idx ON audit_log(organization_id, "when");
 	`);
+
+	// Migration: add where_organization column if missing
+	try {
+		sqlite.exec(`ALTER TABLE audit_log ADD COLUMN where_organization TEXT`);
+	} catch {
+		// Column already exists
+	}
 }

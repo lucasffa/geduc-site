@@ -12,6 +12,7 @@ import {
 	cacheUserApiKey,
 	cacheOrgApiKey
 } from '$lib/server/auth';
+import { logAudit } from '$lib/server/middleware/audit';
 
 export const load: PageServerLoad = ({ locals }) => {
 	// Redirect if already logged in
@@ -73,6 +74,16 @@ export const actions: Actions = {
 		if (user.organizationId && user.role === 'admin') {
 			cacheOrgApiKey(user.organizationId, parsed.data.password);
 		}
+
+		// Audit: login
+		logAudit(event, {
+			who: user.id,
+			whatTable: 'sessions',
+			whatRecordId: token,
+			how: 'CREATE',
+			why: `Login de "${user.name}" (${user.email})`,
+			organizationId: user.organizationId || null
+		});
 
 		// Redirect based on role
 		if (user.role === 'sysadmin') {
