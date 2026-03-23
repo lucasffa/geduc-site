@@ -11,9 +11,15 @@
 	import StatusHistoryModal from '$lib/components/organisms/dashboard/StatusHistoryModal.svelte';
 	import ImportSpreadsheetModal from '$lib/components/organisms/dashboard/ImportSpreadsheetModal.svelte';
 	import ViewFormModal from '$lib/components/organisms/dashboard/ViewFormModal.svelte';
+	import StatusChangeModal from '$lib/components/organisms/dashboard/StatusChangeModal.svelte';
 	import { goto } from '$app/navigation';
 	import { page as pageStore } from '$app/stores';
-	import { STATUS_LABELS, VALID_TRANSITIONS, PARTICIPANT_STATUSES, ROLE_CATEGORY_LABELS } from '$lib/constants/participant-status';
+	import {
+		STATUS_LABELS,
+		VALID_TRANSITIONS,
+		PARTICIPANT_STATUSES,
+		ROLE_CATEGORY_LABELS
+	} from '$lib/constants/participant-status';
 	import { addToast } from '$lib/stores/dashboard';
 
 	export let data;
@@ -30,7 +36,7 @@
 		if (enforceTransitions) {
 			return VALID_TRANSITIONS[status] || [];
 		}
-		return PARTICIPANT_STATUSES.filter(s => s !== status);
+		return PARTICIPANT_STATUSES.filter((s) => s !== status);
 	}
 
 	let search = $pageStore.url.searchParams.get('search') || '';
@@ -58,6 +64,10 @@
 	let showBulkStatusSelect = false;
 	let showBulkRoleSelect = false;
 
+	// Status change modal
+	let showStatusModal = false;
+	let statusChangeParticipant = null;
+
 	// Form
 	let saving = false;
 	let viewSaving = false;
@@ -70,8 +80,15 @@
 		{ key: 'createdAt', label: 'Criado em', width: '120px' }
 	];
 
-	const statusFilters = PARTICIPANT_STATUSES.map(s => ({ value: s, label: STATUS_LABELS[s] || s }));
-	$: roleFilters = allRoles.map(r => ({ value: r, label: r }));
+	const statusFilters = PARTICIPANT_STATUSES.map((s) => ({
+		value: s,
+		label: STATUS_LABELS[s] || s
+	}));
+	$: roleFilters = allRoles.map((r) => ({ value: r, label: r }));
+
+	// Debounce timer for search
+	let searchTimer = null;
+	const SEARCH_DEBOUNCE = 400;
 
 	function updateUrl(params) {
 		const url = new URL($pageStore.url);
@@ -79,7 +96,7 @@
 			if (v) url.searchParams.set(k, v);
 			else url.searchParams.delete(k);
 		}
-		goto(url.toString(), { replaceState: true, invalidateAll: true });
+		goto(url.toString(), { replaceState: true, keepFocus: true, invalidateAll: true });
 	}
 
 	function reload() {
@@ -88,7 +105,10 @@
 
 	function handleSearch(e) {
 		search = e.detail.value;
-		updateUrl({ search, page: '1' });
+		if (searchTimer) clearTimeout(searchTimer);
+		searchTimer = setTimeout(() => {
+			updateUrl({ search, page: '1' });
+		}, SEARCH_DEBOUNCE);
 	}
 
 	function handleFilter(e) {
@@ -339,6 +359,18 @@
 		editParticipant = { ...row };
 		showEditModal = true;
 	}
+
+	function openStatusModal(row) {
+		statusChangeParticipant = row;
+		showStatusModal = true;
+	}
+
+	function handleStatusSelect(e) {
+		const newStatus = e.detail;
+		changeStatus(statusChangeParticipant.id, newStatus);
+		showStatusModal = false;
+		statusChangeParticipant = null;
+	}
 </script>
 
 <svelte:head>
@@ -349,10 +381,10 @@
 	<PageHeader title="Participantes">
 		<PermissionGate allowed={permissions.canManageParticipants}>
 			<div class="header-actions">
-				<Button variant="ghost" size="sm" on:click={() => showImportModal = true}>
+				<Button variant="ghost" size="sm" on:click={() => (showImportModal = true)}>
 					Importar Planilha
 				</Button>
-				<Button variant="primary" size="sm" on:click={() => showCreateModal = true}>
+				<Button variant="primary" size="sm" on:click={() => (showCreateModal = true)}>
 					+ Novo Participante
 				</Button>
 			</div>
@@ -409,25 +441,21 @@
 		<svelte:fragment slot="actions" let:row>
 			<PermissionGate allowed={permissions.canManageParticipants}>
 				<div class="action-buttons">
-					<button class="action-btn" on:click={() => openEdit(row)} title="Editar">
-						✏️
-					</button>
+					<button class="action-btn" on:click={() => openEdit(row)} title="Editar"> ✏️ </button>
 					<button class="action-btn" on:click={() => loadHistory(row.id)} title="Historico">
 						📋
 					</button>
 					{#if getAvailableStatuses(row.status).length > 0}
-						<select
-							class="status-select"
-							on:change={(e) => { changeStatus(row.id, e.target.value); e.target.value = ''; }}
-						>
-							<option value="">Status →</option>
-							{#each getAvailableStatuses(row.status) as t}
-								<option value={t}>{STATUS_LABELS[t] || t}</option>
-							{/each}
-						</select>
+						<button class="action-btn" on:click={() => openStatusModal(row)} title="Alterar status">
+							🔄
+						</button>
 					{/if}
 					<PermissionGate allowed={permissions.canDeleteParticipants}>
-						<button class="action-btn action-btn-danger" on:click={() => deleteParticipant(row.id)} title="Excluir">
+						<button
+							class="action-btn action-btn-danger"
+							on:click={() => deleteParticipant(row.id)}
+							title="Excluir"
+						>
 							🗑️
 						</button>
 					</PermissionGate>
@@ -440,10 +468,10 @@
 		<BulkActionBar
 			count={selectedIds.size}
 			on:deactivate={bulkDeactivate}
-			on:changeStatus={() => showBulkStatusSelect = true}
-			on:changeRole={() => showBulkRoleSelect = true}
+			on:changeStatus={() => (showBulkStatusSelect = true)}
+			on:changeRole={() => (showBulkRoleSelect = true)}
 			on:export={bulkExport}
-			on:clear={() => selectedIds = new Set()}
+			on:clear={() => (selectedIds = new Set())}
 		/>
 	</PermissionGate>
 </div>
@@ -451,7 +479,11 @@
 <!-- Bulk Status Select Modal -->
 {#if showBulkStatusSelect}
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div class="bulk-overlay" on:click={() => showBulkStatusSelect = false} on:keydown={(e) => e.key === 'Escape' && (showBulkStatusSelect = false)}>
+	<div
+		class="bulk-overlay"
+		on:click={() => (showBulkStatusSelect = false)}
+		on:keydown={(e) => e.key === 'Escape' && (showBulkStatusSelect = false)}
+	>
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div class="bulk-select-panel" on:click|stopPropagation on:keydown|stopPropagation>
 			<h3>Mudar status para:</h3>
@@ -462,7 +494,9 @@
 					</button>
 				{/each}
 			</div>
-			<button class="bulk-select-cancel" on:click={() => showBulkStatusSelect = false}>Cancelar</button>
+			<button class="bulk-select-cancel" on:click={() => (showBulkStatusSelect = false)}
+				>Cancelar</button
+			>
 		</div>
 	</div>
 {/if}
@@ -470,7 +504,11 @@
 <!-- Bulk Role Select Modal -->
 {#if showBulkRoleSelect}
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div class="bulk-overlay" on:click={() => showBulkRoleSelect = false} on:keydown={(e) => e.key === 'Escape' && (showBulkRoleSelect = false)}>
+	<div
+		class="bulk-overlay"
+		on:click={() => (showBulkRoleSelect = false)}
+		on:keydown={(e) => e.key === 'Escape' && (showBulkRoleSelect = false)}
+	>
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div class="bulk-select-panel" on:click|stopPropagation on:keydown|stopPropagation>
 			<h3>Mudar cargo para:</h3>
@@ -481,7 +519,9 @@
 					</button>
 				{/each}
 			</div>
-			<button class="bulk-select-cancel" on:click={() => showBulkRoleSelect = false}>Cancelar</button>
+			<button class="bulk-select-cancel" on:click={() => (showBulkRoleSelect = false)}
+				>Cancelar</button
+			>
 		</div>
 	</div>
 {/if}
@@ -492,7 +532,7 @@
 	mode="create"
 	{saving}
 	{customRoles}
-	on:close={() => showCreateModal = false}
+	on:close={() => (showCreateModal = false)}
 	on:save={handleCreateSave}
 />
 
@@ -503,7 +543,7 @@
 	participant={editParticipant}
 	{saving}
 	{customRoles}
-	on:close={() => showEditModal = false}
+	on:close={() => (showEditModal = false)}
 	on:save={handleEditSave}
 />
 
@@ -511,13 +551,13 @@
 <StatusHistoryModal
 	isOpen={showHistoryModal}
 	entries={statusHistoryEntries}
-	on:close={() => showHistoryModal = false}
+	on:close={() => (showHistoryModal = false)}
 />
 
 <!-- Import Modal -->
 <ImportSpreadsheetModal
 	isOpen={showImportModal}
-	on:close={() => showImportModal = false}
+	on:close={() => (showImportModal = false)}
 	on:imported={reload}
 />
 
@@ -528,8 +568,22 @@
 	view={editingView}
 	saving={viewSaving}
 	{customRoles}
-	on:close={() => showViewModal = false}
+	on:close={() => (showViewModal = false)}
 	on:save={handleViewSave}
+/>
+
+<!-- Status Change Modal -->
+<StatusChangeModal
+	isOpen={showStatusModal}
+	participant={statusChangeParticipant}
+	availableStatuses={statusChangeParticipant
+		? getAvailableStatuses(statusChangeParticipant.status)
+		: []}
+	on:close={() => {
+		showStatusModal = false;
+		statusChangeParticipant = null;
+	}}
+	on:select={handleStatusSelect}
 />
 
 <style>
@@ -564,15 +618,6 @@
 
 	.action-btn-danger:hover {
 		background: var(--color-red-100);
-	}
-
-	.status-select {
-		font-size: var(--font-size-xs);
-		padding: 2px 4px;
-		border: 1px solid var(--color-neutral-300);
-		border-radius: var(--border-radius-sm);
-		background: var(--color-neutral-0);
-		cursor: pointer;
 	}
 
 	/* Bulk select overlay */

@@ -27,7 +27,10 @@
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<aside class="sidebar" class:open={$sidebarOpen} on:click={closeSidebar} on:keydown={closeSidebar}>
+{#if $sidebarOpen}
+	<div class="sidebar-overlay" on:click={closeSidebar} on:keydown={closeSidebar}></div>
+{/if}
+<aside class="sidebar" class:open={$sidebarOpen}>
 	<div class="sidebar-header">
 		<BrandHeader {brandName} {logoUrl} size="md" />
 		<span class="sidebar-subtitle">Painel de Gestão</span>
@@ -39,6 +42,7 @@
 				href={link.href}
 				class="sidebar-link"
 				class:active={$page.url.pathname === link.href || ($page.url.pathname.startsWith(link.href) && link.href !== '/dashboard')}
+				on:click={closeSidebar}
 			>
 				{link.label}
 			</a>
@@ -64,13 +68,18 @@
 		color: var(--color-neutral-0);
 		display: flex;
 		flex-direction: column;
-		min-height: 100vh;
+		height: 100vh;
 		position: fixed;
 		top: 0;
 		left: 0;
 		z-index: 100;
 		transform: translateX(0);
 		transition: transform var(--transition-normal);
+		overflow-y: auto;
+	}
+
+	.sidebar-overlay {
+		display: none;
 	}
 
 	.sidebar-header {
@@ -160,6 +169,16 @@
 		}
 		.sidebar.open {
 			transform: translateX(0);
+		}
+		.sidebar-overlay {
+			display: block;
+			position: fixed;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			background: rgba(0, 0, 0, 0.5);
+			z-index: 99;
 		}
 	}
 </style>
