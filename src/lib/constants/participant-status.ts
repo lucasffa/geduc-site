@@ -66,3 +66,21 @@ export const ROLE_LABELS: Record<ParticipantRole, string> = {
 	coordenador: 'Coordenador',
 	voluntário: 'Voluntário'
 };
+
+/** Categorias guarda-chuva para cargos configuráveis */
+export type RoleCategory = 'voluntario' | 'mentorado';
+
+export interface CustomRolesConfig {
+	voluntario: string[];
+	mentorado: string[];
+}
+
+export const DEFAULT_CUSTOM_ROLES: CustomRolesConfig = {
+	voluntario: ['Diretor(a)', 'Mentor(a)', 'Coordenador(a)', 'Analista', 'Voluntário(a)'],
+	mentorado: ['Mentorado(a)', 'Aluno(a)', 'Alumni']
+};
+
+export const ROLE_CATEGORY_LABELS: Record<RoleCategory, string> = {
+	voluntario: 'Voluntário',
+	mentorado: 'Mentorado'
+};

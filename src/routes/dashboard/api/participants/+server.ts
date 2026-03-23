@@ -1,7 +1,7 @@
 import { json } from '@sveltejs/kit';
 import { randomUUID } from 'node:crypto';
 import type { RequestHandler } from './$types';
-import { participants } from '$lib/server/db/schema-org';
+import { participants, statusHistory } from '$lib/server/db/schema-org';
 import { participantSchema } from '$lib/validations/participant';
 import { requirePermission } from '$lib/server/middleware/auth';
 import { logAudit } from '$lib/server/middleware/audit';
@@ -75,6 +75,15 @@ export const POST: RequestHandler = async (event) => {
 			cycleEndDate: parsed.data.cycleEndDate || null,
 			workloadHours: parsed.data.workloadHours || null,
 			notes: parsed.data.notes || null
+		}).run();
+
+		// Registrar histórico de status inicial
+		orgDb.insert(statusHistory).values({
+			id: randomUUID(),
+			participantId: id,
+			fromStatus: null,
+			toStatus: parsed.data.status || 'inscrito',
+			changedBy: event.locals.user?.id || 'sistema'
 		}).run();
 
 		const created = orgDb.select().from(participants).where(eq(participants.id, id)).get();

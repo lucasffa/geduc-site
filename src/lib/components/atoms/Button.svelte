@@ -1,7 +1,10 @@
 <!-- src/lib/components/atoms/Button.svelte -->
 <script lang="ts">
+	import { createEventDispatcher } from 'svelte';
 	import type { ButtonProps } from '$lib/types/components';
 	import Icon from '$lib/components/atoms/Icon.svelte';
+
+	const dispatch = createEventDispatcher();
 
 	export let onclick: ButtonProps['onclick'] = undefined;
 	export let variant: ButtonProps['variant'] = 'primary';
@@ -23,6 +26,7 @@
 	export { className as class };
 
 	function handleClick(event: MouseEvent) {
+		dispatch('click', event);
 		if (onclick) {
 			onclick(event);
 		}

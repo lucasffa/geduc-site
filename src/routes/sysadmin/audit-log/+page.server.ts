@@ -22,6 +22,7 @@ export const load: PageServerLoad = ({ url }) => {
 			whereIp: auditLog.whereIp,
 			howManyAffected: auditLog.howManyAffected,
 			organizationId: auditLog.organizationId,
+			whereOrganization: auditLog.whereOrganization,
 			hashDigest: auditLog.hashDigest
 		})
 		.from(auditLog)

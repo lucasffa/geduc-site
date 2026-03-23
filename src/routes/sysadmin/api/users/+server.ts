@@ -1,8 +1,11 @@
 import { json, error } from '@sveltejs/kit';
+import { randomUUID } from 'node:crypto';
 import type { RequestHandler } from './$types';
 import { getSystemDb } from '$lib/server/db';
 import { users, organizations } from '$lib/server/db/schema-system';
-import { isNull, eq, sql, like } from 'drizzle-orm';
+import { isNull, eq, sql, like, and } from 'drizzle-orm';
+import { hashPassword } from '$lib/server/auth';
+import { logAudit } from '$lib/server/middleware/audit';
 
 export const GET: RequestHandler = (event) => {
 	if (event.locals.user?.role !== 'sysadmin') throw error(403);
@@ -62,4 +65,64 @@ export const GET: RequestHandler = (event) => {
 		page,
 		limit
 	});
+};
+
+export const POST: RequestHandler = async (event) => {
+	if (event.locals.user?.role !== 'sysadmin') throw error(403);
+
+	const body = await event.request.json();
+	const { name, email, password, role, organizationId } = body;
+
+	if (!name || !email || !password) {
+		return json({ error: 'Nome, e-mail e senha são obrigatórios' }, { status: 400 });
+	}
+
+	if (typeof name !== 'string' || name.trim().length < 2) {
+		return json({ error: 'Nome deve ter ao menos 2 caracteres' }, { status: 400 });
+	}
+
+	if (typeof password !== 'string' || password.length < 8) {
+		return json({ error: 'Senha deve ter ao menos 8 caracteres' }, { status: 400 });
+	}
+
+	const validRoles = ['admin', 'volunteer', 'mentee', 'dumb'];
+	if (!role || !validRoles.includes(role)) {
+		return json({ error: 'Cargo inválido' }, { status: 400 });
+	}
+
+	const db = getSystemDb();
+
+	// Check uniqueness
+	const existing = db
+		.select()
+		.from(users)
+		.where(and(eq(users.email, email), isNull(users.deletedAt)))
+		.get();
+
+	if (existing) {
+		return json({ error: 'E-mail já cadastrado' }, { status: 409 });
+	}
+
+	const passwordHash = await hashPassword(password);
+	const id = randomUUID();
+
+	db.insert(users).values({
+		id,
+		email: email.trim().toLowerCase(),
+		name: name.trim(),
+		passwordHash,
+		role,
+		organizationId: organizationId || null,
+		isActive: true
+	}).run();
+
+	logAudit(event, {
+		whatTable: 'users',
+		whatRecordId: id,
+		how: 'CREATE',
+		why: `Usuário "${name}" (${email}) criado diretamente pelo sysadmin com cargo ${role}`,
+		organizationId: organizationId || null
+	});
+
+	return json({ id, email }, { status: 201 });
 };

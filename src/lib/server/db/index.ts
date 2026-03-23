@@ -2,6 +2,7 @@ import Database from 'better-sqlite3';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
 import * as systemSchema from './schema-system';
 import * as orgSchema from './schema-org';
+import { DEFAULT_CUSTOM_ROLES } from '$lib/constants/participant-status';
 import path from 'node:path';
 import fs from 'node:fs';
 
@@ -55,6 +56,30 @@ export function getOrgDb(slug: string): OrgDb {
 	const sqlite = new Database(dbPath);
 	sqlite.pragma('journal_mode = WAL');
 	sqlite.pragma('foreign_keys = ON');
+
+	// Migration: ensure org_settings table exists
+	sqlite.exec(`
+		CREATE TABLE IF NOT EXISTS org_settings (
+			key TEXT PRIMARY KEY,
+			value TEXT NOT NULL,
+			updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+		);
+		INSERT OR IGNORE INTO org_settings (key, value) VALUES ('enforce_status_transitions', 'true');
+		INSERT OR IGNORE INTO org_settings (key, value) VALUES ('custom_roles', '${JSON.stringify(DEFAULT_CUSTOM_ROLES)}');
+	`);
+
+	// Migration: ensure participant_views table exists
+	sqlite.exec(`
+		CREATE TABLE IF NOT EXISTS participant_views (
+			id TEXT PRIMARY KEY,
+			name TEXT NOT NULL,
+			filters TEXT NOT NULL DEFAULT '{}',
+			position INTEGER NOT NULL DEFAULT 0,
+			created_at TEXT NOT NULL DEFAULT (datetime('now')),
+			updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+		);
+	`);
+
 	const db = drizzle(sqlite, { schema: orgSchema });
 	orgDbPool.set(slug, db);
 	return db;
@@ -135,6 +160,24 @@ export function createOrgDb(slug: string): OrgDb {
 			workgroup_id TEXT NOT NULL REFERENCES workgroups(id) ON DELETE CASCADE,
 			PRIMARY KEY (user_id, workgroup_id)
 		);
+
+		CREATE TABLE IF NOT EXISTS org_settings (
+			key TEXT PRIMARY KEY,
+			value TEXT NOT NULL,
+			updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+		);
+
+		CREATE TABLE IF NOT EXISTS participant_views (
+			id TEXT PRIMARY KEY,
+			name TEXT NOT NULL,
+			filters TEXT NOT NULL DEFAULT '{}',
+			position INTEGER NOT NULL DEFAULT 0,
+			created_at TEXT NOT NULL DEFAULT (datetime('now')),
+			updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+		);
+
+		INSERT OR IGNORE INTO org_settings (key, value) VALUES ('enforce_status_transitions', 'true');
+		INSERT OR IGNORE INTO org_settings (key, value) VALUES ('custom_roles', '${JSON.stringify(DEFAULT_CUSTOM_ROLES)}');
 	`);
 
 	const db = drizzle(sqlite, { schema: orgSchema });
@@ -227,6 +270,7 @@ export function initSystemDb(): void {
 			where_ip TEXT,
 			how_many_affected INTEGER DEFAULT 1,
 			organization_id TEXT,
+			where_organization TEXT,
 			hash_digest TEXT NOT NULL
 		);
 
@@ -235,4 +279,11 @@ export function initSystemDb(): void {
 		CREATE INDEX IF NOT EXISTS audit_log_when_idx ON audit_log("when");
 		CREATE INDEX IF NOT EXISTS audit_log_org_when_idx ON audit_log(organization_id, "when");
 	`);
+
+	// Migration: add where_organization column if missing
+	try {
+		sqlite.exec(`ALTER TABLE audit_log ADD COLUMN where_organization TEXT`);
+	} catch {
+		// Column already exists
+	}
 }

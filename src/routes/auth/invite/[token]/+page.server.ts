@@ -6,6 +6,7 @@ import { getSystemDb } from '$lib/server/db';
 import { invitations, users } from '$lib/server/db/schema-system';
 import { eq, and, isNull } from 'drizzle-orm';
 import { hashPassword, createSession, setSessionCookie } from '$lib/server/auth';
+import { logAudit } from '$lib/server/middleware/audit';
 
 export const load: PageServerLoad = ({ params }) => {
 	const db = getSystemDb();
@@ -90,6 +91,16 @@ export const actions: Actions = {
 		// Auto-login
 		const { token, expiresAt } = createSession(userId);
 		setSessionCookie(event, token, expiresAt);
+
+		// Audit: user creation via invite
+		logAudit(event, {
+			who: userId,
+			whatTable: 'users',
+			whatRecordId: userId,
+			how: 'CREATE',
+			why: `Usuário "${parsed.data.name}" (${invitation.email}) criado via convite`,
+			organizationId: invitation.organizationId
+		});
 
 		throw redirect(302, '/dashboard');
 	}

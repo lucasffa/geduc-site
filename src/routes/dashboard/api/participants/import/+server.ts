@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto';
 import type { RequestHandler } from './$types';
 import { requirePermission } from '$lib/server/middleware/auth';
 import { logAudit } from '$lib/server/middleware/audit';
-import { participants } from '$lib/server/db/schema-org';
+import { participants, statusHistory } from '$lib/server/db/schema-org';
 import { parseSpreadsheet } from '$lib/server/spreadsheet-parser';
 
 export const POST: RequestHandler = async (event) => {
@@ -30,8 +30,9 @@ export const POST: RequestHandler = async (event) => {
 			}, { status: 400 });
 		}
 
-		// Insert valid rows into the database
 		const inserted = [];
+		const userId = event.locals.user?.id || 'sistema';
+
 		for (const row of result.rows) {
 			const id = randomUUID();
 			orgDb.insert(participants).values({
@@ -39,10 +40,22 @@ export const POST: RequestHandler = async (event) => {
 				name: row.nome,
 				email: row.email,
 				role: row.cargo,
-				status: 'inscrito',
+				status: row.status,
 				enrollmentDate: row.dataInscricao,
-				cycleEndDate: row.dataFimCiclo
+				cycleEndDate: row.dataFimCiclo,
+				workloadHours: row.cargaHoraria,
+				notes: row.observacoes
 			}).run();
+
+			// Registrar histórico de status inicial
+			orgDb.insert(statusHistory).values({
+				id: randomUUID(),
+				participantId: id,
+				fromStatus: null,
+				toStatus: row.status,
+				changedBy: userId
+			}).run();
+
 			inserted.push({ id, name: row.nome });
 		}
 
@@ -60,7 +73,8 @@ export const POST: RequestHandler = async (event) => {
 			totalRows: result.totalRows
 		}, { status: 201 });
 	} catch (error) {
-		console.error('Erro na importação:', error);
-		return json({ error: 'Erro ao processar planilha' }, { status: 500 });
+		const msg = error instanceof Error ? error.message : String(error);
+		console.error('Erro na importação:', msg, error);
+		return json({ error: `Erro ao processar planilha: ${msg}` }, { status: 500 });
 	}
 };

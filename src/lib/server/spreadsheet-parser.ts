@@ -1,11 +1,15 @@
 import * as XLSX from 'xlsx';
+import { PARTICIPANT_STATUSES, STATUS_LABELS, DEFAULT_CUSTOM_ROLES } from '$lib/constants/participant-status';
 
 export interface ParsedRow {
 	nome: string;
 	email: string;
 	cargo: string;
+	status: string;
 	dataInscricao: string | null;
 	dataFimCiclo: string | null;
+	cargaHoraria: number | null;
+	observacoes: string | null;
 }
 
 export interface ParseResult {
@@ -26,35 +30,57 @@ function normalizeColumnName(name: string): string {
 		.trim();
 }
 
+type ParsedField = keyof ParsedRow;
+
 /**
  * Mapeia nomes de colunas da planilha para os campos internos.
  */
-const COLUMN_MAPPINGS: Record<string, keyof ParsedRow> = {
+const COLUMN_MAPPINGS: Record<string, ParsedField> = {
+	// nome
 	nome: 'nome',
 	name: 'nome',
+	// email
 	email: 'email',
-	'e-mail': 'email',
-	'emailaddress': 'email',
+	'email': 'email',
+	emailaddress: 'email',
+	// cargo
 	cargo: 'cargo',
 	funcao: 'cargo',
-	'cargo/funcao': 'cargo',
+	cargofuncao: 'cargo',
 	role: 'cargo',
 	function: 'cargo',
 	papel: 'cargo',
+	// status
+	status: 'status',
+	situacao: 'status',
+	// data inscrição
 	datadeinscricao: 'dataInscricao',
 	datainscricao: 'dataInscricao',
 	datadeadmissao: 'dataInscricao',
-	'datadeinscricao/admissao': 'dataInscricao',
+	datadeinscricaoadmissao: 'dataInscricao',
 	enrollmentdate: 'dataInscricao',
+	// data fim ciclo
 	datadefimde: 'dataFimCiclo',
 	datafimciclo: 'dataFimCiclo',
 	datadefimciclo: 'dataFimCiclo',
-	'datadefimdo': 'dataFimCiclo',
+	datadefimdo: 'dataFimCiclo',
 	cycleenddate: 'dataFimCiclo',
-	datafim: 'dataFimCiclo'
+	datafim: 'dataFimCiclo',
+	// carga horária
+	cargahoraria: 'cargaHoraria',
+	cargahorariahoras: 'cargaHoraria',
+	horas: 'cargaHoraria',
+	workloadhours: 'cargaHoraria',
+	workload: 'cargaHoraria',
+	// observações
+	observacoes: 'observacoes',
+	observacao: 'observacoes',
+	notas: 'observacoes',
+	notes: 'observacoes',
+	obs: 'observacoes',
 };
 
-function resolveColumn(header: string): keyof ParsedRow | null {
+function resolveColumn(header: string): ParsedField | null {
 	const normalized = normalizeColumnName(header);
 	if (COLUMN_MAPPINGS[normalized]) {
 		return COLUMN_MAPPINGS[normalized];
@@ -75,15 +101,14 @@ function parseDate(value: unknown): string | null {
 	if (!value) return null;
 
 	if (typeof value === 'number') {
-		// Excel serial date
-		const date = XLSX.SSF.parse_date_code(value);
-		if (date) {
-			const y = date.y;
-			const m = String(date.m).padStart(2, '0');
-			const d = String(date.d).padStart(2, '0');
-			return `${y}-${m}-${d}`;
-		}
-		return null;
+		// Excel serial date -> JS Date
+		// Excel epoch is 1900-01-01 (day 1), with the Lotus 1-2-3 leap year bug (day 60 = Feb 29 1900)
+		const excelEpoch = new Date(1899, 11, 30);
+		const jsDate = new Date(excelEpoch.getTime() + value * 86400000);
+		const y = jsDate.getFullYear();
+		const m = String(jsDate.getMonth() + 1).padStart(2, '0');
+		const d = String(jsDate.getDate()).padStart(2, '0');
+		return `${y}-${m}-${d}`;
 	}
 
 	const str = String(value).trim();
@@ -104,10 +129,38 @@ function parseDate(value: unknown): string | null {
 }
 
 /**
+ * Normaliza o valor de status da planilha para o valor interno.
+ */
+function normalizeStatus(value: unknown): string {
+	if (!value) return 'inscrito';
+	const str = String(value).trim().toLowerCase()
+		.normalize('NFD')
+		.replace(/[\u0300-\u036f]/g, '');
+
+	// Direto se já for um valor válido
+	if ((PARTICIPANT_STATUSES as readonly string[]).includes(str)) return str;
+
+	// Mapear labels para valores internos
+	for (const status of PARTICIPANT_STATUSES) {
+		const label = STATUS_LABELS[status]
+			.toLowerCase()
+			.normalize('NFD')
+			.replace(/[\u0300-\u036f]/g, '');
+		if (str === label) return status;
+	}
+
+	return 'inscrito';
+}
+
+/**
  * Parse de planilha (buffer) para array de registros de participantes.
  */
-export function parseSpreadsheet(buffer: ArrayBuffer, _filename?: string): ParseResult {
-	const workbook = XLSX.read(buffer, { type: 'array' });
+export function parseSpreadsheet(buffer: ArrayBuffer, filename?: string): ParseResult {
+	const isCsv = filename?.toLowerCase().endsWith('.csv');
+	const workbook = XLSX.read(buffer, {
+		type: 'array',
+		...(isCsv ? { codepage: 65001 } : {})
+	});
 	const sheetName = workbook.SheetNames[0];
 	const sheet = workbook.Sheets[sheetName];
 
@@ -121,7 +174,7 @@ export function parseSpreadsheet(buffer: ArrayBuffer, _filename?: string): Parse
 
 	// Resolve column mappings from headers
 	const headers = Object.keys(rawData[0]);
-	const columnMap: Record<string, keyof ParsedRow> = {};
+	const columnMap: Record<string, ParsedField> = {};
 
 	for (const header of headers) {
 		const resolved = resolveColumn(header);
@@ -151,6 +204,11 @@ export function parseSpreadsheet(buffer: ArrayBuffer, _filename?: string): Parse
 			const value = raw[header];
 			if (field === 'dataInscricao' || field === 'dataFimCiclo') {
 				row[field] = parseDate(value);
+			} else if (field === 'status') {
+				row[field] = normalizeStatus(value);
+			} else if (field === 'cargaHoraria') {
+				const num = Number(value);
+				row[field] = !isNaN(num) && num > 0 ? Math.round(num) : null;
 			} else {
 				row[field] = value ? String(value).trim() : '';
 			}
@@ -169,9 +227,12 @@ export function parseSpreadsheet(buffer: ArrayBuffer, _filename?: string): Parse
 		rows.push({
 			nome: row.nome || '',
 			email: row.email || '',
-			cargo: row.cargo || 'mentorado',
+			cargo: row.cargo || DEFAULT_CUSTOM_ROLES.mentorado[0],
+			status: row.status || 'inscrito',
 			dataInscricao: row.dataInscricao || null,
-			dataFimCiclo: row.dataFimCiclo || null
+			dataFimCiclo: row.dataFimCiclo || null,
+			cargaHoraria: row.cargaHoraria ?? null,
+			observacoes: row.observacoes || null
 		});
 	}
 

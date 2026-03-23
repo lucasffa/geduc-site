@@ -1,7 +1,7 @@
 import { json } from '@sveltejs/kit';
 import { randomUUID } from 'node:crypto';
 import type { RequestHandler } from './$types';
-import { participants, statusHistory } from '$lib/server/db/schema-org';
+import { participants, statusHistory, orgSettings } from '$lib/server/db/schema-org';
 import { statusTransitionSchema } from '$lib/validations/participant';
 import { VALID_TRANSITIONS } from '$lib/constants/participant-status';
 import type { ParticipantStatus } from '$lib/constants/participant-status';
@@ -36,12 +36,22 @@ export const POST: RequestHandler = async (event) => {
 		const currentStatus = participant.status as ParticipantStatus;
 		const newStatus = parsed.data.newStatus;
 
-		const validNext = VALID_TRANSITIONS[currentStatus];
-		if (validNext && !validNext.includes(newStatus)) {
-			return json({
-				error: `Transição inválida: ${currentStatus} → ${newStatus}`,
-				validTransitions: validNext
-			}, { status: 400 });
+		// Check if transition validation is enforced
+		const setting = orgDb
+			.select()
+			.from(orgSettings)
+			.where(eq(orgSettings.key, 'enforce_status_transitions'))
+			.get();
+		const enforceTransitions = setting?.value !== 'false';
+
+		if (enforceTransitions) {
+			const validNext = VALID_TRANSITIONS[currentStatus];
+			if (validNext && !validNext.includes(newStatus)) {
+				return json({
+					error: `Transição inválida: ${currentStatus} → ${newStatus}`,
+					validTransitions: validNext
+				}, { status: 400 });
+			}
 		}
 
 		orgDb.update(participants)

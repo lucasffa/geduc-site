@@ -93,7 +93,8 @@ export const apiKeys = sqliteTable('api_keys', {
 });
 
 // ============================================================
-// AUDIT LOG (5W2H)
+// AUDIT LOG (6W2H)
+// WHO, WHAT, HOW, WHY, WHEN, WHERE (IP), WHERE (Org), HOW MANY
 // ============================================================
 export const auditLog = sqliteTable(
 	'audit_log',
@@ -110,6 +111,7 @@ export const auditLog = sqliteTable(
 		whereIp: text('where_ip'),
 		howManyAffected: integer('how_many_affected').default(1),
 		organizationId: text('organization_id'),
+		whereOrganization: text('where_organization'),
 		hashDigest: text('hash_digest').notNull()
 	},
 	(table) => [

@@ -6,36 +6,48 @@
 	export let isOpen: boolean;
 	export let onClose: () => void;
 	export let size: 'sm' | 'md' | 'lg' = 'md';
+	export let title: string = '';
 
 	const closeModal = () => {
-		console.log('Modal closeModal called');
 		onClose();
 	};
 
-	// Debug log when isOpen changes
-	$: console.log('Modal isOpen changed to:', isOpen);
+	function handleKeydown(e) {
+		if (e.key === 'Escape') closeModal();
+	}
 </script>
 
 {#if isOpen}
-	<div class="modal-overlay" on:click={closeModal} tabindex="-1" aria-hidden={!isOpen}>
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<div class="modal-overlay" on:click={closeModal} on:keydown={handleKeydown} tabindex="-1" aria-hidden={!isOpen}>
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
 			class="modal-content {`modal-${size}`}"
 			role="dialog"
 			aria-modal="true"
 			on:click|stopPropagation
+			on:keydown|stopPropagation
 		>
-			<!-- Header com botão de fechar -->
 			<div class="modal-header">
-				<slot name="header"></slot>
+				{#if title}
+					<h3 class="modal-title">{title}</h3>
+				{:else}
+					<slot name="header"></slot>
+				{/if}
 				<Button variant="ghost" size="sm" on:click={closeModal} aria-label="Fechar modal">
 					<Icon name="x" size="sm" />
 				</Button>
 			</div>
 
-			<!-- Conteúdo -->
 			<div class="modal-body">
 				<slot />
 			</div>
+
+			{#if $$slots.footer}
+				<div class="modal-footer">
+					<slot name="footer" />
+				</div>
+			{/if}
 		</div>
 	</div>
 {/if}
@@ -75,18 +87,28 @@
 		width: 800px;
 	}
 
-	.modal-header,
-	.modal-footer {
+	.modal-title {
+		margin: 0;
+		font-size: var(--font-size-lg);
+		font-weight: var(--font-weight-semibold);
+		color: var(--color-neutral-900);
+	}
+
+	.modal-header {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		padding: var(--spacing-md);
+		padding: var(--spacing-md) var(--spacing-lg);
 		border-bottom: 1px solid var(--color-neutral-200);
 	}
 
 	.modal-footer {
+		display: flex;
+		justify-content: flex-end;
+		align-items: center;
+		gap: var(--spacing-sm);
+		padding: var(--spacing-md) var(--spacing-lg);
 		border-top: 1px solid var(--color-neutral-200);
-		border-bottom: none;
 	}
 
 	.modal-body {

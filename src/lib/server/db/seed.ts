@@ -1,34 +1,56 @@
 import { randomUUID } from 'node:crypto';
 import bcrypt from 'bcryptjs';
-import { getSystemDb, initSystemDb } from './index';
+import { getSystemDb } from './index';
 import { users } from './schema-system';
 import { eq } from 'drizzle-orm';
 
-const SYSADMIN_EMAIL = process.env.SYSADMIN_EMAIL || 'admin@geduc.org';
-const SYSADMIN_PASSWORD = process.env.SYSADMIN_PASSWORD || 'admin123';
-const SYSADMIN_NAME = process.env.SYSADMIN_NAME || 'System Admin';
+/**
+ * Ensures exactly one sysadmin exists in the system.
+ * Idempotent — safe to call on every server boot.
+ *
+ * Reads from env vars (set in Coolify or .env):
+ *   SYSADMIN_EMAIL, SYSADMIN_PASSWORD, SYSADMIN_NAME
+ *
+ * Rules:
+ * - If no sysadmin exists → creates one from env vars
+ * - If sysadmin already exists → skips (no duplicates)
+ * - Only ONE user with role 'sysadmin' is ever allowed
+ */
+export async function ensureSysadmin(
+	email?: string,
+	password?: string,
+	name?: string
+): Promise<void> {
+	const sysEmail = email || process.env.SYSADMIN_EMAIL;
+	const sysPassword = password || process.env.SYSADMIN_PASSWORD;
+	const sysName = name || process.env.SYSADMIN_NAME || 'System Admin';
 
-async function seed() {
-	console.log('Initializing system database...');
-	initSystemDb();
-
-	const db = getSystemDb();
-
-	// Check if sysadmin already exists
-	const existing = db.select().from(users).where(eq(users.email, SYSADMIN_EMAIL)).get();
-
-	if (existing) {
-		console.log(`Sysadmin already exists: ${SYSADMIN_EMAIL}`);
+	if (!sysEmail || !sysPassword) {
+		console.log('[seed] SYSADMIN_EMAIL and SYSADMIN_PASSWORD not set — skipping sysadmin creation.');
 		return;
 	}
 
-	const passwordHash = await bcrypt.hash(SYSADMIN_PASSWORD, 12);
+	const db = getSystemDb();
+
+	// Enforce single sysadmin: check if ANY sysadmin already exists
+	const existingSysadmin = db
+		.select({ id: users.id, email: users.email })
+		.from(users)
+		.where(eq(users.role, 'sysadmin'))
+		.get();
+
+	if (existingSysadmin) {
+		console.log(`[seed] Sysadmin already exists: ${existingSysadmin.email} — skipping.`);
+		return;
+	}
+
+	const passwordHash = await bcrypt.hash(sysPassword, 12);
 
 	db.insert(users)
 		.values({
 			id: randomUUID(),
-			email: SYSADMIN_EMAIL,
-			name: SYSADMIN_NAME,
+			email: sysEmail,
+			name: sysName,
 			passwordHash,
 			role: 'sysadmin',
 			organizationId: null,
@@ -36,8 +58,5 @@ async function seed() {
 		})
 		.run();
 
-	console.log(`Sysadmin created: ${SYSADMIN_EMAIL}`);
-	console.log('Seed completed.');
+	console.log(`[seed] Sysadmin created: ${sysEmail}`);
 }
-
-seed().catch(console.error);
