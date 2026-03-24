@@ -21,7 +21,14 @@
 
 	// Estado interno
 	let selectedCategory = 'all';
-	let visibleInitiatives = initiatives;
+
+	$: visibleInitiatives =
+	selectedCategory === 'all'
+		? initiatives
+		: initiatives.filter(
+				(i) => i.category && String(i.category) === selectedCategory
+		  );
+
 
 	// Classes CSS baseadas nas props
 	$: classes = [
