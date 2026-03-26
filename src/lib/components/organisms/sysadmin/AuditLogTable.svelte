@@ -82,16 +82,18 @@
 
 					<!-- Quem -->
 					<td>
-						{@const key = `${i}-userName`}
-						{@const val = cols.userName}
-						{#if val.length > TRUNCATE_AT}
-							{#if expanded[key]}
-								<span class="cell-full">{val}<button class="toggle-btn" on:click={() => toggleExpand(key)} title="Comprimir">−</button></span>
+						{#if true}
+							{@const key = `${i}-userName`}
+							{@const val = cols.userName}
+							{#if val.length > TRUNCATE_AT}
+								{#if expanded[key]}
+									<span class="cell-full">{val}<button class="toggle-btn" on:click={() => toggleExpand(key)} title="Comprimir">−</button></span>
+								{:else}
+									<span class="cell-truncated">{val.slice(0, TRUNCATE_AT)}<button class="toggle-btn" on:click={() => toggleExpand(key)} title="Expandir">…</button></span>
+								{/if}
 							{:else}
-								<span class="cell-truncated">{val.slice(0, TRUNCATE_AT)}<button class="toggle-btn" on:click={() => toggleExpand(key)} title="Expandir">…</button></span>
+								{val}
 							{/if}
-						{:else}
-							{val}
 						{/if}
 					</td>
 
@@ -100,96 +102,106 @@
 
 					<!-- Tabela -->
 					<td>
-						{@const key = `${i}-whatTable`}
-						{@const val = cols.whatTable}
-						{#if val.length > TRUNCATE_AT}
-							{#if expanded[key]}
-								<code class="cell-full">{val}<button class="toggle-btn" on:click={() => toggleExpand(key)} title="Comprimir">−</button></code>
+						{#if true}
+							{@const key = `${i}-whatTable`}
+							{@const val = cols.whatTable}
+							{#if val.length > TRUNCATE_AT}
+								{#if expanded[key]}
+									<code class="cell-full">{val}<button class="toggle-btn" on:click={() => toggleExpand(key)} title="Comprimir">−</button></code>
+								{:else}
+									<code class="cell-truncated">{val.slice(0, TRUNCATE_AT)}<button class="toggle-btn" on:click={() => toggleExpand(key)} title="Expandir">…</button></code>
+								{/if}
 							{:else}
-								<code class="cell-truncated">{val.slice(0, TRUNCATE_AT)}<button class="toggle-btn" on:click={() => toggleExpand(key)} title="Expandir">…</button></code>
+								<code>{val}</code>
 							{/if}
-						{:else}
-							<code>{val}</code>
 						{/if}
 					</td>
 
 					<!-- Objeto (sensível) -->
 					<td class="td-object">
-						{@const rKey = `${i}-whatRecordId`}
-						{#if !cols.whatRecordId}
-							—
-						{:else if !revealed[rKey]}
-							<button class="eye-btn" on:click={() => toggleReveal(rKey)} title="Mostrar">👁️‍🗨️</button>
-						{:else}
-							{@const val = cols.whatRecordId}
-							<span class="sensitive-revealed">
-								<button class="eye-btn eye-open" on:click={() => toggleReveal(rKey)} title="Esconder">👁️</button>
-								{#if val.length > TRUNCATE_AT}
-									{@const eKey = `${i}-whatRecordId-exp`}
-									{#if expanded[eKey]}
-										<code class="record-id cell-full">{val}<button class="toggle-btn" on:click={() => toggleExpand(eKey)} title="Comprimir">−</button></code>
+						{#if true}
+							{@const rKey = `${i}-whatRecordId`}
+							{#if !cols.whatRecordId}
+								—
+							{:else if !revealed[rKey]}
+								<button class="eye-btn" on:click={() => toggleReveal(rKey)} title="Mostrar">👁️‍🗨️</button>
+							{:else}
+								{@const val = cols.whatRecordId}
+								<span class="sensitive-revealed">
+									<button class="eye-btn eye-open" on:click={() => toggleReveal(rKey)} title="Esconder">👁️</button>
+									{#if val.length > TRUNCATE_AT}
+										{@const eKey = `${i}-whatRecordId-exp`}
+										{#if expanded[eKey]}
+											<code class="record-id cell-full">{val}<button class="toggle-btn" on:click={() => toggleExpand(eKey)} title="Comprimir">−</button></code>
+										{:else}
+											<code class="record-id cell-truncated">{val.slice(0, TRUNCATE_AT)}<button class="toggle-btn" on:click={() => toggleExpand(eKey)} title="Expandir">…</button></code>
+										{/if}
 									{:else}
-										<code class="record-id cell-truncated">{val.slice(0, TRUNCATE_AT)}<button class="toggle-btn" on:click={() => toggleExpand(eKey)} title="Expandir">…</button></code>
+										<code class="record-id">{val}</code>
 									{/if}
-								{:else}
-									<code class="record-id">{val}</code>
-								{/if}
-							</span>
+								</span>
+							{/if}
 						{/if}
 					</td>
 
 					<!-- Motivo -->
 					<td class="td-why">
-						{@const key = `${i}-why`}
-						{@const val = cols.why}
-						{#if val.length > TRUNCATE_AT}
-							{#if expanded[key]}
-								<span class="cell-full">{val}<button class="toggle-btn" on:click={() => toggleExpand(key)} title="Comprimir">−</button></span>
+						{#if true}
+							{@const key = `${i}-why`}
+							{@const val = cols.why}
+							{#if val.length > TRUNCATE_AT}
+								{#if expanded[key]}
+									<span class="cell-full">{val}<button class="toggle-btn" on:click={() => toggleExpand(key)} title="Comprimir">−</button></span>
+								{:else}
+									<span class="cell-truncated">{val.slice(0, TRUNCATE_AT)}<button class="toggle-btn" on:click={() => toggleExpand(key)} title="Expandir">…</button></span>
+								{/if}
 							{:else}
-								<span class="cell-truncated">{val.slice(0, TRUNCATE_AT)}<button class="toggle-btn" on:click={() => toggleExpand(key)} title="Expandir">…</button></span>
+								{val}
 							{/if}
-						{:else}
-							{val}
 						{/if}
 					</td>
 
 					<!-- IP (sensível) -->
 					<td class="td-ip">
-						{@const rKey = `${i}-whereIp`}
-						{#if !cols.whereIp}
-							—
-						{:else if !revealed[rKey]}
-							<button class="eye-btn" on:click={() => toggleReveal(rKey)} title="Mostrar">👁️‍🗨️</button>
-						{:else}
-							{@const val = cols.whereIp}
-							<span class="sensitive-revealed">
-								<button class="eye-btn eye-open" on:click={() => toggleReveal(rKey)} title="Esconder">👁️</button>
-								{#if val.length > TRUNCATE_AT}
-									{@const eKey = `${i}-whereIp-exp`}
-									{#if expanded[eKey]}
-										<span class="cell-full">{val}<button class="toggle-btn" on:click={() => toggleExpand(eKey)} title="Comprimir">−</button></span>
+						{#if true}
+							{@const rKey = `${i}-whereIp`}
+							{#if !cols.whereIp}
+								—
+							{:else if !revealed[rKey]}
+								<button class="eye-btn" on:click={() => toggleReveal(rKey)} title="Mostrar">👁️‍🗨️</button>
+							{:else}
+								{@const val = cols.whereIp}
+								<span class="sensitive-revealed">
+									<button class="eye-btn eye-open" on:click={() => toggleReveal(rKey)} title="Esconder">👁️</button>
+									{#if val.length > TRUNCATE_AT}
+										{@const eKey = `${i}-whereIp-exp`}
+										{#if expanded[eKey]}
+											<span class="cell-full">{val}<button class="toggle-btn" on:click={() => toggleExpand(eKey)} title="Comprimir">−</button></span>
+										{:else}
+											<span class="cell-truncated">{val.slice(0, TRUNCATE_AT)}<button class="toggle-btn" on:click={() => toggleExpand(eKey)} title="Expandir">…</button></span>
+										{/if}
 									{:else}
-										<span class="cell-truncated">{val.slice(0, TRUNCATE_AT)}<button class="toggle-btn" on:click={() => toggleExpand(eKey)} title="Expandir">…</button></span>
+										{val}
 									{/if}
-								{:else}
-									{val}
-								{/if}
-							</span>
+								</span>
+							{/if}
 						{/if}
 					</td>
 
 					<!-- Organização -->
 					<td class="td-org">
-						{@const key = `${i}-whereOrganization`}
-						{@const val = cols.whereOrganization}
-						{#if val.length > TRUNCATE_AT}
-							{#if expanded[key]}
-								<span class="cell-full">{val}<button class="toggle-btn" on:click={() => toggleExpand(key)} title="Comprimir">−</button></span>
+						{#if true}
+							{@const key = `${i}-whereOrganization`}
+							{@const val = cols.whereOrganization}
+							{#if val.length > TRUNCATE_AT}
+								{#if expanded[key]}
+									<span class="cell-full">{val}<button class="toggle-btn" on:click={() => toggleExpand(key)} title="Comprimir">−</button></span>
+								{:else}
+									<span class="cell-truncated">{val.slice(0, TRUNCATE_AT)}<button class="toggle-btn" on:click={() => toggleExpand(key)} title="Expandir">…</button></span>
+								{/if}
 							{:else}
-								<span class="cell-truncated">{val.slice(0, TRUNCATE_AT)}<button class="toggle-btn" on:click={() => toggleExpand(key)} title="Expandir">…</button></span>
+								{val}
 							{/if}
-						{:else}
-							{val}
 						{/if}
 					</td>
 

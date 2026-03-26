@@ -1,8 +1,11 @@
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import { PDFDocument, rgb, StandardFonts, type PDFFont, type PDFPage } from 'pdf-lib';
+import fontkit from '@pdf-lib/fontkit';
 import fs from 'fs';
 import path from 'path';
+import type { CertField } from '$lib/types/dashboard';
+import { DEFAULT_CERT_FIELDS } from '$lib/constants/cert-fields';
 
-interface CertificateData {
+export interface CertificateData {
 	participantName: string;
 	role: string;
 	workloadHours: number;
@@ -10,264 +13,244 @@ interface CertificateData {
 	periodEnd: string;
 }
 
+export interface GenerateOptions {
+	fields?: CertField[];
+	fontsDir?: string;
+}
+
+// ============================================================
+// Helpers
+// ============================================================
+
 function formatDateBR(dateStr: string): string {
 	const d = new Date(dateStr + 'T00:00:00');
 	return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
 }
 
-/**
- * Gera um certificado PDF usando um template existente ou criando um do zero.
- */
-export async function generateCertificatePdf(
-	data: CertificateData,
-	templatePath?: string
-): Promise<Uint8Array> {
-	if (templatePath && fs.existsSync(templatePath)) {
-		return generateFromTemplate(data, templatePath);
-	}
-	return generateDefaultCertificate(data);
+function hexToRgb(hex: string): [number, number, number] {
+	const m = /^#([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+	if (!m) return [0, 0, 0];
+	return [parseInt(m[1], 16) / 255, parseInt(m[2], 16) / 255, parseInt(m[3], 16) / 255];
 }
 
-/**
- * Gera certificado escrevendo sobre um PDF template existente.
- */
+function fieldText(field: CertField, data: CertificateData): string {
+	switch (field.key) {
+		case 'participantName': return data.participantName;
+		case 'role':            return data.role;
+		case 'workloadHours':   return `${data.workloadHours} horas`;
+		case 'period':          return `${formatDateBR(data.periodStart)} a ${formatDateBR(data.periodEnd)}`;
+		case 'issueDate':
+			return new Date().toLocaleDateString('pt-BR', {
+				day: '2-digit', month: 'long', year: 'numeric'
+			});
+	}
+}
+
+/** Cache de fontes por fontId dentro de uma geração (evita re-embed do mesmo arquivo). */
+async function buildFontCache(
+	pdfDoc: PDFDocument,
+	fields: CertField[],
+	fontsDir?: string
+): Promise<Map<string, PDFFont>> {
+	const cache = new Map<string, PDFFont>();
+
+	for (const field of fields) {
+		if (!field.enabled) continue;
+
+		const cacheKey = field.fontId
+			? `custom:${field.fontId}`
+			: `std:${field.bold ? 'bold' : 'regular'}`;
+
+		if (cache.has(cacheKey)) continue;
+
+		if (field.fontId && fontsDir) {
+			const candidates = [
+				path.join(fontsDir, `${field.fontId}.ttf`),
+				path.join(fontsDir, `${field.fontId}.otf`)
+			];
+			for (const fp of candidates) {
+				if (fs.existsSync(fp)) {
+					const bytes = fs.readFileSync(fp);
+					cache.set(cacheKey, await pdfDoc.embedFont(bytes));
+					break;
+				}
+			}
+		}
+
+		if (!cache.has(cacheKey)) {
+			const std = field.bold ? StandardFonts.HelveticaBold : StandardFonts.Helvetica;
+			cache.set(cacheKey, await pdfDoc.embedFont(std));
+		}
+	}
+
+	return cache;
+}
+
+function resolveFont(field: CertField, fontCache: Map<string, PDFFont>): PDFFont {
+	const cacheKey = field.fontId
+		? `custom:${field.fontId}`
+		: `std:${field.bold ? 'bold' : 'regular'}`;
+	// fallback garantido (cache sempre preenchido para campos enabled)
+	return fontCache.get(cacheKey) ?? fontCache.get('std:regular')!;
+}
+
+async function drawFields(
+	page: PDFPage,
+	pdfDoc: PDFDocument,
+	data: CertificateData,
+	fields: CertField[],
+	fontsDir?: string
+): Promise<void> {
+	const { width, height } = page.getSize();
+	const fontCache = await buildFontCache(pdfDoc, fields, fontsDir);
+
+	for (const field of fields) {
+		if (!field.enabled) continue;
+
+		const font = resolveFont(field, fontCache);
+		const text = fieldText(field, data);
+		const [r, g, b] = hexToRgb(field.color);
+		const textWidth = font.widthOfTextAtSize(text, field.fontSize);
+
+		// x: âncora percentual → pixel
+		const xAnchor = (field.x / 100) * width;
+		let x: number;
+		if (field.align === 'center') x = xAnchor - textWidth / 2;
+		else if (field.align === 'right') x = xAnchor - textWidth;
+		else x = xAnchor;
+
+		// y: 0=topo UI → converter para sistema pdf-lib (0=base)
+		const y = height * (1 - field.y / 100);
+
+		page.drawText(text, { x, y, size: field.fontSize, font, color: rgb(r, g, b) });
+	}
+}
+
+// ============================================================
+// Gerador principal
+// ============================================================
+
+export async function generateCertificatePdf(
+	data: CertificateData,
+	templatePath?: string,
+	options: GenerateOptions = {}
+): Promise<Uint8Array> {
+	const fields = options.fields ?? DEFAULT_CERT_FIELDS;
+	const fontsDir = options.fontsDir;
+
+	if (templatePath && fs.existsSync(templatePath)) {
+		return generateFromTemplate(data, templatePath, fields, fontsDir);
+	}
+	return generateDefaultCertificate(data, fields, fontsDir);
+}
+
 async function generateFromTemplate(
 	data: CertificateData,
-	templatePath: string
+	templatePath: string,
+	fields: CertField[],
+	fontsDir?: string
 ): Promise<Uint8Array> {
 	const templateBytes = fs.readFileSync(templatePath);
 	const pdfDoc = await PDFDocument.load(templateBytes);
-	const pages = pdfDoc.getPages();
-	const page = pages[0];
-	const { width, height } = page.getSize();
+	pdfDoc.registerFontkit(fontkit);
+	const page = pdfDoc.getPages()[0];
 
-	const font = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-	const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
+	await drawFields(page, pdfDoc, data, fields, fontsDir);
 
-	// Nome do participante (centralizado, posição ajustável)
-	const nameSize = 28;
-	const nameWidth = font.widthOfTextAtSize(data.participantName, nameSize);
-	page.drawText(data.participantName, {
-		x: (width - nameWidth) / 2,
-		y: height * 0.55,
-		size: nameSize,
-		font,
-		color: rgb(0.08, 0.11, 0.64)
-	});
-
-	// Cargo/função
-	const roleText = `Função: ${data.role}`;
-	const roleWidth = fontRegular.widthOfTextAtSize(roleText, 14);
-	page.drawText(roleText, {
-		x: (width - roleWidth) / 2,
-		y: height * 0.48,
-		size: 14,
-		font: fontRegular,
-		color: rgb(0.16, 0.16, 0.16)
-	});
-
-	// Carga horária
-	const hoursText = `Carga horária: ${data.workloadHours} horas`;
-	const hoursWidth = fontRegular.widthOfTextAtSize(hoursText, 14);
-	page.drawText(hoursText, {
-		x: (width - hoursWidth) / 2,
-		y: height * 0.43,
-		size: 14,
-		font: fontRegular,
-		color: rgb(0.16, 0.16, 0.16)
-	});
-
-	// Período
-	const periodText = `Período: ${formatDateBR(data.periodStart)} a ${formatDateBR(data.periodEnd)}`;
-	const periodWidth = fontRegular.widthOfTextAtSize(periodText, 12);
-	page.drawText(periodText, {
-		x: (width - periodWidth) / 2,
-		y: height * 0.38,
-		size: 12,
-		font: fontRegular,
-		color: rgb(0.29, 0.29, 0.29)
-	});
-
-	return await pdfDoc.save();
+	return pdfDoc.save();
 }
 
-/**
- * Gera um certificado padrão quando não há template.
- */
-async function generateDefaultCertificate(data: CertificateData): Promise<Uint8Array> {
+async function generateDefaultCertificate(
+	data: CertificateData,
+	fields: CertField[],
+	fontsDir?: string
+): Promise<Uint8Array> {
 	const pdfDoc = await PDFDocument.create();
+	pdfDoc.registerFontkit(fontkit);
 	const page = pdfDoc.addPage([842, 595]); // A4 landscape
 	const { width, height } = page.getSize();
 
-	const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+	const fontBold    = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 	const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
 	// Background
-	page.drawRectangle({
-		x: 0,
-		y: 0,
-		width,
-		height,
-		color: rgb(0.98, 0.98, 1)
-	});
+	page.drawRectangle({ x: 0, y: 0, width, height, color: rgb(0.98, 0.98, 1) });
 
 	// Border
-	const borderMargin = 30;
+	const bm = 30;
 	page.drawRectangle({
-		x: borderMargin,
-		y: borderMargin,
-		width: width - borderMargin * 2,
-		height: height - borderMargin * 2,
-		borderColor: rgb(0.08, 0.11, 0.71),
-		borderWidth: 3,
-		color: rgb(1, 1, 1)
+		x: bm, y: bm, width: width - bm * 2, height: height - bm * 2,
+		borderColor: rgb(0.08, 0.11, 0.71), borderWidth: 3, color: rgb(1, 1, 1)
+	});
+	page.drawRectangle({
+		x: bm + 8, y: bm + 8, width: width - (bm + 8) * 2, height: height - (bm + 8) * 2,
+		borderColor: rgb(0.08, 0.11, 0.71), borderWidth: 0.5
 	});
 
-	// Inner border
-	page.drawRectangle({
-		x: borderMargin + 8,
-		y: borderMargin + 8,
-		width: width - (borderMargin + 8) * 2,
-		height: height - (borderMargin + 8) * 2,
-		borderColor: rgb(0.08, 0.11, 0.71),
-		borderWidth: 0.5
-	});
-
-	// Title
+	// Título decorativo estático
 	const title = 'CERTIFICADO';
 	const titleSize = 36;
-	const titleWidth = fontBold.widthOfTextAtSize(title, titleSize);
 	page.drawText(title, {
-		x: (width - titleWidth) / 2,
+		x: (width - fontBold.widthOfTextAtSize(title, titleSize)) / 2,
 		y: height - 100,
-		size: titleSize,
-		font: fontBold,
-		color: rgb(0.08, 0.11, 0.71)
+		size: titleSize, font: fontBold, color: rgb(0.08, 0.11, 0.71)
 	});
 
-	// Subtitle
 	const subtitle = 'GEDUC - Grupo de Educação';
 	const subtitleSize = 14;
-	const subtitleWidth = fontRegular.widthOfTextAtSize(subtitle, subtitleSize);
 	page.drawText(subtitle, {
-		x: (width - subtitleWidth) / 2,
+		x: (width - fontRegular.widthOfTextAtSize(subtitle, subtitleSize)) / 2,
 		y: height - 125,
-		size: subtitleSize,
-		font: fontRegular,
-		color: rgb(0.46, 0.46, 0.46)
+		size: subtitleSize, font: fontRegular, color: rgb(0.46, 0.46, 0.46)
 	});
 
-	// Body text
-	const bodyLine1 = 'Certificamos que';
-	const bl1Width = fontRegular.widthOfTextAtSize(bodyLine1, 14);
-	page.drawText(bodyLine1, {
-		x: (width - bl1Width) / 2,
+	const intro = 'Certificamos que';
+	page.drawText(intro, {
+		x: (width - fontRegular.widthOfTextAtSize(intro, 14)) / 2,
 		y: height - 190,
-		size: 14,
-		font: fontRegular,
-		color: rgb(0.16, 0.16, 0.16)
+		size: 14, font: fontRegular, color: rgb(0.16, 0.16, 0.16)
 	});
 
-	// Name
-	const nameSize = 28;
-	const nameWidth = fontBold.widthOfTextAtSize(data.participantName, nameSize);
-	page.drawText(data.participantName, {
-		x: (width - nameWidth) / 2,
-		y: height - 230,
-		size: nameSize,
-		font: fontBold,
-		color: rgb(0.08, 0.11, 0.64)
-	});
-
-	// Role line
-	const roleLine = `participou como ${data.role} do programa GEDUC,`;
-	const rlWidth = fontRegular.widthOfTextAtSize(roleLine, 13);
-	page.drawText(roleLine, {
-		x: (width - rlWidth) / 2,
-		y: height - 270,
-		size: 13,
-		font: fontRegular,
-		color: rgb(0.16, 0.16, 0.16)
-	});
-
-	// Hours line
-	const hoursLine = `com carga horária total de ${data.workloadHours} horas,`;
-	const hlWidth = fontRegular.widthOfTextAtSize(hoursLine, 13);
-	page.drawText(hoursLine, {
-		x: (width - hlWidth) / 2,
-		y: height - 295,
-		size: 13,
-		font: fontRegular,
-		color: rgb(0.16, 0.16, 0.16)
-	});
-
-	// Period line
-	const periodLine = `no período de ${formatDateBR(data.periodStart)} a ${formatDateBR(data.periodEnd)}.`;
-	const plWidth = fontRegular.widthOfTextAtSize(periodLine, 13);
-	page.drawText(periodLine, {
-		x: (width - plWidth) / 2,
-		y: height - 320,
-		size: 13,
-		font: fontRegular,
-		color: rgb(0.16, 0.16, 0.16)
-	});
-
-	// Date line at bottom
-	const now = new Date();
-	const dateLine = now.toLocaleDateString('pt-BR', {
-		day: '2-digit',
-		month: 'long',
-		year: 'numeric'
-	});
-	const dlWidth = fontRegular.widthOfTextAtSize(dateLine, 11);
-	page.drawText(dateLine, {
-		x: (width - dlWidth) / 2,
-		y: borderMargin + 60,
-		size: 11,
-		font: fontRegular,
-		color: rgb(0.46, 0.46, 0.46)
-	});
-
-	// Signature line
+	// Linha de assinatura estática
 	page.drawLine({
-		start: { x: width / 2 - 100, y: borderMargin + 90 },
-		end: { x: width / 2 + 100, y: borderMargin + 90 },
-		thickness: 0.5,
-		color: rgb(0.46, 0.46, 0.46)
+		start: { x: width / 2 - 100, y: bm + 90 },
+		end:   { x: width / 2 + 100, y: bm + 90 },
+		thickness: 0.5, color: rgb(0.46, 0.46, 0.46)
 	});
-
 	const sigText = 'Coordenação GEDUC';
-	const sigWidth = fontRegular.widthOfTextAtSize(sigText, 10);
 	page.drawText(sigText, {
-		x: (width - sigWidth) / 2,
-		y: borderMargin + 75,
-		size: 10,
-		font: fontRegular,
-		color: rgb(0.46, 0.46, 0.46)
+		x: (width - fontRegular.widthOfTextAtSize(sigText, 10)) / 2,
+		y: bm + 75,
+		size: 10, font: fontRegular, color: rgb(0.46, 0.46, 0.46)
 	});
 
-	return await pdfDoc.save();
+	// Campos configuráveis
+	await drawFields(page, pdfDoc, data, fields, fontsDir);
+
+	return pdfDoc.save();
 }
 
-/**
- * Retorna o diretório de armazenamento dos certificados gerados.
- * Cria o diretório se não existir.
- */
-export function getCertificatesDir(): string {
-	const dir = path.resolve('static', 'certificates');
-	if (!fs.existsSync(dir)) {
-		fs.mkdirSync(dir, { recursive: true });
-	}
+// ============================================================
+// Diretórios
+// ============================================================
+
+const DB_DIR   = process.env.DB_DIR || path.resolve('data');
+const FILES_DIR = path.join(DB_DIR, 'files');
+
+export function getCertificatesDir(slug: string): string {
+	const dir = path.join(FILES_DIR, slug, 'certificates');
+	if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 	return dir;
 }
 
-/**
- * Retorna o diretório de templates de certificados.
- */
-export function getTemplatesDir(): string {
-	const dir = path.resolve('static', 'certificate-templates');
-	if (!fs.existsSync(dir)) {
-		fs.mkdirSync(dir, { recursive: true });
-	}
+export function getTemplatesDir(slug: string): string {
+	const dir = path.join(FILES_DIR, slug, 'templates');
+	if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+	return dir;
+}
+
+export function getFontsDir(slug: string): string {
+	const dir = path.join(FILES_DIR, slug, 'fonts');
+	if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 	return dir;
 }

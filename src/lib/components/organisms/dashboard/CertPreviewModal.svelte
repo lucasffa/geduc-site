@@ -10,7 +10,8 @@
 	export let workloadHours: string = '';
 	export let periodStart: string = '';
 	export let periodEnd: string = '';
-	export let templateName: string = 'default';
+	export let templateId: string | null = null;
+	export let templates: { id: string; name: string }[] = [];
 	export let generating: boolean = false;
 
 	const dispatch = createEventDispatcher();
@@ -29,7 +30,7 @@
 	<div class="preview-summary">
 		<p><strong>Carga horária:</strong> {workloadHours}h</p>
 		<p><strong>Período:</strong> {formatDate(periodStart)} a {formatDate(periodEnd)}</p>
-		<p><strong>Template:</strong> {templateName === 'default' ? 'Modelo padrão' : templateName}</p>
+		<p><strong>Template:</strong> {templateId ? (templates.find(t => t.id === templateId)?.name || templateId) : 'Modelo padrão'}</p>
 	</div>
 
 	<p class="preview-count">

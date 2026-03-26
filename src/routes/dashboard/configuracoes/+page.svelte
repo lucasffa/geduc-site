@@ -1,12 +1,63 @@
 <script>
+	import { onMount } from 'svelte';
 	import PageHeader from '$lib/components/molecules/PageHeader.svelte';
 	import OrgSettingsForm from '$lib/components/organisms/dashboard/OrgSettingsForm.svelte';
 	import ApiKeyForm from '$lib/components/organisms/dashboard/ApiKeyForm.svelte';
+	import FontManager from '$lib/components/organisms/dashboard/FontManager.svelte';
 	import Button from '$lib/components/atoms/Button.svelte';
 	import { addToast } from '$lib/stores/dashboard';
 	import { ROLE_CATEGORY_LABELS } from '$lib/constants/participant-status';
 
 	export let data;
+
+	// ── Fontes de certificado ──
+	let fonts = [];
+	let uploadingFont = false;
+	let fontManagerRef;
+
+	onMount(async () => {
+		if (data.permissions?.canManageCertificates) await loadFonts();
+	});
+
+	async function loadFonts() {
+		try {
+			const res = await fetch('/dashboard/api/certificates/fonts');
+			if (res.ok) fonts = (await res.json()).fonts;
+		} catch {}
+	}
+
+	async function handleFontUpload(e) {
+		const { file, name } = e.detail;
+		if (!file) return;
+		uploadingFont = true;
+		try {
+			const fd = new FormData();
+			fd.append('file', file);
+			if (name) fd.append('name', name);
+			const res = await fetch('/dashboard/api/certificates/fonts', { method: 'POST', body: fd });
+			const result = await res.json();
+			if (res.ok) {
+				addToast(`Fonte "${result.name}" salva!`, 'success');
+				fontManagerRef?.onUploadSuccess();
+				await loadFonts();
+			} else {
+				addToast(result.error || 'Erro ao salvar fonte', 'error');
+			}
+		} catch { addToast('Erro ao enviar fonte', 'error'); }
+		finally { uploadingFont = false; }
+	}
+
+	async function handleFontDelete(e) {
+		try {
+			const res = await fetch('/dashboard/api/certificates/fonts', {
+				method: 'DELETE',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ fontId: e.detail.fontId })
+			});
+			if (res.ok) { addToast('Fonte removida', 'success'); await loadFonts(); }
+			else { const r = await res.json(); addToast(r.error || 'Erro ao remover fonte', 'error'); }
+		} catch { addToast('Erro ao remover fonte', 'error'); }
+	}
 
 	let savingOrg = false;
 	let savingKey = false;
@@ -108,6 +159,16 @@
 
 <div class="config-page">
 	<PageHeader title="Configurações da Organização" />
+
+	{#if data.permissions?.canManageCertificates}
+		<FontManager
+			{fonts}
+			uploading={uploadingFont}
+			bind:this={fontManagerRef}
+			on:upload={handleFontUpload}
+			on:delete={handleFontDelete}
+		/>
+	{/if}
 
 	<OrgSettingsForm
 		brandName={data.organization?.brandName || ''}
