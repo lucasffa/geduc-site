@@ -184,6 +184,25 @@
 		transform: translateY(0);
 	}
 
+	.button-dark {
+		background-color: var(--color-primary-900);
+		color: var(--color-neutral-0);
+		border-color: var(--color-primary-900);
+	}
+
+	.button-dark:hover:not(.button-disabled) {
+		background-color: var(--color-primary-800);
+		border-color: var(--color-primary-800);
+		transform: translateY(-1px);
+		box-shadow: var(--shadow-md);
+	}
+
+	.button-dark:active:not(.button-disabled) {
+		background-color: var(--color-primary-950);
+		border-color: var(--color-primary-950);
+		transform: translateY(0);
+	}
+
 	.button-outline {
 		background-color: transparent;
 		color: var(--color-secondary-600);

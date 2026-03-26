@@ -85,7 +85,7 @@
 	.top,
 	.bottom {
 		width: 100%;
-		min-height: 140px;
+		min-height: 160px;
 		display: flex;
 		align-items: center;
 		justify-content: center;

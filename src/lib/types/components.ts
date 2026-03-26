@@ -236,7 +236,7 @@ export interface IconProps extends BaseComponentProps {
 
 export interface ButtonProps extends BaseComponentProps, Partial<LinkableProps> {
 	/** Variante visual do botão */
-	variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
+	variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'dark';
 
 	/** Tamanho do botão */
 	size?: Size;

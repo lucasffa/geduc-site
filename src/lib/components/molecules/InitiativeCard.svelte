@@ -39,11 +39,7 @@
 		dispatch('click', { id, href });
 	}
 
-	$: decorationColor =
-	variant === 'dark'
-		? 'var(--color-yellow-600)'
-		: 'var(--color-yellow-800)';
-
+	$: decorationColor = variant === 'dark' ? 'var(--color-yellow-600)' : 'var(--color-yellow-800)';
 </script>
 
 <article class={classes} {style} aria-label={title}>
@@ -53,7 +49,7 @@
 			<Image
 				src={illustration}
 				alt={illustrationAlt}
-				objectFit="contain"
+				objectFit="cover"
 				loading="lazy"
 				class="initiative-card-image"
 			/>
@@ -66,7 +62,7 @@
 			{title}
 			titleColor="primary"
 			align="left"
-			headingLevel={3}
+			headingLevel={2}
 			spacing="tight"
 			decoration={true}
 			{decorationColor}
@@ -80,16 +76,11 @@
 			color="neutral"
 			weight="normal"
 			leading="relaxed"
-			size="sm"
+			size="md"
 			class="initiative-card-description"
 		/>
 
-		<Button
-			variant="primary"
-			size="lg"
-			onclick={handleClick}
-			aria-label={`Saiba mais sobre ${title}`}
-		>
+		<Button variant="dark" size="lg" onclick={handleClick} aria-label={`Saiba mais sobre ${title}`}>
 			Saiba Mais
 		</Button>
 	</div>
@@ -135,7 +126,7 @@
 		justify-content: center;
 
 		border-radius: var(--border-radius-2xl, 20px);
-		overflow: hidden;
+		overflow: visible;
 
 		background-color: var(--color-yellow-800);
 
@@ -149,12 +140,13 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		
 	}
 
 	/* Corrige comportamento do componente Image */
 	.initiative-card-image-wrapper :global(.image-container) {
 		width: 100%;
-		height: 100%;
+		height: auto;
 
 		display: flex;
 		align-items: center;
@@ -166,9 +158,10 @@
 
 	.initiative-card-image-wrapper :global(img),
 	.initiative-card-image-wrapper :global(.image-element) {
+		width: auto;
 		max-width: 100%;
-		max-height: 100%;
-		object-fit: contain;
+		max-height: 291px;
+		object-fit: cover;
 	}
 
 	/* ─── Conteúdo ─────────────────────────────────────── */

@@ -72,7 +72,7 @@ h6 {
 	--color-primary-600: #324acb;
 	--color-primary-700: #161aa3;
 	--color-primary-800: #191ea6;
-	--color-primary-900: #152db5;
+	--color-primary-900: #152db4;
 
 	/* Variações semânticas de primária */
 	--color-primary-light: var(--color-primary-300);
