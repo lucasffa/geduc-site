@@ -2,6 +2,7 @@
 <script lang="ts">
 	import { OurTeam } from '$lib/components';
 	import HeroSection from '$lib/components/organisms/HeroSection.svelte';
+	import Navigation from '$lib/components/organisms/Navigation.svelte';
 	import OurHistory from '$lib/components/organisms/OurHistory.svelte';
 	import Partners from '$lib/components/organisms/Partners.svelte';
 	import type { Partner, TimelineItemData, TeamMember } from '$lib/types/data';
@@ -230,6 +231,18 @@
 		}
 	];
 </script>
+
+<Navigation
+	items={[
+		{ label: 'Home', href: '/' },
+		{ label: 'Sobre nós', href: '/sobre', active: true },
+		{ label: 'Iniciativas', href: '/iniciativas' },
+		{ label: 'Summer Camp', href: '/summer-camp' }
+	]}
+	variant="transparent"
+	sticky={true}
+	mobileMenu={true}
+/>
 
 <HeroSection
 	variant="about"
