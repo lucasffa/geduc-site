@@ -21,7 +21,14 @@
 
 	// Estado interno
 	let selectedCategory = 'all';
-	let visibleInitiatives = initiatives;
+
+	$: visibleInitiatives =
+	selectedCategory === 'all'
+		? initiatives
+		: initiatives.filter(
+				(i) => i.category && String(i.category) === selectedCategory
+		  );
+
 
 	// Classes CSS baseadas nas props
 	$: classes = [
@@ -351,20 +358,6 @@
 		.initiatives-section-filters {
 			flex-direction: column;
 		}
-	}
-
-	/* Dark theme */
-	[data-theme='dark'] .initiatives-section {
-		background-color: var(--background-color-page);
-	}
-
-	[data-theme='dark'] .initiatives-section-filters {
-		background-color: var(--background-color-card);
-	}
-
-	[data-theme='dark'] .initiatives-section-empty {
-		background-color: var(--background-color-card);
-		border-color: var(--border-color-default);
 	}
 
 	/* Efeitos decorativos */

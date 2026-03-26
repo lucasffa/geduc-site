@@ -75,8 +75,8 @@
 		flex-direction: column;
 		align-items: center;
 		/* Largura fixa para cada item — ajuste conforme necessário */
-		flex: 0 0 240px;
-		width: 240px;
+		flex: 0 0 350px;
+		width: 100%;
 		position: relative;
 		scroll-snap-align: start;
 	}
@@ -85,7 +85,7 @@
 	.top,
 	.bottom {
 		width: 100%;
-		min-height: 140px;
+		min-height: 160px;
 		display: flex;
 		align-items: center;
 		justify-content: center;

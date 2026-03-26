@@ -236,7 +236,7 @@ export interface IconProps extends BaseComponentProps {
 
 export interface ButtonProps extends BaseComponentProps, Partial<LinkableProps> {
 	/** Variante visual do botão */
-	variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
+	variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'dark';
 
 	/** Tamanho do botão */
 	size?: Size;
@@ -810,6 +810,40 @@ export interface OurImpactProps extends BaseComponentProps {
 	/** Layout da seção */
 	layout?: SplitLayout;
 
+	/** Se o componente deve ser renderizado condicionalmente */
+	visible?: boolean;
+}
+
+export interface InitiativeCardProps extends BaseComponentProps {
+	/** Identificador único da iniciativa */
+	id: string;
+ 
+	/** Título da iniciativa */
+	title: string;
+ 
+	/** Descrição resumida da iniciativa */
+	description: string;
+ 
+	/** URL da imagem ilustrativa */
+	illustration: string;
+ 
+	/** Texto alternativo da imagem */
+	illustrationAlt: string;
+ 
+	/** URL de destino ao clicar em "Saiba Mais" */
+	href?: string;
+}
+ 
+export interface OurInitiativesProps extends BaseComponentProps {
+	/** Título da seção */
+	sectionTitle?: string;
+ 
+	/** Lista de iniciativas a exibir */
+	initiatives?: InitiativeCardProps[];
+ 
+	/** Background da seção */
+	background?: 'none' | 'muted' | 'primary' | 'gradient';
+ 
 	/** Se o componente deve ser renderizado condicionalmente */
 	visible?: boolean;
 }

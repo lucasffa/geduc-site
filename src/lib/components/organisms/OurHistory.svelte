@@ -54,37 +54,40 @@
 	let resizeObserver: ResizeObserver;
 
 	// Derivados reativos — fonte única de verdade
-	$: isAtStart = scrollLeft <= 1;
-	$: isAtEnd = timelineWrapper
-		? scrollLeft + timelineWrapper.clientWidth >= timelineWrapper.scrollWidth - 1
-		: true; // Se timelineWrapper não estiver definido, assume que está no fim para evitar mostrar o fade direito
+	const SCROLL_TOLERANCE = 8;
 
-	const handleScroll = () => {
-		scrollLeft = timelineWrapper.scrollLeft;
-		dispatch('timelineScroll', { position: scrollLeft });
-	};
-
-	const scrollByItems = (direction: 'left' | 'right') => {
+	const calculateScrollState = () => {
 		if (!timelineWrapper) return;
 
-		const firstItem = timelineWrapper.querySelector('.timeline-item') as HTMLElement;
+		const { scrollLeft, scrollWidth, clientWidth } = timelineWrapper;
 
-		if (!firstItem) return;
+		isAtStart = scrollLeft <= SCROLL_TOLERANCE;
 
-		// Pega a largura real do item incluindo a gap
-		const itemWidth = firstItem.offsetWidth;
-		const timelineEl = timelineWrapper.querySelector('.timeline') as HTMLElement;
-		const gap = timelineEl
-			? parseInt(getComputedStyle(timelineEl).gap || getComputedStyle(timelineEl).columnGap || '0')
-			: 0;
+		isAtEnd = scrollLeft + clientWidth >= scrollWidth - SCROLL_TOLERANCE;
+	};
 
-		// Rola 3 itens por vez (ou ajuste conforme preferência)
-		const scrollAmount = (itemWidth + gap) * 3;
+	const handleScroll = () => {
+		calculateScrollState();
+		dispatch('timelineScroll', { position: timelineWrapper.scrollLeft });
+	};
 
-		timelineWrapper.scrollBy({
-			left: direction === 'right' ? scrollAmount : -scrollAmount,
+	const scrollToEdge = (direction: 'left' | 'right') => {
+		if (!timelineWrapper) return;
+
+		const target = direction === 'right' ? timelineWrapper.scrollWidth : 0;
+
+		timelineWrapper.scrollTo({
+			left: target,
 			behavior: 'smooth'
 		});
+
+		// Atualiza estado durante animação
+		let i = 0;
+		const interval = setInterval(() => {
+			calculateScrollState();
+			i++;
+			if (i > 10) clearInterval(interval);
+		}, 50);
 	};
 
 	const updateScrollState = () => {
@@ -96,18 +99,18 @@
 	onMount(async () => {
 		if (id) dispatch('sectionLoad', { id });
 
+		await tick();
+
+		requestAnimationFrame(() => {
+			calculateScrollState();
+		});
+
 		resizeObserver = new ResizeObserver(() => {
-			updateScrollState();
+			calculateScrollState();
 		});
 
 		if (timelineWrapper) {
 			resizeObserver.observe(timelineWrapper);
-			// Aguarda o DOM estabilizar para que clientWidth e scrollWidth
-			// tenham os valores reais e isAtEnd seja calculado corretamente
-			await tick();
-			requestAnimationFrame(() => {
-				updateScrollState();
-			});
 		}
 	});
 
@@ -152,21 +155,22 @@
 			<!-- Imagem lateral opcional -->
 			<div class="our-history-media">
 				<Image
-					src="/images/illustrations/relogioteste.png"
+					src="/images/illustrations/relogios.png"
 					alt="Nossa história"
-					blendMode="color-burn"
-					color="red"
+					blendMode="multiply"
+					loading="lazy"
 				/>
 			</div>
 
 			<!-- Timeline -->
 			<div class="our-history-timeline">
-				<Button
-					icon="chevron-left"
-					variant="ghost"
-					disabled={isAtStart}
-					onclick={() => scrollByItems('left')}
-				/>
+				<div class="nav-button" class:hidden={isAtStart}>
+					<Button
+						icon="chevron-left"
+						variant="ghost"
+						onclick={() => scrollToEdge('left')}
+					/>
+				</div>
 
 				<div class="timeline-fade-container" class:at-start={isAtStart} class:at-end={isAtEnd}>
 					<div bind:this={timelineWrapper} class="timeline-wrapper" on:scroll={handleScroll}>
@@ -178,12 +182,13 @@
 					</div>
 				</div>
 
-				<Button
-					icon="chevron-right"
-					variant="ghost"
-					disabled={isAtEnd}
-					onclick={() => scrollByItems('right')}
-				/>
+				<div class="nav-button" class:hidden={isAtEnd}>
+					<Button
+						icon="chevron-right"
+						variant="ghost"
+						onclick={() => scrollToEdge('right')}
+					/>
+				</div>
 			</div>
 		</div>
 
@@ -210,7 +215,7 @@
 
 	.our-history-container {
 		/* Mudar para 100% a width */
-		max-width: var(--container-max-width-xl);
+		max-width: 100%;
 		margin: 0 auto;
 		padding: 0 var(--spacing-lg);
 		display: flex;
@@ -253,6 +258,17 @@
 		grid-template-columns: 2fr 1fr;
 	}
 
+	.nav-button {
+		width: 40px; /* ou tamanho real do botão */
+		display: flex;
+		justify-content: center;
+	}
+
+	.hidden {
+		opacity: 0;
+		pointer-events: none;
+	}
+
 	/* =========================
 	   Fade container — pai do scroll
 	========================= */
@@ -261,6 +277,16 @@
 		flex: 1;
 		min-width: 0;
 		position: relative;
+	}
+
+	.timeline-fade-container::before {
+		left: 0;
+		background: linear-gradient(to right, var(--background-color-card) 20%, transparent);
+		opacity: 1;
+	}
+
+	.timeline-fade-container.at-start::before {
+		opacity: 0;
 	}
 
 	.timeline-fade-container::before,
@@ -275,20 +301,10 @@
 		transition: opacity 0.35s ease;
 	}
 
-	.timeline-fade-container:not(.at-end)::after {
-		content: '';
-		position: absolute;
-		top: 0;
-		right: 0;
-		width: 80px;
-		height: 100%;
-		pointer-events: none;
-		z-index: 4;
-		background: linear-gradient(to left, var(--background-color-card) 20%, transparent);
-	}
 	.timeline-fade-container::after {
 		right: 0;
 		background: linear-gradient(to left, var(--background-color-card) 20%, transparent);
+		opacity: 1;
 	}
 
 	/* Esconde o fade do lado onde não há mais conteúdo */
@@ -344,7 +360,8 @@
 	.timeline::before {
 		content: '';
 		position: absolute;
-		top: 49%; /* Ajuste fino para centralizar na linha dos marcadores "Gambiarra" */
+		top: 50%;
+		transform: translateY(-50%);
 		left: 0;
 		right: 0;
 		height: 3px;

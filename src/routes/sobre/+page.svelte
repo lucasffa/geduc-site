@@ -11,7 +11,7 @@
 		{
 			year: '2018',
 			title: 'Fundação',
-			description: 'lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+			description: 'lorem ipsum dolor sit amet, consectetur adipiscing elit. lorem ipsum dolor sit amet, consectetur adipiscing elit.lorem ipsum dolor sit amet, consectetur adipiscing elit.',
 			image: '#'
 		},
 		{

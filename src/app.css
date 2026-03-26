@@ -72,7 +72,7 @@ h6 {
 	--color-primary-600: #324acb;
 	--color-primary-700: #161aa3;
 	--color-primary-800: #191ea6;
-	--color-primary-900: #152db5;
+	--color-primary-900: #152db4;
 
 	/* Variações semânticas de primária */
 	--color-primary-light: var(--color-primary-300);
@@ -150,7 +150,7 @@ h6 {
 	--color-yellow-500: #ffee58;
 	--color-yellow-600: #f6cb5a;
 	--color-yellow-700: #fdd835;
-	--color-yellow-800: #fbc02d;
+	--color-yellow-800: #F2A842;
 	--color-yellow-900: #f9a825;
 }
 
