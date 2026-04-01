@@ -1,3 +1,4 @@
+<!-- src/routes/dashboard/usuarios/+page.svelte -->
 <script>
 	import DataTable from '$lib/components/organisms/DataTable.svelte';
 	import Badge from '$lib/components/atoms/Badge.svelte';
@@ -17,6 +18,7 @@
 
 	let showInviteModal = false;
 	let inviting = false;
+	let inviteMode = 'email';
 
 	const columns = [
 		{ key: 'name', label: 'Nome' },
@@ -27,16 +29,32 @@
 	];
 
 	async function handleInviteSave(event) {
-		const { email, role } = event.detail;
+		const { email, role, mode } = event.detail;
+		inviteMode = mode || 'email';
 		inviting = true;
 		try {
 			const res = await fetch('/dashboard/api/users/invite', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ email, role, name: '' })
-			});
-			if (!res.ok) throw new Error((await res.json()).error || 'Erro ao enviar convite');
+			body: JSON.stringify({
+				mode,
+				role,
+				// email é obrigatório apenas no modo por e-mail; no modo link pode ser omitido
+				...(email ? { email } : {})
+			})
+		});
+		if (!res.ok) throw new Error((await res.json()).error || 'Erro ao enviar convite');
+		const result = await res.json();
+		if (result.inviteLink) {
+			try {
+				await navigator.clipboard.writeText(result.inviteLink);
+				addToast('Link de convite gerado e copiado para área de transferência', 'success');
+			} catch {
+				addToast(`Link de convite: ${result.inviteLink}`, 'success');
+			}
+		} else {
 			addToast('Convite enviado com sucesso', 'success');
+		}
 			showInviteModal = false;
 			goto($pageStore.url.toString(), { invalidateAll: true });
 		} catch (err) {
@@ -108,6 +126,7 @@
 	isOpen={showInviteModal}
 	roles={INVITABLE_ROLES}
 	roleLabels={ROLE_LABELS}
+	mode={inviteMode}
 	saving={inviting}
 	on:close={() => showInviteModal = false}
 	on:save={handleInviteSave}

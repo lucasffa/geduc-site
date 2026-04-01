@@ -1,3 +1,4 @@
+// src/routes/dashboard/participantes/+page.server.ts
 import type { PageServerLoad } from './$types';
 import { isNull, sql, count, eq, inArray } from 'drizzle-orm';
 import { participants, orgSettings, participantViews } from '$lib/server/db/schema-org';

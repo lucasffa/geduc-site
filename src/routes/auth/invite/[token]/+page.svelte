@@ -1,4 +1,5 @@
-<script>
+<!-- src/routes/auth/invite/[token]/+page.svelte -->
+<script lang="ts">
 	import { enhance } from '$app/forms';
 
 	/** @type {import('./$types').PageData} */
@@ -6,6 +7,8 @@
 
 	/** @type {import('./$types').ActionData} */
 	export let form;
+
+	const formData = /** @type {{ email?: string; name?: string; error?: string }} */ (form || {});
 </script>
 
 <svelte:head>
@@ -24,10 +27,25 @@
 		{/if}
 
 		<form method="POST" use:enhance>
-			<div class="form-group">
-				<label for="email">E-mail</label>
-				<input type="email" id="email" value={data.email} disabled />
-			</div>
+			{#if data.email}
+				<div class="form-group">
+					<label for="email">E-mail</label>
+					<input type="email" id="email" value={data.email} disabled />
+				</div>
+			{:else}
+				<div class="form-group">
+					<label for="email">E-mail</label>
+					<input
+						type="email"
+						id="email"
+						name="email"
+						value={formData.email ?? ''}
+						placeholder="email@exemplo.com"
+						required
+						autocomplete="email"
+					/>
+				</div>
+			{/if}
 
 			<div class="form-group">
 				<label for="name">Nome completo</label>
@@ -35,7 +53,7 @@
 					type="text"
 					id="name"
 					name="name"
-					value={form?.name ?? ''}
+					value={formData.name ?? ''}
 					placeholder="Seu nome"
 					required
 					autocomplete="name"
