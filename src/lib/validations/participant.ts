@@ -27,12 +27,26 @@ export const importRowSchema = z.object({
 	'data de fim de ciclo': z.string().optional().nullable()
 });
 
+const certFieldSchema = z.object({
+	key: z.enum(['participantName', 'role', 'workloadHours', 'period', 'issueDate']),
+	label: z.string(),
+	enabled: z.boolean(),
+	x: z.number().min(0).max(100),
+	y: z.number().min(0).max(100),
+	fontSize: z.number().int().min(6).max(120),
+	fontId: z.string().uuid().nullable(),
+	bold: z.boolean(),
+	color: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+	align: z.enum(['left', 'center', 'right'])
+});
+
 export const certificateConfigSchema = z.object({
 	participantIds: z.array(z.string().uuid()).min(1, 'Selecione ao menos um participante'),
 	workloadHours: z.number().int().positive('Carga horária deve ser positiva'),
 	periodStart: z.string().min(1, 'Data início é obrigatória'),
 	periodEnd: z.string().min(1, 'Data fim é obrigatória'),
-	templateName: z.string().optional().default('default')
+	templateId: z.string().uuid().nullable().optional(),
+	fields: z.array(certFieldSchema).optional()
 });
 
 export const sendCertificateSchema = z.object({

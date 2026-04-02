@@ -2,6 +2,7 @@
 <script lang="ts">
 	import UserAvatar from '$lib/components/molecules/UserAvatar.svelte';
 	import { page } from '$app/stores';
+	import { sidebarOpen, closeSidebar } from '$lib/stores/sysadmin';
 
 	export let userName = '';
 	export let userRole = 'Sysadmin';
@@ -14,7 +15,11 @@
 	];
 </script>
 
-<aside class="sidebar">
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+{#if $sidebarOpen}
+	<div class="sidebar-overlay" on:click={closeSidebar} on:keydown={closeSidebar}></div>
+{/if}
+<aside class="sidebar" class:open={$sidebarOpen}>
 	<div class="sidebar-header">
 		<h2>GEDUC</h2>
 		<span class="sidebar-subtitle">Painel Sysadmin</span>
@@ -26,6 +31,7 @@
 				href={link.href}
 				class="sidebar-link"
 				class:active={$page.url.pathname === link.href || ($page.url.pathname.startsWith(link.href) && link.href !== '/sysadmin')}
+				on:click={closeSidebar}
 			>
 				{link.label}
 			</a>
@@ -48,11 +54,17 @@
 		color: #fff;
 		display: flex;
 		flex-direction: column;
-		min-height: 100vh;
+		height: 100vh;
 		position: fixed;
 		top: 0;
 		left: 0;
 		z-index: 100;
+		overflow-y: auto;
+		transition: transform var(--transition-normal);
+	}
+
+	.sidebar-overlay {
+		display: none;
 	}
 
 	.sidebar-header {
@@ -144,7 +156,20 @@
 
 	@media (max-width: 768px) {
 		.sidebar {
-			display: none;
+			transform: translateX(-100%);
+		}
+		.sidebar.open {
+			transform: translateX(0);
+		}
+		.sidebar-overlay {
+			display: block;
+			position: fixed;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			background: rgba(0, 0, 0, 0.5);
+			z-index: 99;
 		}
 	}
 </style>

@@ -1,6 +1,7 @@
 <!-- src/lib/components/templates/SysadminTemplate.svelte -->
 <script lang="ts">
 	import SysadminSidebar from '$lib/components/organisms/SysadminSidebar.svelte';
+	import SysadminTopBar from '$lib/components/organisms/SysadminTopBar.svelte';
 	import ToastContainer from '$lib/components/molecules/ToastContainer.svelte';
 
 	export let userName = '';
@@ -11,6 +12,8 @@
 	<SysadminSidebar {userName} {userRole} />
 
 	<div class="sysadmin-content">
+		<SysadminTopBar {userName} />
+
 		<main class="sysadmin-main">
 			<slot />
 		</main>

@@ -5,7 +5,7 @@
 	export let workloadHours: string = '';
 	export let periodStart: string = '';
 	export let periodEnd: string = '';
-	export let templateName: string = 'default';
+	export let templateId: string | null = null;
 	export let templates: TemplateInfo[] = [];
 </script>
 
@@ -21,10 +21,10 @@
 			</div>
 			<div class="form-group">
 				<label for="template">Template</label>
-				<select id="template" class="form-control" bind:value={templateName}>
-					<option value="default">Modelo padrão GEDUC</option>
+				<select id="template" class="form-control" bind:value={templateId}>
+					<option value={null}>Modelo padrão GEDUC</option>
 					{#each templates as t}
-						<option value={t.name}>{t.name}</option>
+						<option value={t.id}>{t.name}</option>
 					{/each}
 				</select>
 			</div>

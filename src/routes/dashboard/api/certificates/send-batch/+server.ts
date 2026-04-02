@@ -4,6 +4,7 @@ import { requirePermission } from '$lib/server/middleware/auth';
 import { logAudit } from '$lib/server/middleware/audit';
 import { certificates, participants } from '$lib/server/db/schema-org';
 import { sendCertificateEmail } from '$lib/server/resend';
+import { getCertificatesDir } from '$lib/server/certificate-generator';
 import { eq, inArray } from 'drizzle-orm';
 import fs from 'fs';
 import path from 'path';
@@ -13,6 +14,9 @@ export const POST: RequestHandler = async (event) => {
 
 	const orgDb = event.locals.orgDb;
 	if (!orgDb) return json({ error: 'Organização não configurada' }, { status: 400 });
+
+	const slug = event.locals.organization?.slug;
+	if (!slug) return json({ error: 'Organização não configurada' }, { status: 400 });
 
 	try {
 		const body = await event.request.json();
@@ -30,6 +34,7 @@ export const POST: RequestHandler = async (event) => {
 
 		const userId = event.locals.user!.id;
 		const orgId = event.locals.organization?.id;
+		const certDir = getCertificatesDir(slug);
 		const results: { id: string; success: boolean; error?: string }[] = [];
 
 		for (const cert of certs) {
@@ -44,7 +49,7 @@ export const POST: RequestHandler = async (event) => {
 				continue;
 			}
 
-			const pdfFullPath = path.resolve('static', cert.pdfPath.replace(/^\//, ''));
+			const pdfFullPath = path.join(certDir, cert.pdfPath);
 			if (!fs.existsSync(pdfFullPath)) {
 				results.push({ id: cert.id, success: false, error: 'PDF não encontrado' });
 				continue;

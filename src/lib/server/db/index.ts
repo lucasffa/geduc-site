@@ -80,6 +80,33 @@ export function getOrgDb(slug: string): OrgDb {
 		);
 	`);
 
+	// Migration: certificate_templates table + certificates.template_id
+	sqlite.exec(`
+		CREATE TABLE IF NOT EXISTS certificate_templates (
+			id TEXT PRIMARY KEY,
+			name TEXT NOT NULL,
+			original_filename TEXT,
+			created_by TEXT,
+			created_at TEXT NOT NULL DEFAULT (datetime('now'))
+		);
+	`);
+	try {
+		sqlite.exec(`ALTER TABLE certificates ADD COLUMN template_id TEXT REFERENCES certificate_templates(id)`);
+	} catch {
+		// Column already exists
+	}
+
+	// Migration: certificate_fonts table
+	sqlite.exec(`
+		CREATE TABLE IF NOT EXISTS certificate_fonts (
+			id TEXT PRIMARY KEY,
+			name TEXT NOT NULL,
+			original_filename TEXT,
+			created_by TEXT,
+			created_at TEXT NOT NULL DEFAULT (datetime('now'))
+		);
+	`);
+
 	const db = drizzle(sqlite, { schema: orgSchema });
 	orgDbPool.set(slug, db);
 	return db;
@@ -127,10 +154,26 @@ export function createOrgDb(slug: string): OrgDb {
 			changed_by TEXT
 		);
 
+		CREATE TABLE IF NOT EXISTS certificate_templates (
+			id TEXT PRIMARY KEY,
+			name TEXT NOT NULL,
+			original_filename TEXT,
+			created_by TEXT,
+			created_at TEXT NOT NULL DEFAULT (datetime('now'))
+		);
+
+		CREATE TABLE IF NOT EXISTS certificate_fonts (
+			id TEXT PRIMARY KEY,
+			name TEXT NOT NULL,
+			original_filename TEXT,
+			created_by TEXT,
+			created_at TEXT NOT NULL DEFAULT (datetime('now'))
+		);
+
 		CREATE TABLE IF NOT EXISTS certificates (
 			id TEXT PRIMARY KEY,
 			participant_id TEXT NOT NULL REFERENCES participants(id) ON DELETE CASCADE,
-			template_name TEXT,
+			template_id TEXT REFERENCES certificate_templates(id),
 			workload_hours INTEGER,
 			period_start TEXT,
 			period_end TEXT,

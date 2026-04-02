@@ -1,9 +1,11 @@
 <script>
 	import { onMount } from 'svelte';
 	import { addToast } from '$lib/stores/dashboard';
+	import { DEFAULT_CERT_FIELDS } from '$lib/constants/cert-fields';
 	import PageHeader from '$lib/components/molecules/PageHeader.svelte';
 	import Button from '$lib/components/atoms/Button.svelte';
 	import CertificateConfig from '$lib/components/organisms/dashboard/CertificateConfig.svelte';
+	import CertificateFieldEditor from '$lib/components/organisms/dashboard/CertificateFieldEditor.svelte';
 	import ParticipantSelection from '$lib/components/organisms/dashboard/ParticipantSelection.svelte';
 	import CertificateQueue from '$lib/components/organisms/dashboard/CertificateQueue.svelte';
 	import CertPreviewModal from '$lib/components/organisms/dashboard/CertPreviewModal.svelte';
@@ -12,32 +14,69 @@
 
 	export let data;
 
-	// State
+	// ── Participantes ──
 	let participants = [];
 	let selectedIds = new Set();
 	let loading = true;
-	let generating = false;
-	let sending = false;
 
-	// Config (bound to CertificateConfig)
+	// ── Geração ──
+	let generating = false;
+
+	// ── Config certificado ──
 	let workloadHours = '';
 	let periodStart = '';
 	let periodEnd = '';
-	let templateName = 'default';
+	let templateId = null;
 	let templates = [];
 
-	// Upload template
+	// ── Fontes (apenas para passar ao editor de campos) ──
+	let fonts = [];
+
+	// ── Campos configuráveis ──
+	let certFields = DEFAULT_CERT_FIELDS.map((f) => ({ ...f }));
+	let certQueue; // bind:this para chamar reload() após geração
+
+	// Chave localStorage por template: preserva preset por template
+	function fieldsKey(tId) {
+		return `geduc_cert_fields:${tId ?? 'default'}`;
+	}
+
+	function loadFieldsForTemplate(tId) {
+		if (typeof window === 'undefined') return;
+		const saved = localStorage.getItem(fieldsKey(tId));
+		if (saved) {
+			try { certFields = JSON.parse(saved); return; } catch {}
+		}
+		certFields = DEFAULT_CERT_FIELDS.map((f) => ({ ...f }));
+	}
+
+	function saveFields(tId, fields) {
+		if (typeof window === 'undefined') return;
+		localStorage.setItem(fieldsKey(tId), JSON.stringify(fields));
+	}
+
+	// Carrega preset ao trocar de template
+	let _prevTemplateId = undefined;
+	$: if (_prevTemplateId !== templateId) {
+		_prevTemplateId = templateId;
+		loadFieldsForTemplate(templateId);
+	}
+
+	// Salva ao alterar campos
+	function handleFieldChange(e) {
+		certFields = e.detail;
+		saveFields(templateId, certFields);
+	}
+
+	$: templatePreviewUrl = templateId
+		? `/dashboard/api/certificates/templates/${templateId}`
+		: null;
+
+	// ── Modais ──
 	let showUploadModal = false;
 	let uploading = false;
-
-	// Preview
 	let showPreviewModal = false;
 	let previewParticipants = [];
-
-	// Generated certificates
-	let generatedCerts = [];
-
-	// Test email
 	let testCertId = null;
 	let showTestModal = false;
 	let sendingTest = false;
@@ -47,51 +86,49 @@
 	);
 
 	onMount(async () => {
-		await Promise.all([loadParticipants(), loadTemplates()]);
+		loadFieldsForTemplate(templateId);
+		await Promise.all([loadParticipants(), loadTemplates(), loadFonts()]);
 	});
 
 	async function loadParticipants() {
 		loading = true;
 		try {
 			const res = await fetch('/dashboard/api/participants?limit=500');
-			if (res.ok) {
-				const result = await res.json();
-				participants = result.data;
-			}
-		} catch (e) {
-			console.error(e);
-		} finally {
-			loading = false;
-		}
+			if (res.ok) participants = (await res.json()).data;
+		} catch (e) { console.error(e); }
+		finally { loading = false; }
 	}
 
 	async function loadTemplates() {
 		try {
 			const res = await fetch('/dashboard/api/certificates/upload-template');
-			if (res.ok) {
-				const result = await res.json();
-				templates = result.templates;
-			}
-		} catch (e) {
-			console.error(e);
-		}
+			if (res.ok) templates = (await res.json()).templates;
+		} catch (e) { console.error(e); }
 	}
 
+	async function loadFonts() {
+		try {
+			const res = await fetch('/dashboard/api/certificates/fonts');
+			if (res.ok) fonts = (await res.json()).fonts;
+		} catch (e) { console.error(e); }
+	}
+
+	// ── Seleção ──
+
 	function handleToggleSelect(e) {
-		const id = e.detail.id;
 		const next = new Set(selectedIds);
-		if (next.has(id)) next.delete(id);
-		else next.add(id);
+		if (next.has(e.detail.id)) next.delete(e.detail.id);
+		else next.add(e.detail.id);
 		selectedIds = next;
 	}
 
 	function handleToggleAll() {
-		if (selectedIds.size === eligibleParticipants.length) {
-			selectedIds = new Set();
-		} else {
-			selectedIds = new Set(eligibleParticipants.map((p) => p.id));
-		}
+		selectedIds = selectedIds.size === eligibleParticipants.length
+			? new Set()
+			: new Set(eligibleParticipants.map((p) => p.id));
 	}
+
+	// ── Preview / Geração ──
 
 	function handlePreview() {
 		if (selectedIds.size === 0) { addToast('Selecione ao menos um participante', 'error'); return; }
@@ -111,16 +148,17 @@
 					workloadHours: parseInt(workloadHours),
 					periodStart,
 					periodEnd,
-					templateName
+					templateId,
+					fields: certFields
 				})
 			});
 			const result = await res.json();
 			if (res.ok) {
-				generatedCerts = result.generated;
 				showPreviewModal = false;
 				addToast(`${result.count} certificados gerados com sucesso!`, 'success');
 				selectedIds = new Set();
 				loadParticipants();
+				certQueue?.reload(); // atualiza a fila persistente
 			} else {
 				addToast(result.error || 'Erro ao gerar', 'error');
 			}
@@ -131,50 +169,7 @@
 		}
 	}
 
-	async function handleSendBatch() {
-		if (generatedCerts.length === 0) { addToast('Nenhum certificado para enviar', 'error'); return; }
-		sending = true;
-		try {
-			const res = await fetch('/dashboard/api/certificates/send-batch', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ certificateIds: generatedCerts.map((c) => c.id) })
-			});
-			const result = await res.json();
-			if (res.ok) {
-				addToast(`${result.success} certificados enviados!${result.failed > 0 ? ` ${result.failed} falharam.` : ''}`, 'success');
-				generatedCerts = [];
-				loadParticipants();
-			} else {
-				addToast(result.error || 'Erro no envio', 'error');
-			}
-		} catch (_e) {
-			addToast('Erro no envio em lote', 'error');
-		} finally {
-			sending = false;
-		}
-	}
-
-	async function handleSendSingle(e) {
-		const certId = e.detail.id;
-		try {
-			const res = await fetch('/dashboard/api/certificates/send', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ certificateId: certId })
-			});
-			if (res.ok) {
-				addToast('Certificado enviado!', 'success');
-				generatedCerts = generatedCerts.filter((c) => c.id !== certId);
-				loadParticipants();
-			} else {
-				const result = await res.json();
-				addToast(result.error || 'Erro no envio', 'error');
-			}
-		} catch (_e) {
-			addToast('Erro ao enviar', 'error');
-		}
-	}
+	// ── Test email (modal) ──
 
 	function handleOpenTestEmail(e) {
 		testCertId = e.detail.id;
@@ -204,6 +199,8 @@
 			sendingTest = false;
 		}
 	}
+
+	// ── Upload template ──
 
 	async function handleUpload(e) {
 		const { file, name } = e.detail;
@@ -240,14 +237,16 @@
 	</Button>
 </PageHeader>
 
+<!-- 1. Configuração básica -->
 <CertificateConfig
 	bind:workloadHours
 	bind:periodStart
 	bind:periodEnd
-	bind:templateName
+	bind:templateId
 	{templates}
 />
 
+<!-- 2. Seleção de participantes -->
 <ParticipantSelection
 	participants={eligibleParticipants}
 	{selectedIds}
@@ -257,22 +256,30 @@
 	on:preview={handlePreview}
 />
 
+<!-- 3. Fila de certificados (persiste entre reloads) -->
 <CertificateQueue
-	certificates={generatedCerts}
-	{participants}
-	{sending}
-	on:sendBatch={handleSendBatch}
-	on:sendSingle={handleSendSingle}
+	bind:this={certQueue}
 	on:testEmail={handleOpenTestEmail}
+	on:sent={loadParticipants}
 />
 
+<!-- 4. Editor de campos (posicionamento visual) -->
+<CertificateFieldEditor
+	bind:fields={certFields}
+	{fonts}
+	{templatePreviewUrl}
+	on:change={handleFieldChange}
+/>
+
+<!-- Modais -->
 <CertPreviewModal
 	isOpen={showPreviewModal}
 	participants={previewParticipants}
 	{workloadHours}
 	{periodStart}
 	{periodEnd}
-	{templateName}
+	{templateId}
+	{templates}
 	{generating}
 	on:close={() => { showPreviewModal = false; }}
 	on:generate={handleGenerate}

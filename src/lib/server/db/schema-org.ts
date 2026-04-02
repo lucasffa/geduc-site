@@ -36,6 +36,28 @@ export const statusHistory = sqliteTable('status_history', {
 });
 
 // ============================================================
+// CERTIFICATE TEMPLATES
+// ============================================================
+export const certificateTemplates = sqliteTable('certificate_templates', {
+	id: text('id').primaryKey(),
+	name: text('name').notNull(),
+	originalFilename: text('original_filename'),
+	createdBy: text('created_by'),
+	createdAt: text('created_at').notNull().default(sql`(datetime('now'))`)
+});
+
+// ============================================================
+// CERTIFICATE FONTS
+// ============================================================
+export const certificateFonts = sqliteTable('certificate_fonts', {
+	id: text('id').primaryKey(),
+	name: text('name').notNull(),
+	originalFilename: text('original_filename'),
+	createdBy: text('created_by'),
+	createdAt: text('created_at').notNull().default(sql`(datetime('now'))`)
+});
+
+// ============================================================
 // CERTIFICATES
 // ============================================================
 export const certificates = sqliteTable('certificates', {
@@ -43,7 +65,8 @@ export const certificates = sqliteTable('certificates', {
 	participantId: text('participant_id')
 		.notNull()
 		.references(() => participants.id, { onDelete: 'cascade' }),
-	templateName: text('template_name'),
+	templateId: text('template_id')
+		.references(() => certificateTemplates.id),
 	workloadHours: integer('workload_hours'),
 	periodStart: text('period_start'),
 	periodEnd: text('period_end'),

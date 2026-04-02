@@ -11,8 +11,12 @@ export default defineConfig({
         })
     ],
 
+    optimizeDeps: {
+        exclude: ['pdfjs-dist']
+    },
+
     server: {
-        allowedHosts: ['preview.ensine.me', 'geduc.site']
+        allowedHosts: true
     },
 
     preview: {

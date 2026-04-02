@@ -3,9 +3,9 @@ import { randomUUID } from 'node:crypto';
 import type { RequestHandler } from './$types';
 import { requirePermission } from '$lib/server/middleware/auth';
 import { logAudit } from '$lib/server/middleware/audit';
-import { participants, certificates } from '$lib/server/db/schema-org';
+import { participants, certificates, certificateTemplates } from '$lib/server/db/schema-org';
 import { certificateConfigSchema } from '$lib/validations/participant';
-import { generateCertificatePdf, getCertificatesDir, getTemplatesDir } from '$lib/server/certificate-generator';
+import { generateCertificatePdf, getCertificatesDir, getTemplatesDir, getFontsDir } from '$lib/server/certificate-generator';
 import { eq, inArray, isNull, and } from 'drizzle-orm';
 import fs from 'fs';
 import path from 'path';
@@ -16,6 +16,9 @@ export const POST: RequestHandler = async (event) => {
 	const orgDb = event.locals.orgDb;
 	if (!orgDb) return json({ error: 'Organização não configurada' }, { status: 400 });
 
+	const slug = event.locals.organization?.slug;
+	if (!slug) return json({ error: 'Organização não configurada' }, { status: 400 });
+
 	try {
 		const body = await event.request.json();
 		const parsed = certificateConfigSchema.safeParse(body);
@@ -24,9 +27,8 @@ export const POST: RequestHandler = async (event) => {
 			return json({ error: 'Dados inválidos', details: parsed.error.flatten() }, { status: 400 });
 		}
 
-		const { participantIds, workloadHours, periodStart, periodEnd, templateName } = parsed.data;
+		const { participantIds, workloadHours, periodStart, periodEnd, templateId, fields } = parsed.data;
 
-		// Get participants (active, not deleted)
 		const participantList = orgDb
 			.select()
 			.from(participants)
@@ -40,45 +42,53 @@ export const POST: RequestHandler = async (event) => {
 			return json({ error: 'Nenhum participante encontrado' }, { status: 404 });
 		}
 
-		// Check template
-		const templatesDir = getTemplatesDir();
-		const templatePath = templateName && templateName !== 'default'
-			? path.join(templatesDir, `${templateName}.pdf`)
-			: undefined;
+		// Resolve template path if a template was selected
+		let templatePath: string | undefined;
+		let resolvedTemplateId: string | null = null;
+		if (templateId) {
+			const template = orgDb
+				.select()
+				.from(certificateTemplates)
+				.where(eq(certificateTemplates.id, templateId))
+				.get();
 
-		const certDir = getCertificatesDir();
+			if (template) {
+				const templatesDir = getTemplatesDir(slug);
+				const candidatePath = path.join(templatesDir, `${template.id}.pdf`);
+				if (fs.existsSync(candidatePath)) {
+					templatePath = candidatePath;
+					resolvedTemplateId = template.id;
+				}
+			}
+		}
+
+		const certDir  = getCertificatesDir(slug);
+		const fontsDir = getFontsDir(slug);
 		const generated = [];
 
 		for (const p of participantList) {
 			const pdfBytes = await generateCertificatePdf(
-				{
-					participantName: p.name,
-					role: p.role,
-					workloadHours,
-					periodStart,
-					periodEnd
-				},
-				templatePath
+				{ participantName: p.name, role: p.role, workloadHours, periodStart, periodEnd },
+				templatePath,
+				{ fields: fields as any, fontsDir }
 			);
 
-			const filename = `certificado_${p.id}_${Date.now()}.pdf`;
+			const certId = randomUUID();
+			const filename = `${certId}.pdf`;
 			const filePath = path.join(certDir, filename);
 			fs.writeFileSync(filePath, pdfBytes);
 
-			// Save to DB
-			const certId = randomUUID();
 			orgDb.insert(certificates).values({
 				id: certId,
 				participantId: p.id,
-				templateName: templateName || 'default',
+				templateId: resolvedTemplateId,
 				workloadHours,
 				periodStart,
 				periodEnd,
-				pdfPath: `/certificates/${filename}`,
+				pdfPath: filename,
 				status: 'gerado'
 			}).run();
 
-			// Update participant status
 			orgDb
 				.update(participants)
 				.set({ status: 'certificado_processando', updatedAt: new Date().toISOString() })

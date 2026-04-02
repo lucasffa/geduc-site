@@ -24,10 +24,18 @@ export interface StatusHistoryEntry {
 	participantName?: string;
 }
 
+export interface CertificateTemplate {
+	id: string;
+	name: string;
+	originalFilename: string | null;
+	createdBy: string | null;
+	createdAt: string;
+}
+
 export interface Certificate {
-	id: number;
-	participantId: number;
-	templateName: string | null;
+	id: string;
+	participantId: string;
+	templateId: string | null;
 	workloadHours: number | null;
 	periodStart: string | null;
 	periodEnd: string | null;
@@ -69,6 +77,33 @@ export interface ToastData {
 }
 
 export interface TemplateInfo {
+	id: string;
 	name: string;
-	filename: string;
+	originalFilename: string | null;
+}
+
+export interface FontInfo {
+	id: string;
+	name: string;
+	originalFilename: string | null;
+	createdAt: string;
+}
+
+export type FieldKey = 'participantName' | 'role' | 'workloadHours' | 'period' | 'issueDate';
+export type FieldAlign = 'left' | 'center' | 'right';
+
+export interface CertField {
+	key: FieldKey;
+	label: string;
+	enabled: boolean;
+	/** 0–100: percentual da largura da página (ponto âncora) */
+	x: number;
+	/** 0–100: percentual da altura da página (de cima para baixo) */
+	y: number;
+	fontSize: number;
+	/** null = fonte padrão (Helvetica) */
+	fontId: string | null;
+	bold: boolean;
+	color: string; // hex, ex: '#141cb4'
+	align: FieldAlign;
 }

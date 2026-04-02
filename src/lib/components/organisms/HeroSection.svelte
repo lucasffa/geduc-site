@@ -71,224 +71,230 @@
 </script>
 
 <section class={classes} style={backgroundStyle}>
-{#if variant === 'home'}
-	{#if decorative}
-		<div class="hero-section-decorations">
-			<div class="hero-decoration hero-decoration-1"></div>
-			<div class="hero-decoration hero-decoration-2"></div>
-			<div class="hero-decoration hero-decoration-3"></div>
-		</div>
-	{/if}
-
-	<!-- Background illustrations positioned behind content -->
-	{#if media && media.type === 'illustration'}
-		<div class="hero-section-media-background">
-			<div class="hero-illustration hero-illustration-brain">
-				<Image
-					src="/images/illustrations/brain.png"
-					alt="Ilustração de cérebro representando conhecimento"
-					aspectRatio="square"
-					objectFit="contain"
-					blendMode="screen"
-					loading="lazy"
-					priority
-				/>
-			</div>
-			<div class="hero-illustration hero-illustration-lamp">
-				<Image
-					src="/images/illustrations/lamp.png"
-					alt="Ilustração de lâmpada representando ideias"
-					aspectRatio="auto"
-					objectFit="contain"
-					blendMode="screen"
-					loading="lazy"
-					priority
-				/>
-			</div>
-		</div>
-	{/if}
-
-	<div class="hero-section-container">
-		<div class="hero-section-content">
-			<div class="hero-headings-container">
-				<Heading level={1} size="4xl" weight="bold" color="neutral" class="hero-section-title">
-					{title}
-				</Heading>
-				{#if subtitle}
-					<div class="hero-subtitle-wrapper">
-						<Heading level={1} size="3xl" weight="bold" color="white" class="hero-section-subtitle">
-							{subtitle}
-						</Heading>
-					</div>
-				{/if}
-				{#if highlight}
-					<div class="hero-highlight-wrapper">
-						<Heading
-							level={1}
-							size="4xl"
-							weight="bold"
-							shadow="drop"
-							color="white"
-							class="hero-section-highlight"
-						>
-							{highlight}
-						</Heading>
-					</div>
-				{/if}
-			</div>
-			{#if description}
-				<Text as="p" size="lg" color="white" align="center" class="hero-section-description"
-				letterSpacing="wider"
-				>
-					{description}
-				</Text>
-			{/if}
-
-			{#if actions && actions.length > 0}
-				<div class="hero-section-actions">
-					{#each actions as action}
-						{#if action.label === 'Assista o Vídeo'}
-							<Button
-								variant={action.variant || 'primary'}
-								size="lg"
-								onclick={(event) => {
-									openVideoModal();
-								}}
-								class="hero-section-action"
-							>
-								{action.label}
-							</Button>
-						{:else}
-							<Button
-								href={action.href || '#'}
-								variant={action.variant || 'primary'}
-								size="lg"
-								class="hero-section-action"
-							>
-								{action.label}
-							</Button>
-						{/if}
-					{/each}
-				</div>
-			{/if}
-		</div>
-
-		{#if media && media.type !== 'illustration'}
-			<div class="hero-section-media">
-				{#if media.type === 'image'}
-					<Image
-						src={media.src}
-						alt={media.alt || 'Hero image'}
-						aspectRatio="auto"
-						objectFit="cover"
-						loading="eager"
-						priority
-						class="hero-section-image image-halftone"
-						blendMode="screen"
-					/>
-				{:else if media.type === 'video'}
-					<video
-						src={media.src}
-						poster={media.poster}
-						autoplay
-						muted
-						loop
-						playsinline
-						class="hero-section-video"
-					>
-						<track kind="captions" />
-					</video>
-				{/if}
+	{#if variant === 'home'}
+		{#if decorative}
+			<div class="hero-section-decorations">
+				<div class="hero-decoration hero-decoration-1"></div>
+				<div class="hero-decoration hero-decoration-2"></div>
+				<div class="hero-decoration hero-decoration-3"></div>
 			</div>
 		{/if}
-	</div>
 
-	<Modal isOpen={isVideoModalOpen} onClose={closeVideoModal} size="lg">
-		<slot name="header">
-			<h2>Vídeo Institucional</h2>
-		</slot>
-
-		<video
-			src="/videos/hero-video.mp4"
-			controls
-			autoplay
-			muted
-			loop
-			style="width: 100%; height: auto; border-radius: var(--border-radius-lg);"
-		></video>
-	</Modal>
-
-{:else if variant === 'about'}
-	<!-- ========== VARIANTE ABOUT ========== -->
-
-	<!-- Seção superior: Título + Visão -->
-	<div class="hero-about-top">
-		<div class="hero-about-top-inner">
-			<div class="hero-about-title-block">
-				<Heading level={1} size="3xl" weight="bold" color="primary" class="hero-about-title">
-					{title}
-				</Heading>
+		<!-- Background illustrations positioned behind content -->
+		{#if media && media.type === 'illustration'}
+			<div class="hero-section-media-background">
+				<div class="hero-illustration hero-illustration-brain">
+					<Image
+						src="/images/illustrations/brain.png"
+						alt="Ilustração de cérebro representando conhecimento"
+						aspectRatio="square"
+						objectFit="contain"
+						blendMode="screen"
+						loading="lazy"
+						priority
+					/>
+				</div>
+				<div class="hero-illustration hero-illustration-lamp">
+					<Image
+						src="/images/illustrations/lamp.png"
+						alt="Ilustração de lâmpada representando ideias"
+						aspectRatio="auto"
+						objectFit="contain"
+						blendMode="screen"
+						loading="lazy"
+						priority
+					/>
+				</div>
 			</div>
-			{#if visionText}
-				<div class="hero-about-vision-block">
-					<Heading level={3} size="lg" weight="bold" color="primary">
-						{visionTitle}
+		{/if}
+
+		<div class="hero-section-container">
+			<div class="hero-section-content">
+				<div class="hero-headings-container">
+					<Heading level={1} size="4xl" weight="bold" color="neutral" class="hero-section-title">
+						{title}
 					</Heading>
-					<Text as="p" size="sm" color="neutral">
-						{visionText}
+					{#if subtitle}
+						<div class="hero-subtitle-wrapper">
+							<Heading
+								level={1}
+								size="3xl"
+								weight="bold"
+								color="white"
+								class="hero-section-subtitle"
+							>
+								{subtitle}
+							</Heading>
+						</div>
+					{/if}
+					{#if highlight}
+						<div class="hero-highlight-wrapper">
+							<Heading
+								level={1}
+								size="4xl"
+								weight="bold"
+								shadow="drop"
+								color="white"
+								class="hero-section-highlight"
+							>
+								{highlight}
+							</Heading>
+						</div>
+					{/if}
+				</div>
+				{#if description}
+					<Text
+						as="p"
+						size="lg"
+						color="white"
+						align="center"
+						class="hero-section-description"
+						letterSpacing="wider"
+					>
+						{description}
 					</Text>
+				{/if}
+
+				{#if actions && actions.length > 0}
+					<div class="hero-section-actions">
+						{#each actions as action}
+							{#if action.label === 'Assista o Vídeo'}
+								<Button
+									variant={action.variant || 'primary'}
+									size="lg"
+									onclick={(event) => {
+										openVideoModal();
+									}}
+									class="hero-section-action"
+								>
+									{action.label}
+								</Button>
+							{:else}
+								<Button
+									href={action.href || '#'}
+									variant={action.variant || 'primary'}
+									size="lg"
+									class="hero-section-action"
+								>
+									{action.label}
+								</Button>
+							{/if}
+						{/each}
+					</div>
+				{/if}
+			</div>
+
+			{#if media && media.type !== 'illustration'}
+				<div class="hero-section-media">
+					{#if media.type === 'image'}
+						<Image
+							src={media.src}
+							alt={media.alt || 'Hero image'}
+							aspectRatio="auto"
+							objectFit="cover"
+							loading="eager"
+							priority
+							class="hero-section-image image-halftone"
+							blendMode="screen"
+						/>
+					{:else if media.type === 'video'}
+						<video
+							src={media.src}
+							poster={media.poster}
+							autoplay
+							muted
+							loop
+							playsinline
+							class="hero-section-video"
+						>
+							<track kind="captions" />
+						</video>
+					{/if}
 				</div>
 			{/if}
 		</div>
-	</div>
 
-	<!-- Banner com imagem do time -->
-	{#if teamImage}
-		<div class="hero-about-banner">
-			<div class="hero-about-banner-inner">
-				<img src={teamImage} alt="Equipe Geduca" class="hero-about-banner-img" />
-			</div>
-		</div>
-	{/if}
+		<Modal isOpen={isVideoModalOpen} onClose={closeVideoModal} size="lg">
+			<slot name="header">
+				<h2>Vídeo Institucional</h2>
+			</slot>
 
-	<!-- Info cards: Missão + Valores -->
-	{#if missionText || valuesText}
-		<div class="hero-about-cards">
-			<div class="hero-about-cards-inner">
-				{#if missionText}
-					<div class="hero-about-card">
-						<div class="hero-about-card-icon">
-							<img src="/images/illustrations/target.png" alt="Missão" />
-						</div>
-						<div class="hero-about-card-content">
-							<Heading level={4} size="md" weight="bold" color="primary">
-								Nossa missão
-							</Heading>
-							<Text as="p" size="sm" color="neutral">
-								{missionText}
-							</Text>
-						</div>
-					</div>
-				{/if}
-				{#if valuesText}
-					<div class="hero-about-card">
-						<div class="hero-about-card-icon">
-							<img src="/images/illustrations/gears.png" alt="Valores" />
-						</div>
-						<div class="hero-about-card-content">
-							<Heading level={4} size="md" weight="bold" color="primary">
-								Nossos valores
-							</Heading>
-							<Text as="p" size="sm" color="neutral">
-								{valuesText}
-							</Text>
-						</div>
+			<video
+				src="/videos/hero-video.mp4"
+				controls
+				autoplay
+				muted
+				loop
+				style="width: 100%; height: auto; border-radius: var(--border-radius-lg);"
+			></video>
+		</Modal>
+	{:else if variant === 'about'}
+		<!-- ========== VARIANTE ABOUT ========== -->
+
+		<!-- Seção superior: Título + Visão -->
+		<div class="hero-about-top">
+			<div class="hero-about-top-inner">
+				<div class="hero-about-title-block">
+					<Heading level={1} size="3xl" weight="bold" color="white" class="hero-about-title">
+						{title}
+					</Heading>
+				</div>
+				{#if visionText}
+					<div class="hero-about-vision-block">
+						<Heading level={3} size="lg" weight="bold" color="primary">
+							{visionTitle}
+						</Heading>
+						<Text as="p" size="sm" color="white">
+							{visionText}
+						</Text>
 					</div>
 				{/if}
 			</div>
 		</div>
+
+		<!-- Banner com imagem do time -->
+		{#if teamImage}
+			<div class="hero-about-banner">
+				<div class="hero-about-banner-inner">
+					<img src={teamImage} alt="Equipe Geduca" class="hero-about-banner-img" />
+				</div>
+			</div>
+		{/if}
+
+		<!-- Info cards: Missão + Valores -->
+		{#if missionText || valuesText}
+			<div class="hero-about-cards">
+				<div class="hero-about-cards-inner">
+					{#if missionText}
+						<div class="hero-about-card">
+							<div class="hero-about-card-icon">
+								<img src="/images/team/binoculo.png" alt="Missão" />
+							</div>
+							<div class="hero-about-card-content">
+								<Heading level={4} size="md" weight="bold" color="white">Nossa missão</Heading>
+								<Text as="p" size="sm" color="white">
+									{missionText}
+								</Text>
+							</div>
+						</div>
+					{/if}
+					{#if valuesText}
+						<div class="hero-about-card">
+							<div class="hero-about-card-icon">
+								<img src="/images/team/quebra-cabeca.png" alt="Valores" />
+							</div>
+							<div class="hero-about-card-content">
+								<Heading level={4} size="md" weight="bold" color="white">Nossos valores</Heading>
+								<Text as="p" size="sm" color="white">
+									{valuesText}
+								</Text>
+							</div>
+						</div>
+					{/if}
+				</div>
+			</div>
+		{/if}
 	{/if}
-{/if}
 
 	<slot />
 </section>
@@ -508,8 +514,6 @@
 		pointer-events: none;
 	}
 
-	
-
 	.hero-section-image,
 	.hero-section-video {
 		width: 100%;
@@ -529,8 +533,7 @@
 		background-color: transparent;
 	}
 
-	.hero-section-media-background{
-		
+	.hero-section-media-background {
 		height: 100vh;
 		max-height: 800px;
 		width: 100vw;
@@ -540,10 +543,12 @@
 	}
 
 	.hero-illustration {
-		background: linear-gradient(135deg,
+		background: linear-gradient(
+			135deg,
 			var(--color-primary-900) 0%,
 			var(--color-secondary-900) 50%,
-			var(--color-accent-900) 100%);
+			var(--color-accent-900) 100%
+		);
 		position: absolute;
 		animation: float 6s ease-in-out infinite;
 	}
@@ -628,7 +633,6 @@
 		right: 10%;
 		animation: rotate 25s linear infinite;
 	}
-
 
 	@keyframes rotate {
 		from {
@@ -780,10 +784,12 @@
 	 * VARIANTE ABOUT
 	 * ======================================== */
 	.hero-section-variant-about {
+		padding-top: var(--spacing-4xl);
 		min-height: auto;
 		display: flex;
 		flex-direction: column;
-		background: var(--color-neutral-0, #fff);
+		background-color: #152db4;
+		border-radius: 0 0 var(--border-radius-5xl, 85px) var(--border-radius-5xl, 85px);
 	}
 
 	/* Seção superior: Título + Visão */
@@ -803,17 +809,19 @@
 	.hero-about-title-block :global(.hero-about-title) {
 		font-style: italic;
 		line-height: var(--line-height-tight);
+		color: var(--color-secondary-400);
 	}
 
-	.hero-about-vision-block {
+	.hero-about-vision-block :global(.heading) {
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-sm);
+		color: var(--color-neutral-0);
 	}
 
 	/* Banner imagem */
 	.hero-about-banner {
-		padding: 0 var(--spacing-lg);
+		padding: 0 var(--spacing-lg) var(--spacing-xl);
 	}
 
 	.hero-about-banner-inner {
@@ -825,12 +833,11 @@
 		width: 100%;
 		height: auto;
 		display: block;
-		border-radius: var(--border-radius-xl);
 	}
 
 	/* Info cards */
 	.hero-about-cards {
-		padding: var(--spacing-xl) var(--spacing-lg) var(--spacing-3xl);
+		padding: var(--spacing-xl) var(--spacing-lg) var(--spacing-4xl);
 	}
 
 	.hero-about-cards-inner {
@@ -849,8 +856,8 @@
 
 	.hero-about-card-icon {
 		flex-shrink: 0;
-		width: 64px;
-		height: 64px;
+		width: 142.63px;
+		height: 109px;
 	}
 
 	.hero-about-card-icon img {
