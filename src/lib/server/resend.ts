@@ -1,6 +1,9 @@
 import { Resend } from 'resend';
 import { env } from '$env/dynamic/private';
 import { cache, CacheKeys } from '$lib/server/cache';
+import { orgSettings } from '$lib/server/db/schema-org';
+import { eq } from 'drizzle-orm';
+import type { OrgDb } from '$lib/server/db';
 
 /**
  * Tri-mode Resend client:
@@ -50,37 +53,83 @@ export function getResendClientForCertificates(userId: string, orgId?: string): 
 	return getSystemResendClient();
 }
 
+export interface OrgEmailConfig {
+	/** Nome da organização (ex: "GEDUC") */
+	orgName: string;
+	/** Domínio de email configurado (ex: "geduc.org") */
+	emailDomain?: string;
+	/** Endereço de email remetente completo (sobrescreve o padrão contato@domain) */
+	emailFrom?: string;
+	/** Cor primária da organização para o template */
+	primaryColor?: string;
+}
+
+/**
+ * Lê a config de email da organização a partir do orgSettings e dados da org.
+ */
+export function getOrgEmailConfig(
+	orgDb: OrgDb,
+	orgName: string,
+	primaryColor?: string
+): OrgEmailConfig {
+	const rows = orgDb.select().from(orgSettings).all();
+	const settings: Record<string, string> = {};
+	for (const row of rows) {
+		settings[row.key] = row.value;
+	}
+
+	return {
+		orgName,
+		emailDomain: settings['email_domain'] || undefined,
+		emailFrom: settings['email_from'] || undefined,
+		primaryColor: primaryColor || undefined
+	};
+}
+
+/**
+ * Resolve o endereço de email remetente baseado na config da org.
+ * Prioridade: emailFrom > contato@emailDomain > env RESEND_FROM_EMAIL > fallback
+ */
+function resolveFromEmail(config?: OrgEmailConfig): string {
+	if (config?.emailFrom) return config.emailFrom;
+	if (config?.emailDomain) return `contato@${config.emailDomain}`;
+	return env.RESEND_FROM_EMAIL || 'certificados@geduc.org';
+}
+
 export async function sendCertificateEmail(
 	to: string,
 	participantName: string,
 	pdfBuffer: Uint8Array,
 	filename: string,
 	userId: string,
-	orgId?: string
+	orgId?: string,
+	orgEmailConfig?: OrgEmailConfig
 ): Promise<{ success: boolean; error?: string }> {
 	try {
 		const resend = getResendClientForCertificates(userId, orgId);
-		const fromEmail = env.RESEND_FROM_EMAIL || 'certificados@geduc.org';
+		const fromEmail = resolveFromEmail(orgEmailConfig);
+		const orgName = orgEmailConfig?.orgName || 'GEDUC';
+		const primaryColor = orgEmailConfig?.primaryColor || '#152db5';
 
 		await resend.emails.send({
 			from: fromEmail,
 			to,
-			subject: `Seu certificado GEDUC - ${participantName}`,
+			subject: `Seu certificado ${orgName} - ${participantName}`,
 			html: `
 				<div style="font-family: 'Poppins', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 32px;">
-					<h1 style="color: #152db5; font-size: 24px; margin-bottom: 16px;">Certificado GEDUC</h1>
+					<h1 style="color: ${primaryColor}; font-size: 24px; margin-bottom: 16px;">Certificado ${orgName}</h1>
 					<p style="color: #2a2a2a; font-size: 16px; line-height: 1.6;">
 						Olá, <strong>${participantName}</strong>!
 					</p>
 					<p style="color: #2a2a2a; font-size: 16px; line-height: 1.6;">
-						Segue em anexo o seu certificado de participação no programa GEDUC.
+						Segue em anexo o seu certificado de participação no programa ${orgName}.
 					</p>
 					<p style="color: #2a2a2a; font-size: 16px; line-height: 1.6;">
 						Obrigado pela sua dedicação e contribuição!
 					</p>
 					<hr style="border: none; border-top: 1px solid #e0e0e0; margin: 24px 0;" />
 					<p style="color: #757575; font-size: 12px;">
-						Este é um e-mail automático do sistema GEDUC. Não responda a este e-mail.
+						Este é um e-mail automático do sistema ${orgName}. Não responda a este e-mail.
 					</p>
 				</div>
 			`,
@@ -106,7 +155,8 @@ export async function sendTestEmail(
 	pdfBuffer: Uint8Array,
 	filename: string,
 	userId: string,
-	orgId?: string
+	orgId?: string,
+	orgEmailConfig?: OrgEmailConfig
 ): Promise<{ success: boolean; error?: string }> {
-	return sendCertificateEmail(testEmail, participantName, pdfBuffer, filename, userId, orgId);
+	return sendCertificateEmail(testEmail, participantName, pdfBuffer, filename, userId, orgId, orgEmailConfig);
 }

@@ -3,7 +3,7 @@ import type { RequestHandler } from './$types';
 import { requirePermission } from '$lib/server/middleware/auth';
 import { logAudit } from '$lib/server/middleware/audit';
 import { certificates, participants } from '$lib/server/db/schema-org';
-import { sendCertificateEmail } from '$lib/server/resend';
+import { sendCertificateEmail, getOrgEmailConfig } from '$lib/server/resend';
 import { getCertificatesDir } from '$lib/server/certificate-generator';
 import { eq } from 'drizzle-orm';
 import fs from 'fs';
@@ -56,6 +56,11 @@ export const POST: RequestHandler = async (event) => {
 
 		const userId = event.locals.user!.id;
 		const orgId = event.locals.organization?.id;
+		const orgEmailConfig = getOrgEmailConfig(
+			orgDb,
+			event.locals.organization?.brandName || event.locals.organization?.name || 'GEDUC',
+			event.locals.organization?.primaryColor
+		);
 
 		const result = await sendCertificateEmail(
 			participant.email,
@@ -63,7 +68,8 @@ export const POST: RequestHandler = async (event) => {
 			pdfBuffer,
 			filename,
 			userId,
-			orgId
+			orgId,
+			orgEmailConfig
 		);
 
 		if (result.success) {

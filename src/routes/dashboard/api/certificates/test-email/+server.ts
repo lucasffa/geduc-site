@@ -2,7 +2,7 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { requirePermission } from '$lib/server/middleware/auth';
 import { certificates, participants } from '$lib/server/db/schema-org';
-import { sendTestEmail } from '$lib/server/resend';
+import { sendTestEmail, getOrgEmailConfig } from '$lib/server/resend';
 import { getCertificatesDir } from '$lib/server/certificate-generator';
 import { eq } from 'drizzle-orm';
 import fs from 'fs';
@@ -56,8 +56,13 @@ export const POST: RequestHandler = async (event) => {
 
 		const userId = event.locals.user!.id;
 		const orgId = event.locals.organization?.id;
+		const orgEmailConfig = getOrgEmailConfig(
+			orgDb,
+			event.locals.organization?.brandName || event.locals.organization?.name || 'GEDUC',
+			event.locals.organization?.primaryColor
+		);
 
-		const result = await sendTestEmail(testEmail, participant.name, pdfBuffer, filename, userId, orgId);
+		const result = await sendTestEmail(testEmail, participant.name, pdfBuffer, filename, userId, orgId, orgEmailConfig);
 
 		if (result.success) {
 			return json({ success: true, message: `E-mail de teste enviado para ${testEmail}` });
