@@ -44,6 +44,10 @@ function fieldText(field: CertField, data: CertificateData): string {
 			return new Date().toLocaleDateString('pt-BR', {
 				day: '2-digit', month: 'long', year: 'numeric'
 			});
+		case 'validationCode':
+			return data.validationCode
+				? `Código de validação: ${data.validationCode}. Valide em https://geduc.site/validar/certificado`
+				: '';
 	}
 }
 
@@ -93,25 +97,6 @@ function resolveFont(field: CertField, fontCache: Map<string, PDFFont>): PDFFont
 		: `std:${field.bold ? 'bold' : 'regular'}`;
 	// fallback garantido (cache sempre preenchido para campos enabled)
 	return fontCache.get(cacheKey) ?? fontCache.get('std:regular')!;
-}
-
-async function drawValidationCode(
-	page: PDFPage,
-	pdfDoc: PDFDocument,
-	validationCode: string
-): Promise<void> {
-	const { width } = page.getSize();
-	const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-	const text = `Código de validação: ${validationCode}. Valide em https://geduc.site/validar/certificado`;
-	const fontSize = 7;
-	const textWidth = font.widthOfTextAtSize(text, fontSize);
-	const x = (width - textWidth) / 2;
-	const y = 15;
-
-	page.drawText(text, {
-		x, y, size: fontSize, font,
-		color: rgb(0.65, 0.65, 0.65)
-	});
 }
 
 async function drawFields(
@@ -176,9 +161,6 @@ async function generateFromTemplate(
 	const page = pdfDoc.getPages()[0];
 
 	await drawFields(page, pdfDoc, data, fields, fontsDir);
-	if (data.validationCode) {
-		await drawValidationCode(page, pdfDoc, data.validationCode);
-	}
 
 	return pdfDoc.save();
 }
@@ -249,11 +231,6 @@ async function generateDefaultCertificate(
 
 	// Campos configuráveis
 	await drawFields(page, pdfDoc, data, fields, fontsDir);
-
-	// Código de validação
-	if (data.validationCode) {
-		await drawValidationCode(page, pdfDoc, data.validationCode);
-	}
 
 	return pdfDoc.save();
 }

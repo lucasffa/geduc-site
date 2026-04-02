@@ -65,6 +65,18 @@ export const DEFAULT_CERT_FIELDS: CertField[] = [
 		bold: false,
 		color: '#757575',
 		align: 'center'
+	},
+	{
+		key: 'validationCode',
+		label: 'Código de Validação',
+		enabled: true,
+		x: 50,
+		y: 95,
+		fontSize: 7,
+		fontId: null,
+		bold: false,
+		color: '#a0a0a0',
+		align: 'center'
 	}
 ];
 
@@ -74,5 +86,6 @@ export const FIELD_CHIP_COLORS: Record<string, string> = {
 	role: '#16a34a',
 	workloadHours: '#d97706',
 	period: '#7c3aed',
-	issueDate: '#6b7280'
+	issueDate: '#6b7280',
+	validationCode: '#9ca3af'
 };

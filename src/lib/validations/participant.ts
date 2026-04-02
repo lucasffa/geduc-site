@@ -28,7 +28,7 @@ export const importRowSchema = z.object({
 });
 
 const certFieldSchema = z.object({
-	key: z.enum(['participantName', 'role', 'workloadHours', 'period', 'issueDate']),
+	key: z.enum(['participantName', 'role', 'workloadHours', 'period', 'issueDate', 'validationCode']),
 	label: z.string(),
 	enabled: z.boolean(),
 	x: z.number().min(0).max(100),
