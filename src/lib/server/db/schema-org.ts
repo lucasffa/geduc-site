@@ -73,6 +73,7 @@ export const certificates = sqliteTable('certificates', {
 	pdfPath: text('pdf_path'),
 	sentAt: text('sent_at'),
 	sentToEmail: text('sent_to_email'),
+	validationCode: text('validation_code'),
 	status: text('status').notNull().default('gerado'),
 	isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
 	deletedAt: text('deleted_at'),

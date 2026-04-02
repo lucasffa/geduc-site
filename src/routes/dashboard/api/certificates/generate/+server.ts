@@ -67,13 +67,14 @@ export const POST: RequestHandler = async (event) => {
 		const generated = [];
 
 		for (const p of participantList) {
+			const certId = randomUUID();
+			const validationCode = randomUUID();
+
 			const pdfBytes = await generateCertificatePdf(
-				{ participantName: p.name, role: p.role, workloadHours, periodStart, periodEnd },
+				{ participantName: p.name, role: p.role, workloadHours, periodStart, periodEnd, validationCode },
 				templatePath,
 				{ fields: fields as any, fontsDir }
 			);
-
-			const certId = randomUUID();
 			const filename = `${certId}.pdf`;
 			const filePath = path.join(certDir, filename);
 			fs.writeFileSync(filePath, pdfBytes);
@@ -86,6 +87,7 @@ export const POST: RequestHandler = async (event) => {
 				periodStart,
 				periodEnd,
 				pdfPath: filename,
+				validationCode,
 				status: 'gerado'
 			}).run();
 

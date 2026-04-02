@@ -42,6 +42,7 @@ export interface Certificate {
 	pdfPath: string | null;
 	sentAt: string | null;
 	sentToEmail: string | null;
+	validationCode: string | null;
 	status: string;
 	createdAt: string;
 }
