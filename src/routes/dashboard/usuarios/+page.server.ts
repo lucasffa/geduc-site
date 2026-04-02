@@ -1,3 +1,4 @@
+// src/routes/dashboard/usuarios/+page.server.ts
 import type { PageServerLoad } from './$types';
 import { requirePermission } from '$lib/server/middleware/auth';
 import { getSystemDb } from '$lib/server/db';

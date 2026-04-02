@@ -1,51 +1,49 @@
-<!-- src/lib/components/organisms/sysadmin/AuditLogTable.svelte -->
-<script>
-	import Badge from '$lib/components/atoms/Badge.svelte';
+﻿<!-- src/lib/components/organisms/sysadmin/AuditLogTable.svelte -->
+<script lang="ts">
+import Badge from '$lib/components/atoms/Badge.svelte';
 
-	/** @type {any[]} */
-	export let entries = [];
-	/** @type {number} */
-	export let page = 1;
-	/** @type {number} */
-	export let totalPages = 1;
-	/** @type {number} */
-	export let total = 0;
+/** @type {any[]} */
+export let entries: any[] = [];
+/** @type {number} */
+export let page = 1;
+/** @type {number} */
+export let totalPages = 1;
+export const total = 0;
 
-	const TRUNCATE_AT = 15;
-	const sensitiveColumns = ['whatRecordId', 'whereIp'];
+const TRUNCATE_AT = 15;
+const sensitiveColumns = ['whatRecordId', 'whereIp'];
 
-	/** Track which cells are expanded (key = `rowIndex-colKey`) */
-	let expanded = {};
-	/** Track which sensitive columns are revealed per row */
-	let revealed = {};
+/** Track which cells are expanded (key = `rowIndex-colKey`) */
+let expanded: Record<string, boolean> = {};
+/** Track which sensitive columns are revealed per row */
+let revealed: Record<string, boolean> = {};
 
-	function toggleExpand(key) {
-		expanded = { ...expanded, [key]: !expanded[key] };
+function toggleExpand(key: string) {
+	expanded = { ...expanded, [key]: !expanded[key] };
+}
+
+function toggleReveal(key: string) {
+	revealed = { ...revealed, [key]: !revealed[key] };
+}
+
+function howVariant(how: string) {
+	switch (how) {
+		case 'CREATE': return 'success';
+		case 'UPDATE': return 'warning';
+		case 'DELETE': return 'error';
+		case 'READ': return 'info';
+		default: return 'neutral';
 	}
+}
 
-	function toggleReveal(key) {
-		revealed = { ...revealed, [key]: !revealed[key] };
-	}
-
-	function howVariant(how) {
-		switch (how) {
-			case 'CREATE': return 'success';
-			case 'UPDATE': return 'warning';
-			case 'DELETE': return 'error';
-			case 'READ': return 'info';
-			default: return 'neutral';
-		}
-	}
-
-	/** Anonimiza nomes no texto: "Ana Rita Vasconcelos" → "A* R*" */
-	function anonymizeNames(text) {
-		if (!text) return '—';
-		return text.replace(/"([^"]+)"/g, (_, name) => {
-			const parts = name.trim().split(/\s+/);
-			const anon = parts.slice(0, 2).map(p => p[0].toUpperCase() + '*').join(' ');
-			return anon;
-		});
-	}
+function anonymizeNames(text: string) {
+	if (!text) return '—';
+	return text.replace(/"([^"]+)"/g, (_: string, name: string) => {
+		const parts = name.trim().split(/\s+/);
+		const anon = parts.slice(0, 2).map((p: string) => p[0].toUpperCase() + '*').join(' ');
+		return anon;
+	});
+}
 </script>
 
 <div class="table-wrapper">
@@ -227,164 +225,3 @@
 	</div>
 {/if}
 
-<style>
-	.table-wrapper {
-		background: var(--color-neutral-0);
-		border-radius: var(--border-radius-lg);
-		box-shadow: var(--shadow-sm);
-		overflow-x: auto;
-	}
-
-	.data-table {
-		width: 100%;
-		border-collapse: collapse;
-	}
-
-	.data-table th {
-		padding: var(--spacing-sm) var(--spacing-md);
-		text-align: left;
-		font-size: var(--font-size-xs);
-		color: var(--text-color-subtle);
-		font-weight: var(--font-weight-semibold);
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
-		border-bottom: 1px solid var(--color-neutral-200);
-	}
-
-	.data-table td {
-		padding: var(--spacing-sm) var(--spacing-md);
-		font-size: var(--font-size-sm);
-		border-bottom: 1px solid var(--color-neutral-100);
-		vertical-align: top;
-	}
-
-	.td-when {
-		white-space: nowrap;
-		font-size: var(--font-size-xs);
-	}
-
-	.td-why {
-		max-width: 300px;
-	}
-
-	.td-ip {
-		font-family: monospace;
-		font-size: var(--font-size-xs);
-	}
-
-	.td-org {
-		font-size: var(--font-size-xs);
-		white-space: nowrap;
-	}
-
-	.td-object {
-		font-size: var(--font-size-xs);
-	}
-
-	.record-id {
-		word-break: break-all;
-	}
-
-	code {
-		background: var(--color-neutral-100);
-		padding: 2px 6px;
-		border-radius: 4px;
-		font-size: var(--font-size-xs);
-	}
-
-	/* Truncate / Expand */
-	.cell-truncated,
-	.cell-full {
-		display: inline;
-		word-break: break-all;
-	}
-
-	.toggle-btn {
-		display: inline;
-		background: none;
-		border: none;
-		color: var(--color-primary-500);
-		cursor: pointer;
-		font-size: var(--font-size-sm);
-		font-weight: var(--font-weight-bold);
-		padding: 0 2px;
-		line-height: 1;
-		vertical-align: baseline;
-	}
-
-	.toggle-btn:hover {
-		color: var(--color-primary-700);
-	}
-
-	/* Eye reveal for sensitive columns */
-	.eye-btn {
-		background: none;
-		border: none;
-		cursor: pointer;
-		font-size: var(--font-size-sm);
-		padding: 0;
-		line-height: 1;
-		opacity: 0.6;
-	}
-
-	.eye-btn:hover {
-		opacity: 1;
-	}
-
-	.eye-open {
-		opacity: 0.8;
-	}
-
-	.sensitive-revealed {
-		display: inline-flex;
-		align-items: baseline;
-		gap: 4px;
-	}
-
-	.empty {
-		text-align: center;
-		color: var(--text-color-subtle);
-		padding: var(--spacing-2xl) !important;
-	}
-
-	.pagination {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: var(--spacing-md);
-		margin-top: var(--spacing-lg);
-	}
-
-	.page-info {
-		font-size: var(--font-size-sm);
-		color: var(--text-color-subtle);
-	}
-
-	.btn {
-		display: inline-flex;
-		align-items: center;
-		padding: var(--spacing-xs) var(--spacing-md);
-		border-radius: var(--border-radius-md);
-		font-size: var(--font-size-sm);
-		font-weight: var(--font-weight-medium);
-		cursor: pointer;
-		border: none;
-		text-decoration: none;
-		transition: all var(--transition-fast);
-	}
-
-	.btn-sm {
-		padding: 4px 8px;
-		font-size: var(--font-size-xs);
-	}
-
-	.btn-outline {
-		background: transparent;
-		border: 1px solid var(--color-neutral-300);
-		color: var(--text-color-default);
-	}
-
-	.btn-outline:hover {
-		background: var(--color-neutral-100);
-	}
-</style>

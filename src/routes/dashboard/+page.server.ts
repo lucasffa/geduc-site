@@ -1,3 +1,4 @@
+// src/routes/dashboard/+page.server.ts
 import type { PageServerLoad } from './$types';
 import { isNull, sql, count, eq } from 'drizzle-orm';
 import { participants, statusHistory, certificates } from '$lib/server/db/schema-org';

@@ -1,5 +1,5 @@
 import { json, error } from '@sveltejs/kit';
-import { randomUUID } from 'node:crypto';
+import { randomBytes, randomUUID } from 'node:crypto';
 import type { RequestHandler } from './$types';
 import { getSystemDb } from '$lib/server/db';
 import { invitations } from '$lib/server/db/schema-system';
@@ -20,7 +20,7 @@ export const POST: RequestHandler = async (event) => {
 		return json({ error: 'Cargo inválido' }, { status: 400 });
 	}
 
-	const token = randomUUID();
+	const token = randomBytes(32).toString('hex'); // Generate a secure random token
 	const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
 
 	const db = getSystemDb();

@@ -1,9 +1,25 @@
 <!-- src/lib/components/organisms/dashboard/PendingInvites.svelte -->
 <script>
+	import { onMount } from 'svelte';
 	import Badge from '$lib/components/atoms/Badge.svelte';
 
 	export let invitations = [];
 	export let roleLabels = {};
+
+	let origin = '';
+	onMount(() => {
+		origin = window.location.origin;
+	});
+
+	async function copyInviteLink(token) {
+		const link = `${origin}/auth/invite/${token}`;
+		try {
+			await navigator.clipboard.writeText(link);
+			alert('Link copiado: ' + link);
+		} catch {
+			alert('Não foi possível copiar automaticamente. Use: ' + link);
+		}
+	}
 </script>
 
 {#if invitations.length > 0}
@@ -12,11 +28,14 @@
 		<div class="invites-list">
 			{#each invitations as inv}
 				<div class="invite-item">
-					<span>{inv.email}</span>
+					<span>{inv.email || 'Sem e-mail'}</span>
 					<Badge text={roleLabels[inv.role] || inv.role} variant="role" />
 					<span class="invite-expires">
 						Expira: {new Date(inv.expiresAt).toLocaleDateString('pt-BR')}
 					</span>
+					<button class="link-btn" on:click={() => copyInviteLink(inv.token)} title="Copiar link de convite">
+						🔗
+					</button>
 				</div>
 			{/each}
 		</div>
@@ -53,5 +72,17 @@
 	.invite-expires {
 		color: var(--color-neutral-500);
 		font-size: var(--font-size-xs);
+	}
+
+	.link-btn {
+		background: none;
+		border: none;
+		cursor: pointer;
+		padding: 0 6px;
+		font-size: 0.95rem;
+	}
+
+	.link-btn:hover {
+		color: var(--color-primary-700);
 	}
 </style>

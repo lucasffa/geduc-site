@@ -1,3 +1,4 @@
+// src/routes/auth/invite/[token]/+page.server.ts
 import { fail, redirect, error } from '@sveltejs/kit';
 import { randomUUID } from 'node:crypto';
 import type { Actions, PageServerLoad } from './$types';
@@ -21,7 +22,7 @@ export const load: PageServerLoad = ({ params }) => {
 	if (new Date(invitation.expiresAt) < new Date()) throw error(400, 'Convite expirado');
 
 	return {
-		email: invitation.email,
+		email: invitation.email || null,
 		role: invitation.role,
 		token: params.token
 	};
@@ -55,11 +56,16 @@ export const actions: Actions = {
 			return fail(400, { error: 'Convite inválido ou expirado' });
 		}
 
+		const invitedEmail = invitation.email?.trim() || (formData.get('email') as string)?.trim();
+		if (!invitedEmail) {
+			return fail(400, { error: 'E-mail é obrigatório' });
+		}
+
 		// Check if user already exists
 		const existing = db
 			.select()
 			.from(users)
-			.where(and(eq(users.email, invitation.email), isNull(users.deletedAt)))
+			.where(and(eq(users.email, invitedEmail), isNull(users.deletedAt)))
 			.get();
 
 		if (existing) {
@@ -73,7 +79,7 @@ export const actions: Actions = {
 		db.insert(users)
 			.values({
 				id: userId,
-				email: invitation.email,
+				email: invitedEmail,
 				name: parsed.data.name,
 				passwordHash,
 				role: invitation.role,
