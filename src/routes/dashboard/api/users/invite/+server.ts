@@ -6,6 +6,7 @@ import { requirePermission } from '$lib/server/middleware/auth';
 import { logAudit } from '$lib/server/middleware/audit';
 import { getSystemDb } from '$lib/server/db';
 import { invitations } from '$lib/server/db/schema-system';
+import { sendInviteEmail } from '$lib/server/resend';
 import { z } from 'zod';
 
 export const POST: RequestHandler = async (event) => {
@@ -55,8 +56,15 @@ export const POST: RequestHandler = async (event) => {
 				: `Convite enviado para ${email} como ${role}`
 		});
 
-		// TODO: Send email via system Resend key with invite link
 		const inviteLink = `${event.url.origin}/auth/invite/${token}`;
+
+		if (mode === 'email' && email) {
+			const emailResult = await sendInviteEmail(email, inviteLink, role, user.id, orgId);
+			if (!emailResult.success) {
+				console.error('Erro no envio de e-mail de convite:', emailResult.error);
+				return json({ error: emailResult.error || 'Erro ao enviar e-mail de convite' }, { status: 500 });
+			}
+		}
 
 		return json({ success: true, inviteLink }, { status: 201 });
 	} catch (error) {
