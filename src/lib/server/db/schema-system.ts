@@ -72,6 +72,27 @@ export const invitations = sqliteTable('invitations', {
 });
 
 // ============================================================
+// LINKS (convites por link, sem envio de e-mail)
+// ============================================================
+export const links = sqliteTable('links', {
+	id: text('id').primaryKey(),
+	token: text('token').notNull().unique(),
+	role: text('role', {
+		enum: ['admin', 'volunteer', 'mentee', 'dumb']
+	}).notNull(),
+	organizationId: text('organization_id')
+		.notNull()
+		.references(() => organizations.id),
+	createdBy: text('created_by')
+		.notNull()
+		.references(() => users.id),
+	isPublic: integer('is_public', { mode: 'boolean' }).notNull().default(false),
+	expiresAt: text('expires_at').notNull(),
+	acceptedAt: text('accepted_at'),
+	createdAt: text('created_at').notNull().default(sql`(datetime('now'))`)
+});
+
+// ============================================================
 // API KEYS (Resend keys, etc.)
 // ============================================================
 export const apiKeys = sqliteTable('api_keys', {
