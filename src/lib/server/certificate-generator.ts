@@ -11,6 +11,7 @@ export interface CertificateData {
 	workloadHours: number;
 	periodStart: string;
 	periodEnd: string;
+	validationCode?: string;
 }
 
 export interface GenerateOptions {
@@ -43,6 +44,10 @@ function fieldText(field: CertField, data: CertificateData): string {
 			return new Date().toLocaleDateString('pt-BR', {
 				day: '2-digit', month: 'long', year: 'numeric'
 			});
+		case 'validationCode':
+			return data.validationCode
+				? `Código de validação: ${data.validationCode}. Valide em https://geduc.site/validar/certificado`
+				: '';
 	}
 }
 

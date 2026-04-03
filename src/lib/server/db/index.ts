@@ -96,6 +96,13 @@ export function getOrgDb(slug: string): OrgDb {
 		// Column already exists
 	}
 
+	// Migration: certificates.validation_code column
+	try {
+		sqlite.exec(`ALTER TABLE certificates ADD COLUMN validation_code TEXT`);
+	} catch {
+		// Column already exists
+	}
+
 	// Migration: certificate_fonts table
 	sqlite.exec(`
 		CREATE TABLE IF NOT EXISTS certificate_fonts (
@@ -180,6 +187,7 @@ export function createOrgDb(slug: string): OrgDb {
 			pdf_path TEXT,
 			sent_at TEXT,
 			sent_to_email TEXT,
+			validation_code TEXT,
 			status TEXT NOT NULL DEFAULT 'gerado',
 			is_active INTEGER NOT NULL DEFAULT 1,
 			deleted_at TEXT,

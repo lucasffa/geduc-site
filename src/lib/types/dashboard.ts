@@ -42,6 +42,7 @@ export interface Certificate {
 	pdfPath: string | null;
 	sentAt: string | null;
 	sentToEmail: string | null;
+	validationCode: string | null;
 	status: string;
 	createdAt: string;
 }
@@ -89,7 +90,7 @@ export interface FontInfo {
 	createdAt: string;
 }
 
-export type FieldKey = 'participantName' | 'role' | 'workloadHours' | 'period' | 'issueDate';
+export type FieldKey = 'participantName' | 'role' | 'workloadHours' | 'period' | 'issueDate' | 'validationCode';
 export type FieldAlign = 'left' | 'center' | 'right';
 
 export interface CertField {

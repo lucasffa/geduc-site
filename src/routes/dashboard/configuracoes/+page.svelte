@@ -63,6 +63,35 @@
 	let savingKey = false;
 	let enforceTransitions = data.enforceStatusTransitions;
 
+	// Email config
+	let emailDomain = data.emailDomain || '';
+	let emailFrom = data.emailFrom || '';
+	let savingEmail = false;
+
+	$: emailPreview = emailFrom || (emailDomain ? `contato@${emailDomain}` : '');
+
+	async function saveEmailSetting(key, value) {
+		const res = await fetch('/dashboard/api/settings', {
+			method: 'PATCH',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ key, value })
+		});
+		if (!res.ok) throw new Error('Erro ao salvar');
+	}
+
+	async function saveEmailConfig() {
+		savingEmail = true;
+		try {
+			await saveEmailSetting('email_domain', emailDomain.trim());
+			await saveEmailSetting('email_from', emailFrom.trim());
+			addToast('Configurações de e-mail salvas', 'success');
+		} catch (err) {
+			addToast(err.message, 'error');
+		} finally {
+			savingEmail = false;
+		}
+	}
+
 	// Custom roles
 	let customRoles = { ...data.customRoles };
 	let newRole = { voluntario: '', mentorado: '' };
@@ -179,6 +208,50 @@
 	/>
 
 	<ApiKeyForm saving={savingKey} on:save={handleSaveKey} />
+
+	<section class="settings-section">
+		<h3 class="section-title">Configurações de E-mail</h3>
+		<p class="section-subtitle">
+			Configure o domínio e endereço remetente dos e-mails de certificado.
+			O padrão é <code>contato@seu-domínio</code>, mas pode ser personalizado.
+		</p>
+
+		<div class="email-config-form">
+			<div class="form-group">
+				<label class="form-label" for="email-domain">Domínio de e-mail</label>
+				<input
+					id="email-domain"
+					class="form-input"
+					type="text"
+					bind:value={emailDomain}
+					placeholder="ex: suaong.org.br"
+				/>
+				<span class="form-hint">Domínio verificado no Resend para envio de e-mails</span>
+			</div>
+
+			<div class="form-group">
+				<label class="form-label" for="email-from">Remetente personalizado (opcional)</label>
+				<input
+					id="email-from"
+					class="form-input"
+					type="text"
+					bind:value={emailFrom}
+					placeholder="ex: certificados@suaong.org.br"
+				/>
+				<span class="form-hint">Se vazio, será usado <strong>{emailDomain ? `contato@${emailDomain}` : 'o padrão do sistema'}</strong></span>
+			</div>
+
+			{#if emailPreview}
+				<p class="email-preview">
+					Remetente atual: <strong>{emailPreview}</strong>
+				</p>
+			{/if}
+
+			<Button variant="primary" size="sm" disabled={savingEmail} on:click={saveEmailConfig}>
+				{savingEmail ? 'Salvando...' : 'Salvar configurações de e-mail'}
+			</Button>
+		</div>
+	</section>
 
 	<section class="settings-section">
 		<h3 class="section-title">Participantes</h3>
@@ -391,5 +464,49 @@
 	.role-input:focus {
 		outline: none;
 		border-color: var(--color-primary-500);
+	}
+
+	.email-config-form {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-md);
+	}
+
+	.form-group {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+	}
+
+	.form-label {
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-medium);
+		color: var(--color-neutral-700);
+	}
+
+	.form-input {
+		padding: var(--spacing-xs) var(--spacing-sm);
+		border: 1px solid var(--color-neutral-300);
+		border-radius: var(--border-radius-md);
+		font-size: var(--font-size-sm);
+	}
+
+	.form-input:focus {
+		outline: none;
+		border-color: var(--color-primary-500);
+	}
+
+	.form-hint {
+		font-size: var(--font-size-xs);
+		color: var(--color-neutral-500);
+	}
+
+	.email-preview {
+		font-size: var(--font-size-sm);
+		color: var(--color-neutral-600);
+		padding: var(--spacing-xs) var(--spacing-sm);
+		background: var(--color-neutral-50);
+		border-radius: var(--border-radius-md);
+		margin: 0;
 	}
 </style>

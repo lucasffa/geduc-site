@@ -10,6 +10,8 @@ export const load: PageServerLoad = (event) => {
 	const orgDb = event.locals.orgDb;
 	let enforceStatusTransitions = true;
 	let customRoles = DEFAULT_CUSTOM_ROLES;
+	let emailDomain = '';
+	let emailFrom = '';
 
 	if (orgDb) {
 		const transitionSetting = orgDb
@@ -27,12 +29,28 @@ export const load: PageServerLoad = (event) => {
 		if (rolesSetting?.value) {
 			try { customRoles = JSON.parse(rolesSetting.value); } catch {}
 		}
+
+		const emailDomainSetting = orgDb
+			.select()
+			.from(orgSettings)
+			.where(eq(orgSettings.key, 'email_domain'))
+			.get();
+		emailDomain = emailDomainSetting?.value || '';
+
+		const emailFromSetting = orgDb
+			.select()
+			.from(orgSettings)
+			.where(eq(orgSettings.key, 'email_from'))
+			.get();
+		emailFrom = emailFromSetting?.value || '';
 	}
 
 	return {
 		organization: event.locals.organization,
 		permissions: event.locals.permissions,
 		enforceStatusTransitions,
-		customRoles
+		customRoles,
+		emailDomain,
+		emailFrom
 	};
 };
