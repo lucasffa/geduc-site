@@ -4,6 +4,7 @@ import type { RequestHandler } from './$types';
 import { getSystemDb } from '$lib/server/db';
 import { invitations } from '$lib/server/db/schema-system';
 import { logAudit } from '$lib/server/middleware/audit';
+import { sendInviteEmail } from '$lib/server/resend';
 
 export const POST: RequestHandler = async (event) => {
 	if (event.locals.user?.role !== 'sysadmin') throw error(403);
@@ -35,6 +36,12 @@ export const POST: RequestHandler = async (event) => {
 	}).run();
 
 	const inviteLink = `${event.url.origin}/auth/invite/${token}`;
+
+	const emailResult = await sendInviteEmail(email, inviteLink, role, user.id, organizationId);
+	if (!emailResult.success) {
+		console.error('Erro no envio de e-mail de convite sysadmin:', emailResult.error);
+		return json({ error: emailResult.error || 'Erro ao enviar e-mail de convite' }, { status: 500 });
+	}
 
 	logAudit(event, {
 		whatTable: 'invitations',

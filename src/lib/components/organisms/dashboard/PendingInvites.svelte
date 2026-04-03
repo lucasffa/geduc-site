@@ -2,9 +2,26 @@
 <script>
 	import { onMount } from 'svelte';
 	import Badge from '$lib/components/atoms/Badge.svelte';
+	import { addToast } from '$lib/stores/dashboard';
 
 	export let invitations = [];
 	export let roleLabels = {};
+
+	async function revokeInvitation(id) {
+		if (!confirm('Revogar este convite?')) return;
+		try {
+			const res = await fetch(`/dashboard/api/users/invite/${id}`, { method: 'DELETE' });
+			const payload = await res.json();
+			if (!res.ok) {
+				addToast(payload.error || 'Erro ao revogar convite', 'error');
+				return;
+			}
+			invitations = invitations.filter((inv) => inv.id !== id);
+			addToast('Convite revogado', 'success');
+		} catch (error) {
+			addToast(error?.message || 'Erro de rede ao revogar convite', 'error');
+		}
+	}
 
 	let origin = '';
 	onMount(() => {
@@ -15,9 +32,9 @@
 		const link = `${origin}/auth/invite/${token}`;
 		try {
 			await navigator.clipboard.writeText(link);
-			alert('Link copiado: ' + link);
+			addToast('Link de convite copiado para a área de transferência', 'success');
 		} catch {
-			alert('Não foi possível copiar automaticamente. Use: ' + link);
+			addToast(`Não foi possível copiar automaticamente. Use: ${link}`, 'error');
 		}
 	}
 </script>
@@ -35,6 +52,9 @@
 					</span>
 					<button class="link-btn" on:click={() => copyInviteLink(inv.token)} title="Copiar link de convite">
 						🔗
+					</button>
+					<button class="link-btn" on:click={() => revokeInvitation(inv.id)} title="Revogar convite">
+						✖
 					</button>
 				</div>
 			{/each}

@@ -2,6 +2,7 @@
 <script lang="ts">
 	import Badge from '$lib/components/atoms/Badge.svelte';
 	import { createEventDispatcher } from 'svelte';
+	import { addToast } from '$lib/stores/dashboard';
 
 	type InviteType = 'email' | 'link';
 
@@ -23,9 +24,9 @@
 	function copyLink(token: string) {
 		const link = `${window.location.origin}/auth/invite/${token}`;
 		navigator.clipboard.writeText(link).then(() => {
-			alert(`Link copiado: ${link}`);
+			addToast('Link de convite copiado para a área de transferência', 'success');
 		}, () => {
-			alert(`Não foi possível copiar automaticamente. Use: ${link}`);
+			addToast(`Não foi possível copiar automaticamente. Use: ${link}`, 'error');
 		});
 	}
 
@@ -33,11 +34,11 @@
 		if (!confirm('Revogar este convite?')) return;
 		const res = await fetch(`/sysadmin/api/users/invite/${inviteId}`, { method: 'DELETE' });
 		if (res.ok) {
-			alert('Convite revogado');
+			addToast('Convite revogado', 'success');
 			dispatch('refresh');
 		} else {
 			const payload = await res.json();
-			alert(payload.error || 'Erro ao revogar convite');
+			addToast(payload.error || 'Erro ao revogar convite', 'error');
 		}
 	}
 </script>
