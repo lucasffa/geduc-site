@@ -34,8 +34,8 @@
 	}
 
 	.success-card {
-		background: var(--bg-primary);
-		border-radius: 16px;
+		background: var(--background-color-card);
+		border-radius: var(--border-radius-lg);
 		padding: 3rem;
 		text-align: center;
 		box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
@@ -50,14 +50,14 @@
 
 	.success-card h1 {
 		font-size: 2rem;
-		font-weight: 700;
-		color: var(--text-primary);
+		font-weight: var(--font-weight-bold);
+		color: var(--text-color-primary);
 		margin-bottom: 1rem;
 	}
 
 	.success-card p {
 		font-size: 1.1rem;
-		color: var(--text-secondary);
+		color: var(--text-color-secondary);
 		margin-bottom: 2rem;
 	}
 
@@ -67,19 +67,19 @@
 	}
 
 	.home-button {
-		background: var(--primary);
-		color: white;
+		background: var(--color-primary-500);
+		color: var(--text-color-white);
 		border: none;
 		padding: 1rem 2rem;
-		border-radius: 8px;
+		border-radius: var(--border-radius-md);
 		font-size: 1rem;
-		font-weight: 600;
+		font-weight: var(--button-text-font-weight);
 		cursor: pointer;
 		transition: all 0.2s ease;
 	}
 
 	.home-button:hover {
-		background: var(--primary-hover);
+		background: var(--color-primary-600);
 		transform: translateY(-1px);
 	}
 </style>

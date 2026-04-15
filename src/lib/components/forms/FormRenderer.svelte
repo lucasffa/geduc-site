@@ -1,336 +1,451 @@
+<!-- src/lib/components/forms/FormRenderer.svelte -->
 <script lang="ts">
 	import type { FormDefinition, FormFieldDefinition } from '$lib/types/forms';
 
 	export let form: FormDefinition;
 	export let formData: Record<string, any> = {};
 	export let disabled = false;
+	// Optional: validation errors keyed by field id
+	export let errors: Record<string, string> = {};
 
 	function getFieldValue(field: FormFieldDefinition) {
-		return formData[field.id] || field.defaultValue || '';
+		const v = formData[field.id];
+		if (v !== undefined) return v;
+		if (field.defaultValue !== undefined && field.defaultValue !== null) return field.defaultValue;
+		return field.type === 'checkbox' && field.options?.length ? [] : '';
 	}
 
 	function setFieldValue(field: FormFieldDefinition, value: any) {
-		formData[field.id] = value;
-		formData = { ...formData };
+		formData = { ...formData, [field.id]: value };
 	}
 
 	function handleInput(event: Event, field: FormFieldDefinition) {
 		const target = event.target as HTMLInputElement;
-		let value: any = target.value;
 
-		// Handle different input types
 		if (target.type === 'checkbox') {
-			if (field.type === 'checkbox') {
-				// Multiple checkboxes
-				const currentValues = Array.isArray(formData[field.id]) ? formData[field.id] : [];
+			if (field.options && field.options.length > 0) {
+				// Multi-checkbox: maintain array
+				const current: string[] = Array.isArray(formData[field.id]) ? [...formData[field.id]] : [];
 				if (target.checked) {
-					setFieldValue(field, [...currentValues, value]);
+					setFieldValue(field, [...current, target.value]);
 				} else {
-					setFieldValue(field, currentValues.filter((v: any) => v !== value));
+					setFieldValue(field, current.filter((v) => v !== target.value));
 				}
 			} else {
-				// Single checkbox
+				// Single boolean checkbox
 				setFieldValue(field, target.checked);
 			}
 		} else if (target.type === 'radio') {
-			setFieldValue(field, value);
+			setFieldValue(field, target.value);
 		} else {
-			setFieldValue(field, value);
+			setFieldValue(field, target.value);
 		}
 	}
 </script>
 
 <div class="form-renderer">
-	{#each form.fields as field}
-		<div class="form-field" class:required={field.required}>
-			<label for="field_{field.id}" class="field-label">
-				{field.label}
-				{#if field.required}
-					<span class="required-indicator">*</span>
+	{#each form.fields as field (field.id)}
+		{#if field.type !== 'hidden'}
+			<div class="form-field" class:has-error={!!errors[field.id]}>
+				{#if field.type !== 'checkbox' || !field.options?.length}
+					<label for="field_{field.id}" class="field-label">
+						{field.label}
+						{#if field.required}
+							<span class="required-indicator" aria-hidden="true">*</span>
+						{/if}
+					</label>
 				{/if}
-			</label>
 
-			{#if field.description}
-				<p class="field-description">{field.description}</p>
-			{/if}
+				{#if field.description}
+					<p class="field-description">{field.description}</p>
+				{/if}
 
-			<div class="field-input">
-				{#if field.type === 'text' || field.type === 'email' || field.type === 'tel' || field.type === 'url'}
-					<input
-						type={field.type}
-						id="field_{field.id}"
-						name="field_{field.id}"
-						value={getFieldValue(field)}
-						placeholder={field.placeholder}
-						required={field.required}
-						{disabled}
-						on:input={(e) => handleInput(e, field)}
-					/>
-				{:else if field.type === 'textarea'}
-					<textarea
-						id="field_{field.id}"
-						name="field_{field.id}"
-						value={getFieldValue(field)}
-						placeholder={field.placeholder}
-						required={field.required}
-						{disabled}
-						rows="4"
-						on:input={(e) => handleInput(e, field)}
-					></textarea>
-				{:else if field.type === 'number'}
-					<input
-						type="number"
-						id="field_{field.id}"
-						name="field_{field.id}"
-						value={getFieldValue(field)}
-						placeholder={field.placeholder}
-						required={field.required}
-						{disabled}
-						on:input={(e) => handleInput(e, field)}
-					/>
-				{:else if field.type === 'date'}
-					<input
-						type="date"
-						id="field_{field.id}"
-						name="field_{field.id}"
-						value={getFieldValue(field)}
-						required={field.required}
-						{disabled}
-						on:input={(e) => handleInput(e, field)}
-					/>
-				{:else if field.type === 'select'}
-					<select
-						id="field_{field.id}"
-						name="field_{field.id}"
-						value={getFieldValue(field)}
-						required={field.required}
-						{disabled}
-						on:change={(e) => handleInput(e, field)}
-					>
-						<option value="">Selecione...</option>
-						{#each field.options || [] as option}
-							<option value={option.value}>{option.label}</option>
-						{/each}
-					</select>
-				{:else if field.type === 'radio'}
-					<div class="radio-group">
-						{#each field.options || [] as option}
-							<label class="radio-option">
-								<input
-									type="radio"
-									name="field_{field.id}"
+				<div class="field-input">
+					{#if field.type === 'text' || field.type === 'email' || field.type === 'tel' || field.type === 'url'}
+						<input
+							type={field.type}
+							id="field_{field.id}"
+							name="field_{field.id}"
+							value={getFieldValue(field)}
+							placeholder={field.placeholder ?? ''}
+							required={field.required}
+							{disabled}
+							aria-invalid={!!errors[field.id]}
+							aria-describedby={errors[field.id] ? `error_${field.id}` : undefined}
+							on:input={(e) => handleInput(e, field)}
+						/>
+
+					{:else if field.type === 'textarea'}
+						<textarea
+							id="field_{field.id}"
+							name="field_{field.id}"
+							placeholder={field.placeholder ?? ''}
+							required={field.required}
+							{disabled}
+							rows="4"
+							aria-invalid={!!errors[field.id]}
+							aria-describedby={errors[field.id] ? `error_${field.id}` : undefined}
+							on:input={(e) => handleInput(e, field)}
+						>{getFieldValue(field)}</textarea>
+
+					{:else if field.type === 'number'}
+						<input
+							type="number"
+							id="field_{field.id}"
+							name="field_{field.id}"
+							value={getFieldValue(field)}
+							placeholder={field.placeholder ?? ''}
+							required={field.required}
+							{disabled}
+							aria-invalid={!!errors[field.id]}
+							on:input={(e) => handleInput(e, field)}
+						/>
+
+					{:else if field.type === 'date'}
+						<input
+							type="date"
+							id="field_{field.id}"
+							name="field_{field.id}"
+							value={getFieldValue(field)}
+							required={field.required}
+							{disabled}
+							aria-invalid={!!errors[field.id]}
+							on:input={(e) => handleInput(e, field)}
+						/>
+
+					{:else if field.type === 'select'}
+						<select
+							id="field_{field.id}"
+							name="field_{field.id}"
+							required={field.required}
+							{disabled}
+							aria-invalid={!!errors[field.id]}
+							on:change={(e) => handleInput(e, field)}
+						>
+							<option value="">Selecione uma opção...</option>
+							{#each field.options ?? [] as option}
+								<option
 									value={option.value}
-									checked={getFieldValue(field) === option.value}
-									required={field.required}
-										{disabled}
-									on:change={(e) => handleInput(e, field)}
-								/>
-								<span class="radio-label">{option.label}</span>
-							</label>
-						{/each}
-					</div>
-				{:else if field.type === 'checkbox'}
-					{#if field.options && field.options.length > 0}
-						<!-- Multiple checkboxes -->
-						<div class="checkbox-group">
-							{#each field.options as option}
-								<label class="checkbox-option">
+									selected={getFieldValue(field) === option.value}
+								>{option.label}</option>
+							{/each}
+						</select>
+
+					{:else if field.type === 'radio'}
+						<fieldset class="radio-group">
+							<legend class="sr-only">{field.label}</legend>
+							{#each field.options ?? [] as option}
+								<label class="radio-option">
 									<input
-										type="checkbox"
+										type="radio"
 										name="field_{field.id}"
 										value={option.value}
-										checked={(getFieldValue(field) || []).includes(option.value)}
+										checked={getFieldValue(field) === option.value}
+										required={field.required}
 										{disabled}
 										on:change={(e) => handleInput(e, field)}
 									/>
-									<span class="checkbox-label">{option.label}</span>
+									<span class="option-label">{option.label}</span>
 								</label>
 							{/each}
-						</div>
-					{:else}
-						<!-- Single checkbox -->
-						<label class="checkbox-single">
-							<input
-								type="checkbox"
-								id="field_{field.id}"
-								name="field_{field.id}"
-								checked={getFieldValue(field)}
-								disabled
-								on:change={(e) => handleInput(e, field)}
-							/>
-							<span class="checkbox-label">{field.label}</span>
-						</label>
+						</fieldset>
+
+					{:else if field.type === 'checkbox'}
+						{#if field.options && field.options.length > 0}
+							<fieldset class="checkbox-group">
+								<legend class="field-label">
+									{field.label}
+									{#if field.required}
+										<span class="required-indicator" aria-hidden="true">*</span>
+									{/if}
+								</legend>
+								{#if field.description}
+									<p class="field-description">{field.description}</p>
+								{/if}
+								{#each field.options as option}
+									<label class="checkbox-option">
+										<input
+											type="checkbox"
+											name="field_{field.id}"
+											value={option.value}
+											checked={(getFieldValue(field) as string[]).includes(option.value)}
+											{disabled}
+											on:change={(e) => handleInput(e, field)}
+										/>
+										<span class="option-label">{option.label}</span>
+									</label>
+								{/each}
+							</fieldset>
+						{:else}
+							<!-- Single boolean checkbox -->
+							<label class="checkbox-single">
+								<input
+									type="checkbox"
+									id="field_{field.id}"
+									name="field_{field.id}"
+									checked={Boolean(getFieldValue(field))}
+									{disabled}
+									on:change={(e) => handleInput(e, field)}
+								/>
+								<span class="option-label">{field.label}</span>
+								{#if field.required}
+									<span class="required-indicator" aria-hidden="true">*</span>
+								{/if}
+							</label>
+						{/if}
+
+					{:else if field.type === 'button'}
+						<button
+							type="button"
+							id="field_{field.id}"
+							{disabled}
+							on:click={() => {
+								console.log('Button action:', field.id, field.metadata);
+							}}
+						>
+							{field.label}
+						</button>
 					{/if}
-				{:else if field.type === 'button'}
-					<button
-						type="button"
-						id="field_{field.id}"
-						name="field_{field.id}"
-						{disabled}
-						on:click={() => {
-							// Handle button actions (CEP lookup, etc.)
-							console.log('Button clicked:', field.id);
-						}}
-					>
-						{field.label}
-					</button>
-				{:else if field.type === 'hidden'}
-					<input
-						type="hidden"
-						id="field_{field.id}"
-						name="field_{field.id}"
-						value={getFieldValue(field)}
-					/>
+				</div>
+
+				{#if errors[field.id]}
+					<span class="field-error" id="error_{field.id}" role="alert">
+						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+							<circle cx="12" cy="12" r="10"/>
+							<line x1="12" y1="8" x2="12" y2="12"/>
+							<line x1="12" y1="16" x2="12.01" y2="16"/>
+						</svg>
+						{errors[field.id]}
+					</span>
 				{/if}
 			</div>
-		</div>
+		{:else}
+			<!-- Hidden field — always rendered, never shown -->
+			<input
+				type="hidden"
+				id="field_{field.id}"
+				name="field_{field.id}"
+				value={getFieldValue(field)}
+			/>
+		{/if}
 	{/each}
 </div>
 
 <style>
+	.sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border-width: 0;
+	}
+
 	.form-renderer {
 		display: flex;
 		flex-direction: column;
-		gap: 1.5rem;
+		gap: 1.75rem;
 	}
 
 	.form-field {
 		display: flex;
 		flex-direction: column;
-		gap: 0.5rem;
-	}
-
-	.form-field.required .field-label {
-		font-weight: 600;
+		gap: 0.375rem;
 	}
 
 	.field-label {
-		font-weight: 500;
-		color: var(--text-primary);
-		font-size: 1rem;
+		display: block;
+		font-weight: var(--font-weight-medium);
+		font-size: var(--label-text-font-size);
+		color: var(--text-color-primary);
+		line-height: var(--label-text-line-height);
 	}
 
 	.required-indicator {
-		color: var(--error);
-		margin-left: 0.25rem;
+		color: var(--color-error);
+		margin-left: var(--spacing-xxs);
 	}
 
 	.field-description {
-		font-size: 0.875rem;
-		color: var(--text-secondary);
-		margin: 0;
-		line-height: 1.4;
+		font-size: var(--caption-text-font-size);
+		color: var(--text-color-secondary);
+		margin: 0 0 var(--spacing-xs);
+		line-height: var(--caption-text-line-height);
 	}
 
-	.field-input input,
+	/* ── Inputs ── */
+	.field-input input[type='text'],
+	.field-input input[type='email'],
+	.field-input input[type='tel'],
+	.field-input input[type='url'],
+	.field-input input[type='number'],
+	.field-input input[type='date'],
 	.field-input textarea,
 	.field-input select {
 		width: 100%;
-		padding: 0.75rem;
-		border: 1px solid var(--border);
-		border-radius: 6px;
-		font-size: 1rem;
-		transition: border-color 0.2s ease, box-shadow 0.2s ease;
-		background: var(--bg-primary);
-		color: var(--text-primary);
+		padding: var(--spacing-sm) var(--spacing-md);
+		border: 1.5px solid var(--border-color-default);
+		border-radius: var(--spacing-sm);
+		font-size: var(--body-text-font-size);
+		font-family: var(--font-family-sans);
+		background: var(--background-color-card);
+		color: var(--text-color-primary);
+		transition: border-color 0.15s ease, box-shadow 0.15s ease;
+		outline: none;
+		appearance: none;
 	}
 
 	.field-input input:focus,
 	.field-input textarea:focus,
 	.field-input select:focus {
-		outline: none;
-		border-color: var(--primary);
-		box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+		border-color: var(--color-primary-500);
+		box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary-500) 15%, transparent);
 	}
 
 	.field-input input:disabled,
 	.field-input textarea:disabled,
 	.field-input select:disabled {
-		background: var(--bg-disabled);
-		color: var(--text-disabled);
+		background: var(--background-color-disabled);
+		color: var(--text-color-disabled);
 		cursor: not-allowed;
+		opacity: 0.7;
+	}
+
+	.has-error .field-input input,
+	.has-error .field-input textarea,
+	.has-error .field-input select {
+		border-color: var(--color-error);
+	}
+
+	.has-error .field-input input:focus,
+	.has-error .field-input textarea:focus,
+	.has-error .field-input select:focus {
+		box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-error) 15%, transparent);
 	}
 
 	.field-input textarea {
 		resize: vertical;
-		min-height: 100px;
+		min-height: 110px;
+		line-height: 1.6;
 	}
 
+	.field-input select {
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+		background-repeat: no-repeat;
+		background-position: right 0.75rem center;
+		padding-right: 2.5rem;
+		cursor: pointer;
+	}
+
+	/* ── Radio & Checkbox groups ── */
 	.radio-group,
 	.checkbox-group {
+		border: none;
+		padding: 0;
+		margin: 0;
 		display: flex;
 		flex-direction: column;
-		gap: 0.5rem;
+		gap: 0.25rem;
+	}
+
+	.radio-group legend,
+	.checkbox-group legend {
+		margin-bottom: 0.5rem;
 	}
 
 	.radio-option,
 	.checkbox-option {
 		display: flex;
 		align-items: center;
-		gap: 0.5rem;
+		gap: var(--spacing-sm);
+		padding: var(--spacing-sm) var(--spacing-sm);
+		border-radius: var(--spacing-xs);
 		cursor: pointer;
-		padding: 0.5rem;
-		border-radius: 4px;
-		transition: background-color 0.2s ease;
+		transition: background-color 0.12s ease;
+		user-select: none;
 	}
 
 	.radio-option:hover,
 	.checkbox-option:hover {
-		background: var(--bg-hover);
+		background: var(--background-color-subtle);
 	}
 
-	.radio-option input[type="radio"],
-	.checkbox-option input[type="checkbox"] {
+	.radio-option input,
+	.checkbox-option input {
 		margin: 0;
-		width: auto;
-	}
-
-	.radio-label,
-	.checkbox-label {
-		font-weight: normal;
-		color: var(--text-primary);
-	}
-
-	.checkbox-single {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
+		width: 1rem;
+		height: 1rem;
+		accent-color: var(--color-primary-500);
+		flex-shrink: 0;
 		cursor: pointer;
-		padding: 0.5rem;
-		border-radius: 4px;
-		transition: background-color 0.2s ease;
+	}
+
+	.option-label {
+		font-size: var(--body-text-font-size);
+		color: var(--text-color-primary);
+		line-height: var(--body-text-line-height);
+	}
+
+	/* ── Single boolean checkbox ── */
+	.checkbox-single {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--spacing-sm);
+		padding: var(--spacing-sm) var(--spacing-sm);
+		border-radius: var(--spacing-xs);
+		cursor: pointer;
+		transition: background-color 0.12s ease;
+		user-select: none;
 	}
 
 	.checkbox-single:hover {
-		background: var(--bg-hover);
+		background: var(--background-color-subtle);
 	}
 
-	.checkbox-single input[type="checkbox"] {
+	.checkbox-single input {
 		margin: 0;
-		width: auto;
+		width: 1rem;
+		height: 1rem;
+		accent-color: var(--color-primary-500);
+		flex-shrink: 0;
+		cursor: pointer;
 	}
 
+	/* ── Button field ── */
 	.field-input button {
-		padding: 0.75rem 1.5rem;
-		background: var(--primary);
-		color: white;
+		padding: var(--spacing-sm) var(--spacing-lg);
+		background: var(--color-primary-500);
+		color: var(--text-color-white);
 		border: none;
-		border-radius: 6px;
-		font-size: 1rem;
-		font-weight: 500;
+		border-radius: var(--spacing-sm);
+		font-size: var(--body-text-font-size);
+		font-weight: var(--button-text-font-weight);
+		font-family: var(--font-family-sans);
 		cursor: pointer;
-		transition: all 0.2s ease;
+		transition: background-color 0.15s ease, transform 0.1s ease;
 	}
 
 	.field-input button:hover:not(:disabled) {
-		background: var(--primary-hover);
+		background: var(--color-primary-600);
 		transform: translateY(-1px);
 	}
 
 	.field-input button:disabled {
-		background: var(--bg-disabled);
-		color: var(--text-disabled);
+		opacity: 0.5;
 		cursor: not-allowed;
-		transform: none;
+	}
+
+	/* ── Error message ── */
+	.field-error {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-xs);
+		font-size: var(--caption-text-font-size);
+		color: var(--color-error);
+		font-weight: var(--font-weight-medium);
+		margin-top: var(--spacing-xxs);
 	}
 </style>

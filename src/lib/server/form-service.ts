@@ -1,5 +1,6 @@
+// src/lib/server/form-service.ts
 import { randomUUID } from 'node:crypto';
-import { eq } from 'drizzle-orm';
+import { eq, ne, sql } from 'drizzle-orm';
 import type { OrgDb } from '$lib/server/db';
 import { forms, formResponses } from '$lib/server/db/schema-org';
 import type {
@@ -13,27 +14,40 @@ import type {
 } from '$lib/types/forms';
 
 function normalizeSlug(value: string): string {
-	return value
-		.trim()
-		.toLowerCase()
-		.replace(/[^a-z0-9]+/g, '-')
-		.replace(/(^-|-$)/g, '') || randomUUID().slice(0, 8);
+	return (
+		value
+			.trim()
+			.toLowerCase()
+			.replace(/[^a-z0-9]+/g, '-')
+			.replace(/(^-|-$)/g, '') || randomUUID().slice(0, 8)
+	);
 }
 
 function generatePublicToken(): string {
 	return randomUUID();
 }
 
-function createFormSlug(db: OrgDb, baseSlug: string): string {
+// FIX: accepts optional `excludeId` so an existing form's own slug doesn't
+// trigger a false collision during updates.
+function createFormSlug(db: OrgDb, baseSlug: string, excludeId?: string): string {
 	let slug = normalizeSlug(baseSlug);
 	let counter = 1;
-	while (
-		db.select()
-			.from(forms)
-			.where(eq(forms.slug, slug))
-			.get()
-		)
-	{
+
+	const isSlugTaken = (candidate: string) => {
+		const query = db.select().from(forms).where(eq(forms.slug, candidate));
+		if (excludeId) {
+			// exclude the row being updated from the collision check
+			return db
+				.select()
+				.from(forms)
+				.where(eq(forms.slug, candidate))
+				.all()
+				.filter((r: any) => r.id !== excludeId).length > 0;
+		}
+		return !!query.get();
+	};
+
+	while (isSlugTaken(slug)) {
 		slug = `${normalizeSlug(baseSlug)}-${counter++}`;
 	}
 	return slug;
@@ -41,13 +55,7 @@ function createFormSlug(db: OrgDb, baseSlug: string): string {
 
 function createPublicToken(db: OrgDb): string {
 	let token = generatePublicToken();
-	while (
-		db.select()
-			.from(forms)
-			.where(eq(forms.publicToken, token))
-			.get()
-		)
-	{
+	while (db.select().from(forms).where(eq(forms.publicToken, token)).get()) {
 		token = generatePublicToken();
 	}
 	return token;
@@ -108,6 +116,24 @@ export function listForms(db: OrgDb): FormRecord[] {
 		.map(mapFormRow);
 }
 
+// Returns each FormRecord enriched with the number of submitted responses.
+export function listFormsWithResponseCount(
+	db: OrgDb
+): (FormRecord & { responseCount: number })[] {
+	const allForms = listForms(db);
+
+	const counts: Record<string, number> = {};
+	db.select()
+		.from(formResponses)
+		.all()
+		.forEach((r: any) => {
+			const fid = r.formId ?? r.form_id;
+			counts[fid] = (counts[fid] ?? 0) + 1;
+		});
+
+	return allForms.map((f) => ({ ...f, responseCount: counts[f.id] ?? 0 }));
+}
+
 export function getFormById(db: OrgDb, id: string): FormRecord | null {
 	const row = db.select().from(forms).where(eq(forms.id, id)).get();
 	return row ? mapFormRow(row) : null;
@@ -126,25 +152,28 @@ export function getFormByPublicToken(db: OrgDb, publicToken: string): FormRecord
 export function createForm(db: OrgDb, input: CreateFormInput): FormRecord {
 	const id = randomUUID();
 	const slug = createFormSlug(db, input.slug ?? input.title);
-	const publicToken = input.isPublic ? input.publicToken ?? createPublicToken(db) : undefined;
+	const publicToken =
+		input.isPublic ? (input.publicToken ?? createPublicToken(db)) : undefined;
 	const now = new Date().toISOString();
 
-	db.insert(forms).values({
-		id,
-		title: input.title,
-		slug,
-		description: input.description,
-		isActive: input.isActive ?? true,
-		isPublic: input.isPublic ?? false,
-		requiresAuth: input.requiresAuth ?? false,
-		publicToken,
-		authorId: input.authorId,
-		authorName: input.authorName,
-		authorRole: input.authorRole,
-		definition: serializeDefinition(input.definition),
-		createdAt: now,
-		updatedAt: now
-	}).run();
+	db.insert(forms)
+		.values({
+			id,
+			title: input.title,
+			slug,
+			description: input.description,
+			isActive: input.isActive ?? true,
+			isPublic: input.isPublic ?? false,
+			requiresAuth: input.requiresAuth ?? false,
+			publicToken,
+			authorId: input.authorId,
+			authorName: input.authorName,
+			authorRole: input.authorRole,
+			definition: serializeDefinition(input.definition),
+			createdAt: now,
+			updatedAt: now
+		})
+		.run();
 
 	return {
 		id,
@@ -168,8 +197,22 @@ export function updateForm(db: OrgDb, id: string, input: UpdateFormInput): FormR
 	const existing = getFormById(db, id);
 	if (!existing) return null;
 
-	const slug = input.slug ? createFormSlug(db, input.slug) : existing.slug;
-	const publicToken = input.isPublic === false ? undefined : input.publicToken ?? existing.publicToken ?? (input.isPublic ? createPublicToken(db) : existing.publicToken);
+	// FIX: pass `id` as excludeId so the form's own slug is not flagged as a collision
+	const slug = input.slug ? createFormSlug(db, input.slug, id) : existing.slug;
+
+	// Simplified public-token logic:
+	// - Explicitly setting isPublic=false  → clear token
+	// - Otherwise keep or generate a token when public
+	let publicToken: string | undefined;
+	if (input.isPublic === false) {
+		publicToken = undefined;
+	} else if (input.isPublic === true) {
+		publicToken = existing.publicToken ?? createPublicToken(db);
+	} else {
+		// isPublic unchanged — keep whatever the existing state dictates
+		publicToken = existing.isPublic ? existing.publicToken : undefined;
+	}
+
 	const now = new Date().toISOString();
 
 	db.update(forms)
@@ -200,6 +243,33 @@ export function updateForm(db: OrgDb, id: string, input: UpdateFormInput): FormR
 	};
 }
 
+export function deleteForm(db: OrgDb, id: string): boolean {
+	const existing = getFormById(db, id);
+	if (!existing) return false;
+
+	// Cascade-delete all responses first (SQLite may not enforce FK cascades)
+	db.delete(formResponses).where(eq(formResponses.formId, id)).run();
+	db.delete(forms).where(eq(forms.id, id)).run();
+	return true;
+}
+
+export function duplicateForm(db: OrgDb, id: string, authorId?: string, authorName?: string): FormRecord | null {
+	const existing = getFormById(db, id);
+	if (!existing) return null;
+
+	return createForm(db, {
+		title: `${existing.title} (cópia)`,
+		description: existing.description,
+		isPublic: false, // duplicates start as private
+		requiresAuth: existing.requiresAuth,
+		isActive: existing.isActive,
+		definition: existing.definition,
+		authorId: authorId ?? existing.authorId,
+		authorName: authorName ?? existing.authorName,
+		authorRole: existing.authorRole
+	});
+}
+
 export function listFormResponses(db: OrgDb, formId: string): FormResponseRecord[] {
 	return db
 		.select()
@@ -215,22 +285,27 @@ export function getFormResponseById(db: OrgDb, id: string): FormResponseRecord |
 	return row ? mapFormResponseRow(row) : null;
 }
 
-export function submitFormResponse(db: OrgDb, input: SubmitFormResponseInput): FormResponseRecord {
+export function submitFormResponse(
+	db: OrgDb,
+	input: SubmitFormResponseInput
+): FormResponseRecord {
 	const id = randomUUID();
 	const submittedAt = new Date().toISOString();
 
-	db.insert(formResponses).values({
-		id,
-		formId: input.formId,
-		submitterId: input.submitterId,
-		submitterName: input.submitterName,
-		submitterEmail: input.submitterEmail,
-		sourceIp: input.sourceIp,
-		sourceUserAgent: input.sourceUserAgent,
-		answers: JSON.stringify(input.answers),
-		metadata: JSON.stringify(input.metadata ?? {}),
-		submittedAt
-	}).run();
+	db.insert(formResponses)
+		.values({
+			id,
+			formId: input.formId,
+			submitterId: input.submitterId,
+			submitterName: input.submitterName,
+			submitterEmail: input.submitterEmail,
+			sourceIp: input.sourceIp,
+			sourceUserAgent: input.sourceUserAgent,
+			answers: JSON.stringify(input.answers),
+			metadata: JSON.stringify(input.metadata ?? {}),
+			submittedAt
+		})
+		.run();
 
 	return {
 		id,

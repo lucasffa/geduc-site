@@ -1,3 +1,4 @@
+// src/routes/forms/[slug]/+page.server.ts
 import { error, redirect } from '@sveltejs/kit';
 import { getOrgDb } from '$lib/server/db';
 import { getFormBySlug, getFormByPublicToken, submitFormResponse } from '$lib/server/form-service';

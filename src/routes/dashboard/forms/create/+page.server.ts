@@ -1,3 +1,4 @@
+// src/routes/dashboard/forms/create/+page.server.ts
 import { error, redirect } from '@sveltejs/kit';
 import { getOrgDb } from '$lib/server/db';
 import { createForm } from '$lib/server/form-service';
@@ -17,6 +18,12 @@ export const actions: Actions = {
 	create: async ({ request, locals }) => {
 		if (!locals.user) {
 			throw error(401, 'Não autorizado');
+		}
+
+		if (!locals.user.organizationId) {
+			return {
+				error: 'Você precisa pertencer a uma organização para criar formulários'
+			};
 		}
 
 		const formData = await request.formData();
@@ -41,7 +48,7 @@ export const actions: Actions = {
 			};
 		}
 
-		const db = getOrgDb(locals.user.organizationId || 'default');
+		const db = getOrgDb(locals.user.organizationId);
 
 		const form = createForm(db, {
 			title: title.trim(),
