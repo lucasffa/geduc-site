@@ -1,0 +1,247 @@
+import { randomUUID } from 'node:crypto';
+import { eq } from 'drizzle-orm';
+import type { OrgDb } from '$lib/server/db';
+import { forms, formResponses } from '$lib/server/db/schema-org';
+import type {
+	CreateFormInput,
+	FormRecord,
+	FormResponseRecord,
+	FormResponseData,
+	FormDefinition,
+	SubmitFormResponseInput,
+	UpdateFormInput
+} from '$lib/types/forms';
+
+function normalizeSlug(value: string): string {
+	return value
+		.trim()
+		.toLowerCase()
+		.replace(/[^a-z0-9]+/g, '-')
+		.replace(/(^-|-$)/g, '') || randomUUID().slice(0, 8);
+}
+
+function generatePublicToken(): string {
+	return randomUUID();
+}
+
+function createFormSlug(db: OrgDb, baseSlug: string): string {
+	let slug = normalizeSlug(baseSlug);
+	let counter = 1;
+	while (
+		db.select()
+			.from(forms)
+			.where(eq(forms.slug, slug))
+			.get()
+		)
+	{
+		slug = `${normalizeSlug(baseSlug)}-${counter++}`;
+	}
+	return slug;
+}
+
+function createPublicToken(db: OrgDb): string {
+	let token = generatePublicToken();
+	while (
+		db.select()
+			.from(forms)
+			.where(eq(forms.publicToken, token))
+			.get()
+		)
+	{
+		token = generatePublicToken();
+	}
+	return token;
+}
+
+function serializeDefinition(definition: FormDefinition): string {
+	return JSON.stringify(definition);
+}
+
+function deserializeDefinition(definitionText: string): FormDefinition {
+	try {
+		return JSON.parse(definitionText) as FormDefinition;
+	} catch {
+		return { fields: [] };
+	}
+}
+
+function mapFormRow(row: any): FormRecord {
+	return {
+		id: row.id,
+		title: row.title,
+		slug: row.slug,
+		description: row.description,
+		isPublic: Boolean(row.isPublic ?? row.is_public),
+		requiresAuth: Boolean(row.requiresAuth ?? row.requires_auth),
+		isActive: Boolean(row.isActive ?? row.is_active),
+		publicToken: row.publicToken ?? row.public_token,
+		authorId: row.authorId ?? row.author_id,
+		authorName: row.authorName ?? row.author_name,
+		authorRole: row.authorRole ?? row.author_role,
+		definition: deserializeDefinition(row.definition),
+		createdAt: row.createdAt ?? row.created_at,
+		updatedAt: row.updatedAt ?? row.updated_at
+	};
+}
+
+function mapFormResponseRow(row: any): FormResponseRecord {
+	return {
+		id: row.id,
+		formId: row.formId ?? row.form_id,
+		submittedAt: row.submittedAt ?? row.submitted_at,
+		answers: JSON.parse(row.answers ?? '{}'),
+		submitterId: row.submitterId ?? row.submitter_id,
+		submitterName: row.submitterName ?? row.submitter_name,
+		submitterEmail: row.submitterEmail ?? row.submitter_email,
+		sourceIp: row.sourceIp ?? row.source_ip,
+		sourceUserAgent: row.sourceUserAgent ?? row.source_user_agent,
+		metadata: JSON.parse(row.metadata ?? '{}')
+	};
+}
+
+export function listForms(db: OrgDb): FormRecord[] {
+	return db
+		.select()
+		.from(forms)
+		.orderBy(forms.createdAt.desc())
+		.all()
+		.map(mapFormRow);
+}
+
+export function getFormById(db: OrgDb, id: string): FormRecord | null {
+	const row = db.select().from(forms).where(eq(forms.id, id)).get();
+	return row ? mapFormRow(row) : null;
+}
+
+export function getFormBySlug(db: OrgDb, slug: string): FormRecord | null {
+	const row = db.select().from(forms).where(eq(forms.slug, slug)).get();
+	return row ? mapFormRow(row) : null;
+}
+
+export function getFormByPublicToken(db: OrgDb, publicToken: string): FormRecord | null {
+	const row = db.select().from(forms).where(eq(forms.publicToken, publicToken)).get();
+	return row ? mapFormRow(row) : null;
+}
+
+export function createForm(db: OrgDb, input: CreateFormInput): FormRecord {
+	const id = randomUUID();
+	const slug = createFormSlug(db, input.slug ?? input.title);
+	const publicToken = input.isPublic ? input.publicToken ?? createPublicToken(db) : undefined;
+	const now = new Date().toISOString();
+
+	db.insert(forms).values({
+		id,
+		title: input.title,
+		slug,
+		description: input.description,
+		isActive: input.isActive ?? true,
+		isPublic: input.isPublic ?? false,
+		requiresAuth: input.requiresAuth ?? false,
+		publicToken,
+		authorId: input.authorId,
+		authorName: input.authorName,
+		authorRole: input.authorRole,
+		definition: serializeDefinition(input.definition),
+		createdAt: now,
+		updatedAt: now
+	}).run();
+
+	return {
+		id,
+		title: input.title,
+		slug,
+		description: input.description,
+		isActive: input.isActive ?? true,
+		isPublic: input.isPublic ?? false,
+		requiresAuth: input.requiresAuth ?? false,
+		publicToken,
+		authorId: input.authorId,
+		authorName: input.authorName,
+		authorRole: input.authorRole,
+		definition: input.definition,
+		createdAt: now,
+		updatedAt: now
+	};
+}
+
+export function updateForm(db: OrgDb, id: string, input: UpdateFormInput): FormRecord | null {
+	const existing = getFormById(db, id);
+	if (!existing) return null;
+
+	const slug = input.slug ? createFormSlug(db, input.slug) : existing.slug;
+	const publicToken = input.isPublic === false ? undefined : input.publicToken ?? existing.publicToken ?? (input.isPublic ? createPublicToken(db) : existing.publicToken);
+	const now = new Date().toISOString();
+
+	db.update(forms)
+		.set({
+			title: input.title ?? existing.title,
+			slug,
+			description: input.description ?? existing.description,
+			isActive: input.isActive ?? existing.isActive,
+			isPublic: input.isPublic ?? existing.isPublic,
+			requiresAuth: input.requiresAuth ?? existing.requiresAuth,
+			publicToken,
+			authorId: input.authorId ?? existing.authorId,
+			authorName: input.authorName ?? existing.authorName,
+			authorRole: input.authorRole ?? existing.authorRole,
+			definition: serializeDefinition(input.definition ?? existing.definition),
+			updatedAt: now
+		})
+		.where(eq(forms.id, id))
+		.run();
+
+	return {
+		...existing,
+		...input,
+		slug,
+		publicToken,
+		updatedAt: now,
+		definition: input.definition ?? existing.definition
+	};
+}
+
+export function listFormResponses(db: OrgDb, formId: string): FormResponseRecord[] {
+	return db
+		.select()
+		.from(formResponses)
+		.where(eq(formResponses.formId, formId))
+		.orderBy(formResponses.submittedAt.desc())
+		.all()
+		.map(mapFormResponseRow);
+}
+
+export function getFormResponseById(db: OrgDb, id: string): FormResponseRecord | null {
+	const row = db.select().from(formResponses).where(eq(formResponses.id, id)).get();
+	return row ? mapFormResponseRow(row) : null;
+}
+
+export function submitFormResponse(db: OrgDb, input: SubmitFormResponseInput): FormResponseRecord {
+	const id = randomUUID();
+	const submittedAt = new Date().toISOString();
+
+	db.insert(formResponses).values({
+		id,
+		formId: input.formId,
+		submitterId: input.submitterId,
+		submitterName: input.submitterName,
+		submitterEmail: input.submitterEmail,
+		sourceIp: input.sourceIp,
+		sourceUserAgent: input.sourceUserAgent,
+		answers: JSON.stringify(input.answers),
+		metadata: JSON.stringify(input.metadata ?? {}),
+		submittedAt
+	}).run();
+
+	return {
+		id,
+		formId: input.formId,
+		submittedAt,
+		answers: input.answers,
+		submitterId: input.submitterId,
+		submitterName: input.submitterName,
+		submitterEmail: input.submitterEmail,
+		sourceIp: input.sourceIp,
+		sourceUserAgent: input.sourceUserAgent,
+		metadata: input.metadata ?? {}
+	};
+}

@@ -129,3 +129,41 @@ export const userWorkgroups = sqliteTable(
 	},
 	(table) => [primaryKey({ columns: [table.userId, table.workgroupId] })]
 );
+
+// ============================================================
+// FORMS
+// ============================================================
+export const forms = sqliteTable('forms', {
+	id: text('id').primaryKey(),
+	title: text('title').notNull(),
+	slug: text('slug').notNull().unique(),
+	description: text('description'),
+	isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
+	isPublic: integer('is_public', { mode: 'boolean' }).notNull().default(false),
+	requiresAuth: integer('requires_auth', { mode: 'boolean' }).notNull().default(false),
+	publicToken: text('public_token').unique(),
+	authorId: text('author_id'),
+	authorName: text('author_name'),
+	authorRole: text('author_role'),
+	definition: text('definition').notNull().default('{}'),
+	createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+	updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`)
+});
+
+// ============================================================
+// FORM RESPONSES
+// ============================================================
+export const formResponses = sqliteTable('form_responses', {
+	id: text('id').primaryKey(),
+	formId: text('form_id')
+		.notNull()
+		.references(() => forms.id, { onDelete: 'cascade' }),
+	submittedAt: text('submitted_at').notNull().default(sql`(datetime('now'))`),
+	submitterId: text('submitter_id'),
+	submitterName: text('submitter_name'),
+	submitterEmail: text('submitter_email'),
+	sourceIp: text('source_ip'),
+	sourceUserAgent: text('source_user_agent'),
+	answers: text('answers').notNull().default('{}'),
+	metadata: text('metadata').notNull().default('{}')
+});

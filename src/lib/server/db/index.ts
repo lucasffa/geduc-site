@@ -114,6 +114,40 @@ export function getOrgDb(slug: string): OrgDb {
 		);
 	`);
 
+	// Migration: dynamic forms
+	sqlite.exec(`
+		CREATE TABLE IF NOT EXISTS forms (
+			id TEXT PRIMARY KEY,
+			title TEXT NOT NULL,
+			slug TEXT NOT NULL UNIQUE,
+			description TEXT,
+			is_active INTEGER NOT NULL DEFAULT 1,
+			is_public INTEGER NOT NULL DEFAULT 0,
+			requires_auth INTEGER NOT NULL DEFAULT 0,
+			public_token TEXT UNIQUE,
+			author_id TEXT,
+			author_name TEXT,
+			author_role TEXT,
+			definition TEXT NOT NULL DEFAULT '{}',
+			created_at TEXT NOT NULL DEFAULT (datetime('now')),
+			updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+		);
+	`);
+	sqlite.exec(`
+		CREATE TABLE IF NOT EXISTS form_responses (
+			id TEXT PRIMARY KEY,
+			form_id TEXT NOT NULL REFERENCES forms(id) ON DELETE CASCADE,
+			submitted_at TEXT NOT NULL DEFAULT (datetime('now')),
+			submitter_id TEXT,
+			submitter_name TEXT,
+			submitter_email TEXT,
+			source_ip TEXT,
+			source_user_agent TEXT,
+			answers TEXT NOT NULL DEFAULT '{}',
+			metadata TEXT NOT NULL DEFAULT '{}'
+		);
+	`);
+
 	const db = drizzle(sqlite, { schema: orgSchema });
 	orgDbPool.set(slug, db);
 	return db;
@@ -229,6 +263,39 @@ export function createOrgDb(slug: string): OrgDb {
 
 		INSERT OR IGNORE INTO org_settings (key, value) VALUES ('enforce_status_transitions', 'true');
 		INSERT OR IGNORE INTO org_settings (key, value) VALUES ('custom_roles', '${JSON.stringify(DEFAULT_CUSTOM_ROLES)}');
+	`);
+
+	sqlite.exec(`
+		CREATE TABLE IF NOT EXISTS forms (
+			id TEXT PRIMARY KEY,
+			title TEXT NOT NULL,
+			slug TEXT NOT NULL UNIQUE,
+			description TEXT,
+			is_active INTEGER NOT NULL DEFAULT 1,
+			is_public INTEGER NOT NULL DEFAULT 0,
+			requires_auth INTEGER NOT NULL DEFAULT 0,
+			public_token TEXT UNIQUE,
+			author_id TEXT,
+			author_name TEXT,
+			author_role TEXT,
+			definition TEXT NOT NULL DEFAULT '{}',
+			created_at TEXT NOT NULL DEFAULT (datetime('now')),
+			updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+		);
+	`);
+	sqlite.exec(`
+		CREATE TABLE IF NOT EXISTS form_responses (
+			id TEXT PRIMARY KEY,
+			form_id TEXT NOT NULL REFERENCES forms(id) ON DELETE CASCADE,
+			submitted_at TEXT NOT NULL DEFAULT (datetime('now')),
+			submitter_id TEXT,
+			submitter_name TEXT,
+			submitter_email TEXT,
+			source_ip TEXT,
+			source_user_agent TEXT,
+			answers TEXT NOT NULL DEFAULT '{}',
+			metadata TEXT NOT NULL DEFAULT '{}'
+		);
 	`);
 
 	const db = drizzle(sqlite, { schema: orgSchema });
