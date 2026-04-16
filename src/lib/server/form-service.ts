@@ -1,6 +1,6 @@
 // src/lib/server/form-service.ts
 import { randomUUID } from 'node:crypto';
-import { eq, ne, sql } from 'drizzle-orm';
+import { eq, ne, sql, desc } from 'drizzle-orm';
 import type { OrgDb } from '$lib/server/db';
 import { forms, formResponses } from '$lib/server/db/schema-org';
 import type {
@@ -108,12 +108,20 @@ function mapFormResponseRow(row: any): FormResponseRecord {
 }
 
 export function listForms(db: OrgDb): FormRecord[] {
-	return db
-		.select()
-		.from(forms)
-		.orderBy(forms.createdAt.desc())
-		.all()
-		.map(mapFormRow);
+	console.log('[form-service] listForms: iniciando listagem de formulários');
+	try {
+		const results = db
+			.select()
+			.from(forms)
+			.orderBy(desc(forms.createdAt))
+			.all()
+			.map(mapFormRow);
+		console.log(`[form-service] listForms: ${results.length} formulários encontrados`);
+		return results;
+	} catch (error) {
+		console.error('[form-service] listForms: ERRO ao listar formulários', error);
+		throw error;
+	}
 }
 
 // Returns each FormRecord enriched with the number of submitted responses.
@@ -135,13 +143,35 @@ export function listFormsWithResponseCount(
 }
 
 export function getFormById(db: OrgDb, id: string): FormRecord | null {
-	const row = db.select().from(forms).where(eq(forms.id, id)).get();
-	return row ? mapFormRow(row) : null;
+	console.log(`[form-service] getFormById: buscando formulário com id=${id}`);
+	try {
+		const row = db.select().from(forms).where(eq(forms.id, id)).get();
+		if (row) {
+			console.log(`[form-service] getFormById: formulário encontrado - ${row.title}`);
+			return mapFormRow(row);
+		}
+		console.log(`[form-service] getFormById: formulário não encontrado`);
+		return null;
+	} catch (error) {
+		console.error(`[form-service] getFormById: ERRO ao buscar formulário id=${id}`, error);
+		throw error;
+	}
 }
 
 export function getFormBySlug(db: OrgDb, slug: string): FormRecord | null {
-	const row = db.select().from(forms).where(eq(forms.slug, slug)).get();
-	return row ? mapFormRow(row) : null;
+	console.log(`[form-service] getFormBySlug: buscando formulário com slug=${slug}`);
+	try {
+		const row = db.select().from(forms).where(eq(forms.slug, slug)).get();
+		if (row) {
+			console.log(`[form-service] getFormBySlug: formulário encontrado - ${row.title}`);
+			return mapFormRow(row);
+		}
+		console.log(`[form-service] getFormBySlug: formulário não encontrado para slug=${slug}`);
+		return null;
+	} catch (error) {
+		console.error(`[form-service] getFormBySlug: ERRO ao buscar slug=${slug}`, error);
+		throw error;
+	}
 }
 
 export function getFormByPublicToken(db: OrgDb, publicToken: string): FormRecord | null {
@@ -150,14 +180,40 @@ export function getFormByPublicToken(db: OrgDb, publicToken: string): FormRecord
 }
 
 export function createForm(db: OrgDb, input: CreateFormInput): FormRecord {
-	const id = randomUUID();
-	const slug = createFormSlug(db, input.slug ?? input.title);
-	const publicToken =
-		input.isPublic ? (input.publicToken ?? createPublicToken(db)) : undefined;
-	const now = new Date().toISOString();
+	console.log(`[form-service] createForm: criando novo formulário - title=${input.title}`);
+	try {
+		const id = randomUUID();
+		console.log(`[form-service] createForm: id gerado=${id}`);
+		const slug = createFormSlug(db, input.slug ?? input.title);
+		console.log(`[form-service] createForm: slug gerado=${slug}`);
+		const publicToken =
+			input.isPublic ? (input.publicToken ?? createPublicToken(db)) : undefined;
+		if (input.isPublic) {
+			console.log(`[form-service] createForm: formulário público com token=${publicToken?.slice(0, 8)}...`);
+		}
+		const now = new Date().toISOString();
 
-	db.insert(forms)
-		.values({
+		db.insert(forms)
+			.values({
+				id,
+				title: input.title,
+				slug,
+				description: input.description,
+				isActive: input.isActive ?? true,
+				isPublic: input.isPublic ?? false,
+				requiresAuth: input.requiresAuth ?? false,
+				publicToken,
+				authorId: input.authorId,
+				authorName: input.authorName,
+				authorRole: input.authorRole,
+				definition: serializeDefinition(input.definition),
+				createdAt: now,
+				updatedAt: now
+			})
+			.run();
+
+		console.log(`[form-service] createForm: sucesso - formulário criado id=${id}`);
+		return {
 			id,
 			title: input.title,
 			slug,
@@ -169,28 +225,14 @@ export function createForm(db: OrgDb, input: CreateFormInput): FormRecord {
 			authorId: input.authorId,
 			authorName: input.authorName,
 			authorRole: input.authorRole,
-			definition: serializeDefinition(input.definition),
+			definition: input.definition,
 			createdAt: now,
 			updatedAt: now
-		})
-		.run();
-
-	return {
-		id,
-		title: input.title,
-		slug,
-		description: input.description,
-		isActive: input.isActive ?? true,
-		isPublic: input.isPublic ?? false,
-		requiresAuth: input.requiresAuth ?? false,
-		publicToken,
-		authorId: input.authorId,
-		authorName: input.authorName,
-		authorRole: input.authorRole,
-		definition: input.definition,
-		createdAt: now,
-		updatedAt: now
-	};
+		};
+	} catch (error) {
+		console.error(`[form-service] createForm: ERRO ao criar formulário`, error);
+		throw error;
+	}
 }
 
 export function updateForm(db: OrgDb, id: string, input: UpdateFormInput): FormRecord | null {

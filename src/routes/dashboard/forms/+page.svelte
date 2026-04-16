@@ -2,14 +2,53 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
+	import Modal from '$lib/components/organisms/Modal.svelte';
 	import type { PageData } from './$types';
+	import type { FormRecord } from '$lib/types/forms';
 
 	export let data: PageData;
+
+	// Reactive assignment for forms to update on enhance invalidation
+	$: formsWithCount = data.forms as (FormRecord & { responseCount: number })[];
 
 	let searchQuery = '';
 	let selectedForms: string[] = [];
 	let toastMessage = '';
 	let toastTimeout: ReturnType<typeof setTimeout>;
+	let deleteModalOpen = false;
+	let deleteModalFormId = '';
+	let deleteModalFormTitle = '';
+	let deleteModalFormCount = 0;
+	let pendingDeleteForm: HTMLFormElement | null = null;
+
+	// Show success toast if form was just created
+	$: if ($page.url.searchParams.has('created')) {
+		const createdId = $page.url.searchParams.get('created');
+		showToast('✅ Formulário criado com sucesso!');
+		if (createdId) {
+			setTimeout(() => {
+				const form = formsWithCount.find(f => f.id === createdId);
+				if (form && form.isPublic) openShareModal(form.id, form.title);
+			}, 100);
+		}
+		// Clean up the URL parameter
+		window.history.replaceState({}, '', '/dashboard/forms');
+	}
+
+	// Show success toast if form was just updated
+	$: if ($page.url.searchParams.has('updated')) {
+		const updatedId = $page.url.searchParams.get('updated');
+		showToast('✅ Formulário atualizado com sucesso!');
+		if (updatedId && updatedId !== 'true') {
+			setTimeout(() => {
+				const form = formsWithCount.find(f => f.id === updatedId);
+				if (form && form.isPublic) openShareModal(form.id, form.title);
+			}, 100);
+		}
+		// Clean up the URL parameter
+		window.history.replaceState({}, '', '/dashboard/forms');
+	}
 
 	function showToast(msg: string) {
 		toastMessage = msg;
@@ -29,10 +68,101 @@
 		goto(`/dashboard/forms/${formId}/responses`);
 	}
 
+	function openDeleteModal(formId: string, formTitle: string) {
+		deleteModalFormId = formId;
+		deleteModalFormTitle = formTitle;
+		deleteModalFormCount = 1;
+		deleteModalOpen = true;
+	}
+
+	function openBulkDeleteModal() {
+		deleteModalFormId = '';
+		deleteModalFormTitle = '';
+		deleteModalFormCount = selectedForms.length;
+		deleteModalOpen = true;
+	}
+
+	function closeDeleteModal() {
+		deleteModalOpen = false;
+		deleteModalFormId = '';
+		deleteModalFormTitle = '';
+		deleteModalFormCount = 0;
+		pendingDeleteForm = null;
+	}
+
+	function confirmDelete() {
+		if (pendingDeleteForm) {
+			pendingDeleteForm.requestSubmit();
+			closeDeleteModal();
+		}
+	}
+
 	function copyPublicLink(form: any) {
 		if (form.slug) {
 			const url = `${window.location.origin}/forms/${form.slug}`;
 			navigator.clipboard.writeText(url).then(() => showToast('Link copiado!'));
+		}
+	}
+
+	let shareModalOpen = false;
+	let shareModalFormId = '';
+	let shareModalFormTitle = '';
+	let shareEmail = '';
+	let shareLoading = false;
+	let sendToAll = false;
+
+	function openShareModal(formId: string, formTitle: string) {
+		shareModalFormId = formId;
+		shareModalFormTitle = formTitle;
+		shareEmail = '';
+		sendToAll = false;
+		shareModalOpen = true;
+	}
+
+	function closeShareModal() {
+		shareModalOpen = false;
+		shareEmail = '';
+		shareLoading = false;
+	}
+
+	async function confirmShare() {
+		if (!sendToAll && !shareEmail.includes('@')) {
+			showToast('❌ Email inválido');
+			return;
+		}
+
+		shareLoading = true;
+
+		const formData = new FormData();
+		formData.append('formId', shareModalFormId);
+		if (!sendToAll) {
+			formData.append('email', shareEmail);
+		}
+		formData.append('sendToAll', String(sendToAll));
+
+		try {
+			const actionResponse = await fetch('?/sendByEmail', {
+				method: 'POST',
+				body: formData,
+				headers: {
+					'x-sveltekit-action': 'true'
+				}
+			});
+			
+			const actionResult = await actionResponse.json();
+			const data = actionResult.data || {};
+			
+			if (actionResult.type === 'failure' || data.error) {
+				showToast(`❌ ${data.error || 'Erro ao enviar'}`);
+			} else {
+				showToast(sendToAll ? `✅ Enviado para ${data.count} participante(s)!` : '✅ Formulário compartilhado por email!');
+				closeShareModal();
+			}
+		} catch (err) {
+			console.error(err);
+			showToast('❌ Erro ao enviar email');
+		} finally {
+			shareLoading = false;
 		}
 	}
 
@@ -57,7 +187,7 @@
 		});
 	}
 
-	$: filteredForms = data.forms.filter(
+	$: filteredForms = formsWithCount.filter(
 		(form: any) =>
 			form.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
 			form.description?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -139,14 +269,10 @@
 					{#each selectedForms as id}
 						<input type="hidden" name="ids" value={id} />
 					{/each}
-					<button type="submit" class="btn-danger-sm"
-						on:click|preventDefault={(e) => {
-							if (!confirm(`Excluir ${selectedForms.length} formulário(s)? Esta ação não pode ser desfeita.`)) {
-								e.stopPropagation();
-							} else {
-								(e.currentTarget.closest('form') as HTMLFormElement)?.requestSubmit();
-							}
-						}}
+					<button 
+						type="button"
+						class="btn-danger-sm"
+						on:click={() => openBulkDeleteModal()}
 					>
 						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 							<polyline points="3 6 5 6 21 6"/>
@@ -269,6 +395,12 @@
 										<path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
 									</svg>
 								</button>
+								<button class="icon-btn" title="Compartilhar por email" on:click={() => openShareModal(form.id, form.title)}>
+									<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+										<rect x="2" y="4" width="20" height="16" rx="2"/>
+										<path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+									</svg>
+								</button>
 							{/if}
 
 							<!-- Single-item duplicate/delete via forms -->
@@ -293,13 +425,12 @@
 							}>
 								<input type="hidden" name="id" value={form.id} />
 								<button
-									type="submit"
+									type="button"
 									class="icon-btn icon-btn-danger"
 									title="Excluir formulário"
 									on:click|preventDefault={(e) => {
-										if (confirm(`Excluir "${form.title}"? Esta ação não pode ser desfeita.`)) {
-											(e.currentTarget.closest('form') as HTMLFormElement)?.requestSubmit();
-										}
+										pendingDeleteForm = e.currentTarget.closest('form') as HTMLFormElement;
+										openDeleteModal(form.id, form.title);
 									}}
 								>
 									<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -315,6 +446,67 @@
 		{/if}
 	</main>
 </div>
+
+<!-- Delete Confirmation Modal -->
+<Modal 
+	isOpen={deleteModalOpen} 
+	onClose={closeDeleteModal}
+	title="Excluir formulário{deleteModalFormCount > 1 ? 's' : ''}?"
+	size="sm"
+>
+	<div>
+		{#if deleteModalFormCount === 1}
+			<p>Tem certeza que deseja excluir "<strong>{deleteModalFormTitle}</strong>"? Esta ação não pode ser desfeita.</p>
+		{:else}
+			<p>Tem certeza que deseja excluir <strong>{deleteModalFormCount} formulários</strong>? Esta ação não pode ser desfeita.</p>
+		{/if}
+	</div>
+
+	<svelte:fragment slot="footer">
+		<button class="btn-ghost" on:click={closeDeleteModal}>Cancelar</button>
+		<button class="btn-danger" on:click={confirmDelete}>Excluir</button>
+	</svelte:fragment>
+</Modal>
+
+<!-- Share Modal -->
+<Modal 
+	isOpen={shareModalOpen} 
+	onClose={closeShareModal}
+	title="Compartilhar por email"
+	size="sm"
+>
+	<div>
+		<p>Compartilhe "<strong>{shareModalFormTitle}</strong>" por email.</p>
+		
+		<div style="margin-top: 1rem;">
+			<label class="radio-label" style="display: flex; gap: 0.5rem; align-items: center; cursor: pointer; margin-bottom: 0.5rem;">
+				<input type="radio" bind:group={sendToAll} value={true} />
+				<span>Enviar para todos os participantes ativos</span>
+			</label>
+			<label class="radio-label" style="display: flex; gap: 0.5rem; align-items: center; cursor: pointer;">
+				<input type="radio" bind:group={sendToAll} value={false} />
+				<span>Enviar para um e-mail específico</span>
+			</label>
+		</div>
+
+		{#if !sendToAll}
+			<input 
+				type="email" 
+				placeholder="exemplo@email.com"
+				bind:value={shareEmail}
+				class="modal-input"
+				style="margin-top: 1rem;"
+			/>
+		{/if}
+	</div>
+
+	<svelte:fragment slot="footer">
+		<button class="btn-ghost" on:click={closeShareModal} disabled={shareLoading}>Cancelar</button>
+		<button class="btn-primary" on:click={confirmShare} disabled={shareLoading || (!sendToAll && !shareEmail)}>
+			{shareLoading ? 'Enviando...' : 'Enviar'}
+		</button>
+	</svelte:fragment>
+</Modal>
 
 <style>
 	@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap');
@@ -394,7 +586,26 @@
 	}
 
 	.btn-ghost-sm {
-		composes: btn-ghost;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		background: transparent;
+		color: var(--text-secondary, #6b7280);
+		border: 1px solid var(--border, #e5e7eb);
+		padding: 0.375rem 0.75rem;
+		border-radius: 7px;
+		font-size: 0.8125rem;
+		font-family: inherit;
+		cursor: pointer;
+		transition: background-color 0.12s, color 0.12s;
+	}
+
+	.btn-ghost-sm:hover {
+		background: var(--bg-hover, #f3f4f6);
+		color: var(--text-primary, #111827);
+	}
+
+	.btn-ghost-sm {
 		padding: 0.375rem 0.75rem;
 		font-size: 0.8125rem;
 		background: transparent;
@@ -430,6 +641,49 @@
 
 	.btn-danger-sm:hover {
 		background: color-mix(in srgb, var(--error, #ef4444) 15%, transparent);
+	}
+
+	.btn-danger {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		background: var(--error, #ef4444);
+		color: white;
+		border: none;
+		padding: 0.625rem 1.25rem;
+		border-radius: 8px;
+		font-size: 0.875rem;
+		font-weight: 500;
+		font-family: inherit;
+		cursor: pointer;
+		transition: background-color 0.15s, transform 0.1s;
+		white-space: nowrap;
+	}
+
+	.btn-danger:hover {
+		background: var(--error-hover, color-mix(in srgb, var(--error, #ef4444) 85%, black));
+		transform: translateY(-1px);
+	}
+
+	.modal-input {
+		width: 100%;
+		padding: 0.75rem;
+		margin-top: 1rem;
+		border: 1px solid var(--border, #e5e7eb);
+		border-radius: 8px;
+		font-size: 0.875rem;
+		font-family: inherit;
+		color: var(--text-primary, #111827);
+	}
+
+	.modal-input:focus {
+		outline: none;
+		border-color: var(--primary, #6366f1);
+		box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+	}
+
+	.modal-input::placeholder {
+		color: var(--text-tertiary, #9ca3af);
 	}
 
 	/* ── Toolbar ── */

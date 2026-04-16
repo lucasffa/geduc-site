@@ -58,9 +58,11 @@ export const POST: RequestHandler = async (event) => {
 
 	// Create org database file
 	try {
+		console.log(`[sysadmin/api/organizations] criando database para organização: ${slug}`);
 		createOrgDb(slug);
+		console.log(`[sysadmin/api/organizations] database criada com sucesso: ${slug}`);
 	} catch (e) {
-		console.error('Erro ao criar DB da organização:', e);
+		console.error(`[sysadmin/api/organizations] ERRO ao criar database da organização ${slug}:`, e);
 	}
 
 	logAudit(event, {

@@ -21,6 +21,7 @@
 
 	function handleInput(event: Event, field: FormFieldDefinition) {
 		const target = event.target as HTMLInputElement;
+		console.log(`[FormRenderer] handleInput: field=${field.id}, type=${target.type}, value=${target.value}`);
 
 		if (target.type === 'checkbox') {
 			if (field.options && field.options.length > 0) {
@@ -28,6 +29,7 @@
 				const current: string[] = Array.isArray(formData[field.id]) ? [...formData[field.id]] : [];
 				if (target.checked) {
 					setFieldValue(field, [...current, target.value]);
+					console.log(`[FormRenderer] handleInput: checkbox adicionado - field=${field.id}, value=${target.value}`);
 				} else {
 					setFieldValue(field, current.filter((v) => v !== target.value));
 				}

@@ -4,12 +4,14 @@
 	import { goto } from '$app/navigation';
 	import type { ActionData } from './$types';
 
+	export let data: any;
 	export let form: ActionData;
 
 	// ── Form meta ──────────────────────────────────────────────────────────────
-	let title = '';
-	let description = '';
-	let accessType: 'public' | 'private' = 'private';
+	let title = data.form.title || '';
+	let description = data.form.description || '';
+	let accessType: 'public' | 'private' = data.form.isPublic ? 'public' : 'private';
+	let isActive = data.form.isActive ?? true;
 
 	$: isPublic = accessType === 'public';
 	$: requiresAuth = accessType === 'private';
@@ -28,10 +30,21 @@
 		options?: FieldOption[];
 	}
 
-	let fields: Field[] = [
-		{ id: 'field_name',  name: 'name',  type: 'text',  label: 'Nome',   required: true },
-		{ id: 'field_email', name: 'email', type: 'email', label: 'E-mail', required: true }
-	];
+	let fields: Field[] = (() => {
+		try {
+			const parsed = typeof data.form.definition === 'string' ? JSON.parse(data.form.definition) : data.form.definition;
+			return parsed.fields || [];
+		} catch {
+			return [];
+		}
+	})();
+
+	if (fields.length === 0) {
+		fields = [
+			{ id: 'field_name',  name: 'name',  type: 'text',  label: 'Nome',   required: true },
+			{ id: 'field_email', name: 'email', type: 'email', label: 'E-mail', required: true }
+		];
+	}
 
 	// ── UI state ───────────────────────────────────────────────────────────────
 	let activeFieldId: string | null = null;
@@ -172,7 +185,7 @@
 <svelte:window on:click={handleWindowClick} />
 
 <svelte:head>
-	<title>Criar formulário</title>
+	<title>Editar formulário</title>
 </svelte:head>
 
 <div class="builder">
@@ -186,7 +199,7 @@
 		</button>
 
 		<div class="header-title-group">
-			<span class="header-label">Novo formulário</span>
+			<span class="header-label">Editar formulário</span>
 		</div>
 
 		<div class="header-right">
@@ -207,7 +220,7 @@
 			<form
 				id="builder-form"
 				method="POST"
-				action="?/create"
+				action="?/update"
 				use:enhance={() => {
 					return async ({ result, update }) => {
 						if (result.type !== 'redirect') {
@@ -220,6 +233,7 @@
 				<input type="hidden" name="definition" value={definitionJson} />
 				<input type="hidden" name="isPublic" value={String(isPublic)} />
 				<input type="hidden" name="requiresAuth" value={String(requiresAuth)} />
+				<input type="hidden" name="isActive" value={String(isActive)} />
 
 				<!-- Form meta card -->
 				<div class="canvas-card meta-card">
@@ -433,6 +447,26 @@
 						<div class="radio-content">
 							<span class="radio-title">Privado</span>
 							<span class="settings-hint">Apenas usuários logados na plataforma podem responder.</span>
+						</div>
+					</label>
+				</div>
+			</div>
+
+			<div class="settings-section">
+				<p class="settings-section-title">Status</p>
+				<div class="settings-field radio-group-vertical">
+					<label class="radio-label">
+						<input type="radio" name="isActiveGroup" value={true} bind:group={isActive} />
+						<div class="radio-content">
+							<span class="radio-title">Ativo</span>
+							<span class="settings-hint">O formulário está aceitando novas respostas.</span>
+						</div>
+					</label>
+					<label class="radio-label">
+						<input type="radio" name="isActiveGroup" value={false} bind:group={isActive} />
+						<div class="radio-content">
+							<span class="radio-title">Inativo</span>
+							<span class="settings-hint">Novas respostas não serão aceitas.</span>
 						</div>
 					</label>
 				</div>

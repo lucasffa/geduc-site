@@ -40,7 +40,9 @@ export const load: PageServerLoad = async ({ params, url, locals }) => {
 
 export const actions: Actions = {
 	submit: async ({ request, params, url, locals, getClientAddress }) => {
-		const orgSlug = url.searchParams.get('org') || 'default';
+			console.log(`[forms/[slug]] submit: iniciando submissão - slug=${params.slug}`);
+			const orgSlug = url.searchParams.get('org') || 'default';
+			console.log(`[forms/[slug]] submit: orgSlug=${orgSlug}`);
 		const db = getOrgDb(orgSlug);
 
 		// Get form
@@ -50,8 +52,10 @@ export const actions: Actions = {
 		}
 
 		if (!form) {
+			console.error(`[forms/[slug]] submit: ERRO - formulário não encontrado slug=${params.slug}`);
 			throw error(404, 'Formulário não encontrado');
 		}
+		console.log(`[forms/[slug]] submit: formulário encontrado - ${form.title}`);
 
 		// Parse form data
 		const formData = await request.formData();
@@ -72,6 +76,7 @@ export const actions: Actions = {
 		}
 
 		// Submit response
+		console.log(`[forms/[slug]] submit: gravando resposta - fields=${Object.keys(answers).length}`);
 		const response = submitFormResponse(db, {
 			formId: form.id,
 			answers,
@@ -82,6 +87,7 @@ export const actions: Actions = {
 			sourceUserAgent: request.headers.get('user-agent') || undefined
 		});
 
+		console.log(`[forms/[slug]] submit: sucesso - responseId=${response.id}`);
 		return {
 			success: true,
 			responseId: response.id
