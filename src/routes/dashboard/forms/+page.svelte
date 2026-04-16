@@ -243,9 +243,10 @@
 				<span class="bulk-count">{selectedForms.length} selecionado{selectedForms.length > 1 ? 's' : ''}</span>
 
 				<form method="POST" action="?/bulkDuplicate" use:enhance={() => {
-					return async ({ result }) => {
+					return async ({ result, update }) => {
 						selectedForms = [];
 						if (result.type === 'success') showToast('Formulários duplicados!');
+						await update();
 					};
 				}}>
 					{#each selectedForms as id}
@@ -261,9 +262,10 @@
 				</form>
 
 				<form method="POST" action="?/bulkDelete" use:enhance={() => {
-					return async ({ result }) => {
+					return async ({ result, update }) => {
 						selectedForms = [];
 						if (result.type === 'success') showToast('Formulários excluídos.');
+						await update();
 					};
 				}}>
 					{#each selectedForms as id}
@@ -405,8 +407,9 @@
 
 							<!-- Single-item duplicate/delete via forms -->
 							<form method="POST" action="?/duplicateOne" use:enhance={() =>
-								async ({ result }) => {
+								async ({ result, update }) => {
 									if (result.type === 'success') showToast('Formulário duplicado!');
+									await update();
 								}
 							}>
 								<input type="hidden" name="id" value={form.id} />
@@ -419,8 +422,9 @@
 							</form>
 
 							<form method="POST" action="?/deleteOne" use:enhance={() =>
-								async ({ result }) => {
+								async ({ result, update }) => {
 									if (result.type === 'success') showToast('Formulário excluído.');
+									await update();
 								}
 							}>
 								<input type="hidden" name="id" value={form.id} />

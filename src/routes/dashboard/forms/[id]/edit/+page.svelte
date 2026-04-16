@@ -222,10 +222,8 @@
 				method="POST"
 				action="?/update"
 				use:enhance={() => {
-					return async ({ result, update }) => {
-						if (result.type !== 'redirect') {
-							await update();
-						}
+					return async ({ update }) => {
+						await update();
 					};
 				}}
 			>
