@@ -23,9 +23,19 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 	const forms = listFormsWithResponseCount(locals.orgDb);
 
-	console.log(`[dashboard/forms] load: sucesso - ${forms.length} formulários carregados`);
+	const { participants } = await import('$lib/server/db/schema-org');
+	const { eq, isNull, and } = await import('drizzle-orm');
+	
+	const activeParticipants = locals.orgDb
+		.select({ id: participants.id, name: participants.name, email: participants.email })
+		.from(participants)
+		.where(and(eq(participants.isActive, true), isNull(participants.deletedAt)))
+		.all();
+
+	console.log(`[dashboard/forms] load: sucesso - ${forms.length} formulários, ${activeParticipants.length} participantes ativos carregados`);
 	return {
-		forms
+		forms,
+		participants: activeParticipants
 	};
 };
 
@@ -116,11 +126,16 @@ export const actions: Actions = {
 
 		const formData = await request.formData();
 		const formId = formData.get('formId') as string;
+		const type = formData.get('type') as string; // 'external' or 'participants'
 		const recipientEmail = formData.get('email') as string;
-		const sendToAll = formData.get('sendToAll') === 'true';
+		const participantIds = formData.getAll('participantIds') as string[];
 
-		if (!sendToAll && (!recipientEmail || !recipientEmail.includes('@'))) {
-			return { error: 'Email inválido ou nenhum destinatário selecionado' };
+		if (type === 'external' && (!recipientEmail || !recipientEmail.includes('@'))) {
+			return { error: 'Email inválido' };
+		}
+
+		if (type === 'participants' && participantIds.length === 0) {
+			return { error: 'Nenhum participante selecionado' };
 		}
 
 		const form = getFormById(locals.orgDb, formId);
@@ -128,15 +143,11 @@ export const actions: Actions = {
 			throw error(404, 'Formulário não encontrado');
 		}
 
-		if (!form.isPublic) {
-			return { error: 'Apenas formulários públicos podem ser compartilhados por email' };
-		}
-
 		try {
 			console.log(`[dashboard/forms] sendByEmail: enviando formulário ${form.slug}`);
 			
 			const resend = getSystemResendClient();
-			const formUrl = `${new URL(request.url).origin}/forms/${form.slug}`;
+			const formUrl = `${new URL(request.url).origin}/forms/${locals.organization.slug}/${form.slug}`;
 			const emailHtml = `
 				<h2>${form.title}</h2>
 				${form.description ? `<p>${form.description}</p>` : ''}
@@ -145,19 +156,21 @@ export const actions: Actions = {
 
 			let recipients: string[] = [];
 
-			if (sendToAll) {
+			if (type === 'participants') {
 				const { participants } = await import('$lib/server/db/schema-org');
-				const { eq, isNull, and } = await import('drizzle-orm');
-				const activeParticipants = locals.orgDb
+				const { inArray } = await import('drizzle-orm');
+				
+				// Fetch only the selected participants' emails
+				const selectedParticipants = locals.orgDb
 					.select({ email: participants.email })
 					.from(participants)
-					.where(and(eq(participants.isActive, true), isNull(participants.deletedAt)))
+					.where(inArray(participants.id, participantIds))
 					.all();
 				
-				recipients = activeParticipants.map(p => p.email).filter(Boolean);
+				recipients = selectedParticipants.map(p => p.email).filter(Boolean) as string[];
 				
 				if (recipients.length === 0) {
-					return { error: 'Nenhum participante ativo encontrado para enviar.' };
+					return { error: 'Nenhum participante válido encontrado para enviar.' };
 				}
 			} else {
 				recipients = [recipientEmail];

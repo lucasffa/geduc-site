@@ -221,11 +221,7 @@
 				id="builder-form"
 				method="POST"
 				action="?/update"
-				use:enhance={() => {
-					return async ({ update }) => {
-						await update();
-					};
-				}}
+				use:enhance
 			>
 				<!-- Hidden definition payload — THIS is what the server reads -->
 				<input type="hidden" name="definition" value={definitionJson} />

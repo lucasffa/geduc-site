@@ -5,14 +5,14 @@ import { getFormBySlug, getFormByPublicToken, submitFormResponse } from '$lib/se
 import type { PageServerLoad, Actions } from './$types';
 
 export const load: PageServerLoad = async ({ params, url, locals }) => {
-	// Try to find organization from URL or default
-	const orgSlug = url.searchParams.get('org') || 'default';
+	// Find organization from URL params
+	const orgSlug = params.orgSlug;
 	const db = getOrgDb(orgSlug);
 
 	// Try slug first, then public token
-	let form = getFormBySlug(db, params.slug);
+	let form = getFormBySlug(db, params.formSlug);
 	if (!form) {
-		form = getFormByPublicToken(db, params.slug);
+		form = getFormByPublicToken(db, params.formSlug);
 	}
 
 	if (!form) {
@@ -23,13 +23,11 @@ export const load: PageServerLoad = async ({ params, url, locals }) => {
 		throw error(404, 'Formulário não está disponível');
 	}
 
-	if (!form.isPublic) {
-		throw error(404, 'Formulário não é público');
-	}
-
-	// Check auth requirement
-	if (form.requiresAuth && !locals.user) {
-		throw redirect(302, `/auth/login?redirect=${encodeURIComponent(url.pathname)}`);
+	// Private forms require authentication
+	if (!form.isPublic || form.requiresAuth) {
+		if (!locals.user) {
+			throw redirect(302, `/auth/login?redirect=${encodeURIComponent(url.pathname)}`);
+		}
 	}
 
 	return {
@@ -40,22 +38,22 @@ export const load: PageServerLoad = async ({ params, url, locals }) => {
 
 export const actions: Actions = {
 	submit: async ({ request, params, url, locals, getClientAddress }) => {
-			console.log(`[forms/[slug]] submit: iniciando submissão - slug=${params.slug}`);
-			const orgSlug = url.searchParams.get('org') || 'default';
-			console.log(`[forms/[slug]] submit: orgSlug=${orgSlug}`);
+			console.log(`[forms/[formSlug]] submit: iniciando submissão - slug=${params.formSlug}`);
+			const orgSlug = params.orgSlug;
+			console.log(`[forms/[formSlug]] submit: orgSlug=${orgSlug}`);
 		const db = getOrgDb(orgSlug);
 
 		// Get form
-		let form = getFormBySlug(db, params.slug);
+		let form = getFormBySlug(db, params.formSlug);
 		if (!form) {
-			form = getFormByPublicToken(db, params.slug);
+			form = getFormByPublicToken(db, params.formSlug);
 		}
 
 		if (!form) {
-			console.error(`[forms/[slug]] submit: ERRO - formulário não encontrado slug=${params.slug}`);
+			console.error(`[forms/[formSlug]] submit: ERRO - formulário não encontrado slug=${params.formSlug}`);
 			throw error(404, 'Formulário não encontrado');
 		}
-		console.log(`[forms/[slug]] submit: formulário encontrado - ${form.title}`);
+		console.log(`[forms/[formSlug]] submit: formulário encontrado - ${form.title}`);
 
 		// Parse form data
 		const formData = await request.formData();

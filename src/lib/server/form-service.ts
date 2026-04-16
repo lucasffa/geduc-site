@@ -317,7 +317,7 @@ export function listFormResponses(db: OrgDb, formId: string): FormResponseRecord
 		.select()
 		.from(formResponses)
 		.where(eq(formResponses.formId, formId))
-		.orderBy(formResponses.submittedAt.desc())
+		.orderBy(desc(formResponses.submittedAt))
 		.all()
 		.map(mapFormResponseRow);
 }

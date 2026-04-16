@@ -4,6 +4,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import Modal from '$lib/components/organisms/Modal.svelte';
+	import { addToast } from '$lib/stores/dashboard';
 	import type { PageData } from './$types';
 	import type { FormRecord } from '$lib/types/forms';
 
@@ -14,8 +15,6 @@
 
 	let searchQuery = '';
 	let selectedForms: string[] = [];
-	let toastMessage = '';
-	let toastTimeout: ReturnType<typeof setTimeout>;
 	let deleteModalOpen = false;
 	let deleteModalFormId = '';
 	let deleteModalFormTitle = '';
@@ -25,11 +24,11 @@
 	// Show success toast if form was just created
 	$: if ($page.url.searchParams.has('created')) {
 		const createdId = $page.url.searchParams.get('created');
-		showToast('✅ Formulário criado com sucesso!');
+		addToast('Formulário criado com sucesso!', 'success');
 		if (createdId) {
 			setTimeout(() => {
 				const form = formsWithCount.find(f => f.id === createdId);
-				if (form && form.isPublic) openShareModal(form.id, form.title);
+				if (form) openShareModal(form.id, form.title, form.slug, form.isPublic);
 			}, 100);
 		}
 		// Clean up the URL parameter
@@ -39,21 +38,15 @@
 	// Show success toast if form was just updated
 	$: if ($page.url.searchParams.has('updated')) {
 		const updatedId = $page.url.searchParams.get('updated');
-		showToast('✅ Formulário atualizado com sucesso!');
+		addToast('Formulário atualizado com sucesso!', 'success');
 		if (updatedId && updatedId !== 'true') {
 			setTimeout(() => {
 				const form = formsWithCount.find(f => f.id === updatedId);
-				if (form && form.isPublic) openShareModal(form.id, form.title);
+				if (form) openShareModal(form.id, form.title, form.slug, form.isPublic);
 			}, 100);
 		}
 		// Clean up the URL parameter
 		window.history.replaceState({}, '', '/dashboard/forms');
-	}
-
-	function showToast(msg: string) {
-		toastMessage = msg;
-		clearTimeout(toastTimeout);
-		toastTimeout = setTimeout(() => (toastMessage = ''), 3000);
 	}
 
 	function createForm() {
@@ -99,23 +92,30 @@
 
 	function copyPublicLink(form: any) {
 		if (form.slug) {
-			const url = `${window.location.origin}/forms/${form.slug}`;
-			navigator.clipboard.writeText(url).then(() => showToast('Link copiado!'));
+			const orgSlug = $page.data.organization?.slug || 'org';
+			const url = `${window.location.origin}/forms/${orgSlug}/${form.slug}`;
+			navigator.clipboard.writeText(url).then(() => addToast('Link copiado!', 'success'));
 		}
 	}
 
 	let shareModalOpen = false;
 	let shareModalFormId = '';
 	let shareModalFormTitle = '';
+	let shareModalFormSlug = '';
+	let shareModalFormIsPublic = false;
 	let shareEmail = '';
 	let shareLoading = false;
-	let sendToAll = false;
+	let shareTab: 'link' | 'email' | 'participants' = 'link';
+	let selectedParticipants: string[] = [];
 
-	function openShareModal(formId: string, formTitle: string) {
+	function openShareModal(formId: string, formTitle: string, formSlug: string, isPublic: boolean = true) {
 		shareModalFormId = formId;
 		shareModalFormTitle = formTitle;
+		shareModalFormSlug = formSlug;
+		shareModalFormIsPublic = isPublic;
 		shareEmail = '';
-		sendToAll = false;
+		selectedParticipants = [];
+		shareTab = 'link';
 		shareModalOpen = true;
 	}
 
@@ -123,44 +123,71 @@
 		shareModalOpen = false;
 		shareEmail = '';
 		shareLoading = false;
+		selectedParticipants = [];
+	}
+
+	function toggleParticipant(id: string) {
+		if (selectedParticipants.includes(id)) {
+			selectedParticipants = selectedParticipants.filter(p => p !== id);
+		} else {
+			selectedParticipants = [...selectedParticipants, id];
+		}
+	}
+
+	function toggleAllParticipants() {
+		if (selectedParticipants.length === data.participants?.length) {
+			selectedParticipants = [];
+		} else {
+			selectedParticipants = (data.participants || []).map(p => p.id);
+		}
 	}
 
 	async function confirmShare() {
-		if (!sendToAll && !shareEmail.includes('@')) {
-			showToast('❌ Email inválido');
-			return;
-		}
-
 		shareLoading = true;
 
 		const formData = new FormData();
 		formData.append('formId', shareModalFormId);
-		if (!sendToAll) {
+
+		if (shareTab === 'email') {
+			if (!shareEmail.includes('@')) {
+				addToast('Email inválido', 'error');
+				shareLoading = false;
+				return;
+			}
+			formData.append('type', 'external');
 			formData.append('email', shareEmail);
+		} else if (shareTab === 'participants') {
+			if (selectedParticipants.length === 0) {
+				addToast('Selecione pelo menos um participante', 'error');
+				shareLoading = false;
+				return;
+			}
+			formData.append('type', 'participants');
+			selectedParticipants.forEach(id => formData.append('participantIds', id));
+		} else {
+			shareLoading = false;
+			return;
 		}
-		formData.append('sendToAll', String(sendToAll));
 
 		try {
 			const actionResponse = await fetch('?/sendByEmail', {
 				method: 'POST',
 				body: formData,
-				headers: {
-					'x-sveltekit-action': 'true'
-				}
+				headers: { 'x-sveltekit-action': 'true' }
 			});
 			
 			const actionResult = await actionResponse.json();
-			const data = actionResult.data || {};
+			const resultData = actionResult.data || {};
 			
-			if (actionResult.type === 'failure' || data.error) {
-				showToast(`❌ ${data.error || 'Erro ao enviar'}`);
+			if (actionResult.type === 'failure' || resultData.error) {
+				addToast(resultData.error || 'Erro ao enviar', 'error');
 			} else {
-				showToast(sendToAll ? `✅ Enviado para ${data.count} participante(s)!` : '✅ Formulário compartilhado por email!');
+				addToast(shareTab === 'participants' ? `Enviado para ${resultData.count} participante(s)!` : 'Formulário compartilhado por email!', 'success');
 				closeShareModal();
 			}
 		} catch (err) {
 			console.error(err);
-			showToast('❌ Erro ao enviar email');
+			addToast('Erro ao enviar email', 'error');
 		} finally {
 			shareLoading = false;
 		}
@@ -197,16 +224,6 @@
 <svelte:head>
 	<title>Formulários</title>
 </svelte:head>
-
-<!-- Toast -->
-{#if toastMessage}
-	<div class="toast" role="status" aria-live="polite">
-		<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-			<polyline points="20 6 9 17 4 12"/>
-		</svg>
-		{toastMessage}
-	</div>
-{/if}
 
 <div class="page">
 	<!-- ── Header ── -->
@@ -245,7 +262,7 @@
 				<form method="POST" action="?/bulkDuplicate" use:enhance={() => {
 					return async ({ result, update }) => {
 						selectedForms = [];
-						if (result.type === 'success') showToast('Formulários duplicados!');
+						if (result.type === 'success') addToast('Formulários duplicados!', 'success');
 						await update();
 					};
 				}}>
@@ -264,7 +281,7 @@
 				<form method="POST" action="?/bulkDelete" use:enhance={() => {
 					return async ({ result, update }) => {
 						selectedForms = [];
-						if (result.type === 'success') showToast('Formulários excluídos.');
+						if (result.type === 'success') addToast('Formulários excluídos.', 'success');
 						await update();
 					};
 				}}>
@@ -390,25 +407,24 @@
 									<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
 								</svg>
 							</button>
-							{#if form.isPublic}
-								<button class="icon-btn" title="Copiar link público" on:click={() => copyPublicLink(form)}>
-									<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-										<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-										<path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-									</svg>
-								</button>
-								<button class="icon-btn" title="Compartilhar por email" on:click={() => openShareModal(form.id, form.title)}>
-									<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-										<rect x="2" y="4" width="20" height="16" rx="2"/>
-										<path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
-									</svg>
-								</button>
-							{/if}
+							<button class="icon-btn" title="Copiar link {form.isPublic ? 'público' : 'privado'}" on:click={() => copyPublicLink(form)}>
+								<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+									<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+									<path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+								</svg>
+							</button>
+							<button class="icon-btn" title="Compartilhar" on:click={() => openShareModal(form.id, form.title, form.slug, form.isPublic)}>
+								<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+									<path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+									<polyline points="16 6 12 2 8 6" />
+									<line x1="12" y1="2" x2="12" y2="15" />
+								</svg>
+							</button>
 
 							<!-- Single-item duplicate/delete via forms -->
 							<form method="POST" action="?/duplicateOne" use:enhance={() =>
 								async ({ result, update }) => {
-									if (result.type === 'success') showToast('Formulário duplicado!');
+									if (result.type === 'success') addToast('Formulário duplicado!', 'success');
 									await update();
 								}
 							}>
@@ -423,7 +439,7 @@
 
 							<form method="POST" action="?/deleteOne" use:enhance={() =>
 								async ({ result, update }) => {
-									if (result.type === 'success') showToast('Formulário excluído.');
+									if (result.type === 'success') addToast('Formulário excluído.', 'success');
 									await update();
 								}
 							}>
@@ -476,39 +492,123 @@
 <Modal 
 	isOpen={shareModalOpen} 
 	onClose={closeShareModal}
-	title="Compartilhar por email"
-	size="sm"
+	title="Compartilhar Formulário"
+	size="md"
 >
-	<div>
-		<p>Compartilhe "<strong>{shareModalFormTitle}</strong>" por email.</p>
+	<div class="share-modal-content">
+		<p class="share-subtitle">Compartilhe "<strong>{shareModalFormTitle}</strong>" selecionando a opção desejada abaixo.</p>
 		
-		<div style="margin-top: 1rem;">
-			<label class="radio-label" style="display: flex; gap: 0.5rem; align-items: center; cursor: pointer; margin-bottom: 0.5rem;">
-				<input type="radio" bind:group={sendToAll} value={true} />
-				<span>Enviar para todos os participantes ativos</span>
-			</label>
-			<label class="radio-label" style="display: flex; gap: 0.5rem; align-items: center; cursor: pointer;">
-				<input type="radio" bind:group={sendToAll} value={false} />
-				<span>Enviar para um e-mail específico</span>
-			</label>
+		<div class="share-tabs">
+			<button 
+				class="share-tab {shareTab === 'link' ? 'is-active' : ''}" 
+				on:click={() => shareTab = 'link'}
+			>
+				Link Público
+			</button>
+			<button 
+				class="share-tab {shareTab === 'email' ? 'is-active' : ''}" 
+				on:click={() => shareTab = 'email'}
+			>
+				E-mail Externo
+			</button>
+			<button 
+				class="share-tab {shareTab === 'participants' ? 'is-active' : ''}" 
+				on:click={() => shareTab = 'participants'}
+			>
+				Participantes
+			</button>
 		</div>
 
-		{#if !sendToAll}
-			<input 
-				type="email" 
-				placeholder="exemplo@email.com"
-				bind:value={shareEmail}
-				class="modal-input"
-				style="margin-top: 1rem;"
-			/>
-		{/if}
+		<div class="share-tab-content">
+			{#if shareTab === 'link'}
+				<div class="tab-pane">
+					<p class="tab-pane-title">Link direto para o formulário</p>
+					{#if !shareModalFormIsPublic}
+						<div class="privacy-warning">
+							<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+								<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+								<path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+							</svg>
+							Este formulário é privado. Os respondentes precisarão fazer login para acessar.
+						</div>
+					{/if}
+					<div class="link-box">
+						<input 
+							type="text" 
+							readonly 
+							class="modal-input link-input" 
+							value="{window.location.origin}/forms/{$page.data.organization?.slug || 'org'}/{shareModalFormSlug}"
+							on:focus={(e) => e.currentTarget.select()}
+						/>
+						<button class="btn-ghost" on:click={() => copyPublicLink({slug: shareModalFormSlug})}>
+							Copiar
+						</button>
+					</div>
+				</div>
+			{:else if shareTab === 'email'}
+				<div class="tab-pane">
+					<p class="tab-pane-title">Enviar para uma pessoa específica</p>
+					<input 
+						type="email" 
+						placeholder="exemplo@email.com"
+						bind:value={shareEmail}
+						class="modal-input"
+					/>
+				</div>
+			{:else if shareTab === 'participants'}
+				<div class="tab-pane">
+					<p class="tab-pane-title">Enviar para participantes da organização</p>
+					
+					<div class="participants-list-wrap">
+						<div class="participants-header">
+							<label class="select-all-label">
+								<input 
+									type="checkbox" 
+									checked={selectedParticipants.length === (data.participants?.length || 0) && (data.participants?.length || 0) > 0}
+									indeterminate={selectedParticipants.length > 0 && selectedParticipants.length < (data.participants?.length || 0)}
+									on:change={toggleAllParticipants}
+								/>
+								<span>Selecionar Todos ({data.participants?.length || 0})</span>
+							</label>
+							<span class="selected-count">{selectedParticipants.length} selecionado(s)</span>
+						</div>
+						
+						<ul class="participants-list">
+							{#each data.participants || [] as p}
+								<li>
+									<label class="participant-row">
+										<input 
+											type="checkbox" 
+											checked={selectedParticipants.includes(p.id)}
+											on:change={() => toggleParticipant(p.id)}
+										/>
+										<div class="participant-info">
+											<span class="p-name">{p.name}</span>
+											<span class="p-email">{p.email}</span>
+										</div>
+									</label>
+								</li>
+							{/each}
+						</ul>
+					</div>
+				</div>
+			{/if}
+		</div>
 	</div>
 
 	<svelte:fragment slot="footer">
 		<button class="btn-ghost" on:click={closeShareModal} disabled={shareLoading}>Cancelar</button>
-		<button class="btn-primary" on:click={confirmShare} disabled={shareLoading || (!sendToAll && !shareEmail)}>
-			{shareLoading ? 'Enviando...' : 'Enviar'}
-		</button>
+		{#if shareTab !== 'link'}
+			<button 
+				class="btn-primary" 
+				on:click={confirmShare} 
+				disabled={shareLoading || (shareTab === 'email' && !shareEmail) || (shareTab === 'participants' && selectedParticipants.length === 0)}
+			>
+				{shareLoading ? 'Enviando...' : 'Enviar'}
+			</button>
+		{:else}
+			<button class="btn-primary" on:click={closeShareModal}>Concluir</button>
+		{/if}
 	</svelte:fragment>
 </Modal>
 
@@ -973,29 +1073,172 @@
 		max-width: 380px;
 	}
 
-	/* ── Toast ── */
-	.toast {
-		position: fixed;
-		bottom: 1.5rem;
-		left: 50%;
-		transform: translateX(-50%);
-		background: var(--text-primary, #111827);
-		color: white;
-		padding: 0.625rem 1.25rem;
-		border-radius: 8px;
+	/* ── Modals ── */
+	.share-modal-content {
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+	}
+
+	.share-subtitle {
+		margin: 0;
+		font-size: 0.875rem;
+		color: var(--text-secondary, #6b7280);
+	}
+
+	.share-tabs {
+		display: flex;
+		gap: 0.5rem;
+		border-bottom: 1px solid var(--border-color-default, #e5e7eb);
+		padding-bottom: 0;
+	}
+
+	.share-tab {
+		background: transparent;
+		border: none;
+		padding: 0.5rem 1rem;
 		font-size: 0.875rem;
 		font-weight: 500;
+		color: var(--text-secondary, #6b7280);
+		cursor: pointer;
+		border-bottom: 2px solid transparent;
+		transition: all 0.2s;
+	}
+
+	.share-tab:hover {
+		color: var(--text-primary, #111827);
+	}
+
+	.share-tab.is-active {
+		color: var(--primary, #6366f1);
+		border-bottom-color: var(--primary, #6366f1);
+	}
+
+	.tab-pane {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		min-height: 250px;
+	}
+
+	.tab-pane-title {
+		font-weight: 500;
+		font-size: 0.875rem;
+		margin: 0;
+	}
+
+	.privacy-warning {
+		background: #fffbeb;
+		color: #92400e;
+		border: 1px solid #fde68a;
+		padding: 0.5rem 0.75rem;
+		border-radius: 6px;
+		font-size: 0.8125rem;
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
-		box-shadow: 0 4px 16px rgba(0,0,0,.2);
-		z-index: 9999;
-		animation: slideUp 0.2s ease;
+		margin-bottom: 0.25rem;
 	}
 
-	@keyframes slideUp {
-		from { transform: translateX(-50%) translateY(8px); opacity: 0; }
-		to   { transform: translateX(-50%) translateY(0);   opacity: 1; }
+	.link-box {
+		display: flex;
+		gap: 0.5rem;
+		align-items: center;
+	}
+
+	.link-input {
+		flex: 1;
+		margin-top: 0 !important;
+		background: var(--bg-secondary, #f8fafc);
+	}
+
+	.participants-list-wrap {
+		border: 1px solid var(--border-color-default, #e5e7eb);
+		border-radius: 8px;
+		overflow: hidden;
+		display: flex;
+		flex-direction: column;
+		height: 250px;
+	}
+
+	.participants-header {
+		padding: 0.75rem 1rem;
+		background: var(--bg-secondary, #f8fafc);
+		border-bottom: 1px solid var(--border-color-default, #e5e7eb);
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		font-size: 0.8125rem;
+	}
+
+	.select-all-label {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		cursor: pointer;
+		font-weight: 500;
+		color: var(--text-primary, #111827);
+	}
+
+	.selected-count {
+		color: var(--text-secondary, #6b7280);
+		font-weight: 500;
+	}
+
+	.participants-list {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		overflow-y: auto;
+		flex: 1;
+	}
+
+	.participant-row {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 0.75rem 1rem;
+		cursor: pointer;
+		border-bottom: 1px solid var(--border-color-subtle, #f3f4f6);
+		transition: background-color 0.15s;
+		width: 100%;
+	}
+
+	.participant-row:hover {
+		background: var(--bg-secondary, #f8fafc);
+	}
+
+	.participant-info {
+		display: flex;
+		flex-direction: column;
+		gap: 0.125rem;
+	}
+
+	.p-name {
+		font-size: 0.875rem;
+		font-weight: 500;
+		color: var(--text-primary, #111827);
+	}
+
+	.p-email {
+		font-size: 0.8125rem;
+		color: var(--text-secondary, #6b7280);
+	}
+
+	.modal-input {
+		width: 100%;
+		padding: 0.625rem 0.875rem;
+		border: 1px solid var(--border, #d1d5db);
+		border-radius: 8px;
+		font-size: 0.9375rem;
+		font-family: inherit;
+		outline: none;
+		transition: border-color 0.15s, box-shadow 0.15s;
+	}
+
+	.modal-input:focus {
+		border-color: var(--primary, #6366f1);
+		box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary, #6366f1) 20%, transparent);
 	}
 
 	/* ── Responsive ── */
