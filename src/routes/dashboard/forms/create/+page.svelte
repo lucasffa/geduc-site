@@ -15,7 +15,7 @@
 	$: requiresAuth = accessType === 'private';
 
 	// ── Field definition ───────────────────────────────────────────────────────
-	type FieldType = 'text' | 'email' | 'number' | 'date' | 'textarea' | 'select' | 'radio' | 'checkbox' | 'tel' | 'url';
+	type FieldType = 'text' | 'email' | 'number' | 'date' | 'textarea' | 'select' | 'radio' | 'checkbox' | 'tel' | 'url' | 'file' | 'rating';
 
 	interface FieldOption { label: string; value: string; }
 	interface Field {
@@ -37,6 +37,10 @@
 	let activeFieldId: string | null = null;
 	let showTypeMenu = false;
 	let typeMenuFor: string | null = null;
+
+	// ── Drag & drop state ──────────────────────────────────────────────────────
+	let draggedFieldId: string | null = null;
+	let dragOverIdx: number | null = null;
 
 	// ── Computed serialized definition (fed to hidden input) ───────────────────
 	$: definitionJson = JSON.stringify({
@@ -93,6 +97,51 @@
 		fields = arr;
 	}
 
+	// ── Drag & drop handlers ───────────────────────────────────────────────────
+	function handleDragStart(e: DragEvent, fieldId: string) {
+		draggedFieldId = fieldId;
+		if (e.dataTransfer) {
+			e.dataTransfer.effectAllowed = 'move';
+			e.dataTransfer.setData('text/plain', fieldId);
+		}
+	}
+
+	function handleDragOver(e: DragEvent, idx: number) {
+		e.preventDefault();
+		if (e.dataTransfer) {
+			e.dataTransfer.dropEffect = 'move';
+		}
+		dragOverIdx = idx;
+	}
+
+	function handleDragLeave() {
+		dragOverIdx = null;
+	}
+
+	function handleDrop(e: DragEvent, dropIdx: number) {
+		e.preventDefault();
+		dragOverIdx = null;
+		if (!draggedFieldId) return;
+
+		const dragFromIdx = fields.findIndex(f => f.id === draggedFieldId);
+		if (dragFromIdx === -1 || dragFromIdx === dropIdx) {
+			draggedFieldId = null;
+			return;
+		}
+
+		const arr = [...fields];
+		const [draggedField] = arr.splice(dragFromIdx, 1);
+		const adjustedDropIdx = dropIdx > dragFromIdx ? dropIdx - 1 : dropIdx;
+		arr.splice(adjustedDropIdx, 0, draggedField);
+		fields = arr;
+		draggedFieldId = null;
+	}
+
+	function handleDragEnd() {
+		draggedFieldId = null;
+		dragOverIdx = null;
+	}
+
 	function setFieldType(id: string, type: FieldType) {
 		fields = fields.map(f => {
 			if (f.id !== id) return f;
@@ -107,6 +156,7 @@
 			};
 		});
 		showTypeMenu = false;
+		typeMenuFor = null;
 	}
 
 	function addOption(fieldId: string) {
@@ -155,7 +205,9 @@
 		{ type: 'date',     label: 'Data',              icon: '📅' },
 		{ type: 'select',   label: 'Lista suspensa',    icon: '📋' },
 		{ type: 'radio',    label: 'Múltipla escolha',  icon: '⭕' },
-		{ type: 'checkbox', label: 'Caixas de seleção', icon: '☑️' }
+		{ type: 'checkbox', label: 'Caixas de seleção', icon: '☑️' },
+		{ type: 'file',     label: 'Arquivo',           icon: '📎' },
+		{ type: 'rating',   label: 'Classificação',     icon: '⭐' }
 	];
 
 	const hasOptions = (type: string) => ['select', 'radio', 'checkbox'].includes(type);
@@ -246,7 +298,15 @@
 					<div
 						class="canvas-card field-card"
 						class:is-active={activeFieldId === field.id}
+						class:is-dragging={draggedFieldId === field.id}
+						class:drag-over={dragOverIdx === idx}
 						on:click={() => (activeFieldId = field.id)}
+						draggable={true}
+						on:dragstart={(e) => handleDragStart(e, field.id)}
+						on:dragover={(e) => handleDragOver(e, idx)}
+						on:dragleave={handleDragLeave}
+						on:drop={(e) => handleDrop(e, idx)}
+						on:dragend={handleDragEnd}
 					>
 						<!-- Drag handle + move buttons -->
 						<div class="field-sidebar">
@@ -563,7 +623,6 @@
 		background: var(--background-color-card);
 		border: 1.5px solid var(--border-color-default);
 		border-radius: var(--border-radius-lg);
-		overflow: hidden;
 		transition: border-color 0.15s, box-shadow 0.15s;
 	}
 
@@ -1073,5 +1132,17 @@
 	@media (max-width: 640px) {
 		.canvas-col { padding: 1rem 0.75rem 3rem; }
 		.builder-header { padding: 0.75rem 1rem; }
+	}
+
+	/* ── Drag & drop visual feedback ── */
+	.field-card.is-dragging {
+		opacity: 0.5;
+		transform: scale(0.98);
+		box-shadow: 0 10px 25px rgba(0,0,0,.15);
+	}
+
+	.field-card.drag-over {
+		border: 2px solid var(--color-primary-500);
+		background: color-mix(in srgb, var(--color-primary-500) 3%, transparent);
 	}
 </style>

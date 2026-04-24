@@ -1,5 +1,5 @@
 // src/lib/server/form-service.ts
-import { randomUUID } from 'node:crypto';
+import { randomUUID, randomBytes } from 'node:crypto';
 import { eq, ne, sql, desc } from 'drizzle-orm';
 import type { OrgDb } from '$lib/server/db';
 import { forms, formResponses } from '$lib/server/db/schema-org';
@@ -24,7 +24,7 @@ function normalizeSlug(value: string): string {
 }
 
 function generatePublicToken(): string {
-	return randomUUID();
+	return randomBytes(32).toString('hex');
 }
 
 // FIX: accepts optional `excludeId` so an existing form's own slug doesn't
@@ -361,4 +361,30 @@ export function submitFormResponse(
 		sourceUserAgent: input.sourceUserAgent,
 		metadata: input.metadata ?? {}
 	};
+}
+
+/**
+ * List all form responses submitted by a specific participant (matched by email).
+ * Returns responses enriched with the form title for display.
+ */
+export function listResponsesByParticipantEmail(
+	db: OrgDb,
+	email: string
+): (FormResponseRecord & { formTitle: string; formSlug: string })[] {
+	const allResponses = db
+		.select()
+		.from(formResponses)
+		.where(eq(formResponses.submitterEmail, email))
+		.orderBy(desc(formResponses.submittedAt))
+		.all()
+		.map(mapFormResponseRow);
+
+	return allResponses.map((r) => {
+		const form = getFormById(db, r.formId);
+		return {
+			...r,
+			formTitle: form?.title || 'Formulário removido',
+			formSlug: form?.slug || ''
+		};
+	});
 }

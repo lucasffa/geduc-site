@@ -39,10 +39,14 @@
 			}
 		} else if (target.type === 'radio') {
 			setFieldValue(field, target.value);
+		} else if (target.type === 'file') {
+			setFieldValue(field, target.files?.[0] ?? null);
 		} else {
 			setFieldValue(field, target.value);
 		}
 	}
+
+	const RATING_VALUES = [1, 2, 3, 4, 5];
 </script>
 
 <div class="form-renderer">
@@ -196,6 +200,38 @@
 							</label>
 						{/if}
 
+					{:else if field.type === 'file'}
+						<input
+							type="file"
+							id="field_{field.id}"
+							name="field_{field.id}"
+							required={field.required}
+							{disabled}
+							aria-invalid={!!errors[field.id]}
+							aria-describedby={errors[field.id] ? `error_${field.id}` : undefined}
+							on:change={(e) => handleInput(e, field)}
+						/>
+
+					{:else if field.type === 'rating'}
+					<div class="rating-input" role="radiogroup" aria-label={field.label}>
+						{#each RATING_VALUES as value}
+							<button
+								type="button"
+								class="rating-star"
+								class:selected={Number(getFieldValue(field)) >= value}
+								aria-pressed={Number(getFieldValue(field)) === value}
+								aria-label={`Avaliação ${value} de 5`}
+								disabled={disabled}
+								on:click={() => setFieldValue(field, value)}
+							>
+								★
+							</button>
+						{/each}
+						<span class="rating-value">
+							{#if getFieldValue(field)}{`${Number(getFieldValue(field))} de 5`}{:else}Sem avaliação{/if}
+						</span>
+					</div>
+					<input type="hidden" name="field_{field.id}" value={getFieldValue(field)} />
 					{:else if field.type === 'button'}
 						<button
 							type="button"

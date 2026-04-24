@@ -5,6 +5,10 @@
 
 	export let data: PageData;
 
+	let searchQuery = '';
+	let viewMode: 'individual' | 'aggregate' = 'individual';
+	let expandedResponseId: string | null = null;
+
 	function goBack() {
 		goto('/dashboard/forms');
 	}
@@ -19,22 +23,60 @@
 		});
 	}
 
+	// Resolve field ID to its label from the form definition
+	function getFieldLabel(fieldId: string): string {
+		const fields = data.form.definition?.fields || [];
+		const field = fields.find((f: any) => f.id === fieldId || f.name === fieldId);
+		return field?.label || fieldId;
+	}
+
+	// Get all unique field IDs across all responses
+	function getAllFieldIds(): string[] {
+		const fields = data.form.definition?.fields || [];
+		if (fields.length > 0) {
+			return fields.filter((f: any) => f.type !== 'hidden' && f.type !== 'button').map((f: any) => f.id);
+		}
+		// Fallback: collect from answers
+		const ids = new Set<string>();
+		data.responses.forEach((r: any) => {
+			Object.keys(r.answers || {}).forEach(k => ids.add(k));
+		});
+		return Array.from(ids);
+	}
+
+	// Aggregate view: get all answers for a specific field
+	function getFieldAnswers(fieldId: string): { value: any; submitter: string; date: string }[] {
+		return data.responses
+			.filter((r: any) => r.answers?.[fieldId] !== undefined && r.answers[fieldId] !== '')
+			.map((r: any) => ({
+				value: r.answers[fieldId],
+				submitter: r.submitterName || r.submitterEmail || 'Anônimo',
+				date: formatDate(r.submittedAt)
+			}));
+	}
+
+	function formatAnswer(value: any): string {
+		if (value === null || value === undefined) return '-';
+		if (Array.isArray(value)) return value.join(', ');
+		return String(value) || '-';
+	}
+
 	function downloadAsCSV() {
-		const headers = ['ID', 'Data Submissão', 'Nome', 'Email', ...Object.keys(data.form.definition.fields || {})];
+		const fieldIds = getAllFieldIds();
+		const headers = ['Data Submissão', 'Nome', 'Email', ...fieldIds.map(getFieldLabel)];
 		const rows = data.responses.map((res: any) => [
-			res.id,
 			formatDate(res.submittedAt),
 			res.submitterName || '-',
 			res.submitterEmail || '-',
-			...Object.values(res.answers || {})
+			...fieldIds.map(id => formatAnswer(res.answers?.[id]))
 		]);
 
 		const csv = [
 			headers.join(','),
-			...rows.map((row: any) => row.map((v: any) => `"${v}"`).join(','))
+			...rows.map((row: any) => row.map((v: any) => `"${String(v).replace(/"/g, '""')}"`).join(','))
 		].join('\n');
 
-		const blob = new Blob([csv], { type: 'text/csv' });
+		const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
 		const url = window.URL.createObjectURL(blob);
 		const a = document.createElement('a');
 		a.href = url;
@@ -42,6 +84,15 @@
 		a.click();
 		window.URL.revokeObjectURL(url);
 	}
+
+	$: filteredResponses = data.responses.filter((r: any) => {
+		if (!searchQuery) return true;
+		const q = searchQuery.toLowerCase();
+		return (
+			(r.submitterName || '').toLowerCase().includes(q) ||
+			(r.submitterEmail || '').toLowerCase().includes(q)
+		);
+	});
 </script>
 
 <svelte:head>
@@ -63,16 +114,41 @@
 			</div>
 		</div>
 
-		{#if data.responses.length > 0}
-			<button class="btn-secondary" on:click={downloadAsCSV}>
-				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-					<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-					<polyline points="7 10 12 15 17 10"/>
-					<line x1="12" y1="15" x2="12" y2="3"/>
-				</svg>
-				Baixar CSV
-			</button>
-		{/if}
+		<div class="header-actions">
+			{#if data.responses.length > 0}
+				<div class="view-toggle">
+					<button 
+						class="toggle-btn" 
+						class:is-active={viewMode === 'individual'}
+						on:click={() => viewMode = 'individual'}
+					>
+						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+							<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+							<circle cx="9" cy="7" r="4"/>
+						</svg>
+						Individual
+					</button>
+					<button 
+						class="toggle-btn" 
+						class:is-active={viewMode === 'aggregate'}
+						on:click={() => viewMode = 'aggregate'}
+					>
+						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+							<path d="M18 20V10M12 20V4M6 20v-6"/>
+						</svg>
+						Por Pergunta
+					</button>
+				</div>
+				<button class="btn-secondary" on:click={downloadAsCSV}>
+					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+						<polyline points="7 10 12 15 17 10"/>
+						<line x1="12" y1="15" x2="12" y2="3"/>
+					</svg>
+					Baixar CSV
+				</button>
+			{/if}
+		</div>
 	</header>
 
 	<!-- Content -->
@@ -84,36 +160,87 @@
 				<p>Compartilhe o formulário para coletar respostas.</p>
 			</div>
 		{:else}
-			<div class="responses-container">
-				<p class="responses-count">
-					<strong>{data.responses.length}</strong> resposta{data.responses.length !== 1 ? 's' : ''} recebida{data.responses.length !== 1 ? 's' : ''}
-				</p>
+			<!-- Search bar -->
+			<div class="toolbar">
+				<div class="search-wrap">
+					<svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<circle cx="11" cy="11" r="8"/>
+						<path d="m21 21-4.35-4.35"/>
+					</svg>
+					<input
+						type="search"
+						placeholder="Buscar por nome ou email..."
+						bind:value={searchQuery}
+						aria-label="Buscar respostas"
+					/>
+				</div>
+				<span class="results-count">
+					<strong>{filteredResponses.length}</strong> de {data.responses.length} resposta{data.responses.length !== 1 ? 's' : ''}
+				</span>
+			</div>
 
+			{#if viewMode === 'individual'}
+				<!-- Individual view -->
 				<div class="responses-list">
-					{#each data.responses as response (response.id)}
-						<div class="response-card">
-							<div class="response-header">
-								<div>
-									<h3>{response.submitterName || 'Anônimo'}</h3>
-									{#if response.submitterEmail}
-										<p class="response-email">{response.submitterEmail}</p>
-									{/if}
+					{#each filteredResponses as response (response.id)}
+						<div class="response-card" class:is-expanded={expandedResponseId === response.id}>
+							<!-- svelte-ignore a11y-click-events-have-key-events -->
+							<!-- svelte-ignore a11y-no-static-element-interactions -->
+							<div class="response-header" on:click={() => expandedResponseId = expandedResponseId === response.id ? null : response.id}>
+								<div class="response-info">
+									<div class="response-avatar">
+										{(response.submitterName || 'A')[0].toUpperCase()}
+									</div>
+									<div>
+										<h3>{response.submitterName || 'Anônimo'}</h3>
+										{#if response.submitterEmail}
+											<p class="response-email">{response.submitterEmail}</p>
+										{/if}
+									</div>
 								</div>
-								<span class="response-date">{formatDate(response.submittedAt)}</span>
+								<div class="response-meta">
+									<span class="response-date">{formatDate(response.submittedAt)}</span>
+									<svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+										<path d="M6 9l6 6 6-6"/>
+									</svg>
+								</div>
 							</div>
 
-							<div class="response-answers">
-								{#each Object.entries(response.answers || {}) as [fieldId, answer]}
-									<div class="answer-item">
-										<span class="answer-label">{fieldId}</span>
-										<span class="answer-value">{answer || '-'}</span>
-									</div>
-								{/each}
-							</div>
+							{#if expandedResponseId === response.id}
+								<div class="response-answers">
+									{#each Object.entries(response.answers || {}) as [fieldId, answer]}
+										<div class="answer-item">
+											<span class="answer-label">{getFieldLabel(fieldId)}</span>
+											<span class="answer-value">{formatAnswer(answer)}</span>
+										</div>
+									{/each}
+								</div>
+							{/if}
 						</div>
 					{/each}
 				</div>
-			</div>
+			{:else}
+				<!-- Aggregate view -->
+				<div class="aggregate-list">
+					{#each getAllFieldIds() as fieldId}
+						{@const answers = getFieldAnswers(fieldId)}
+						{#if answers.length > 0}
+							<div class="aggregate-card">
+								<h3 class="aggregate-question">{getFieldLabel(fieldId)}</h3>
+								<p class="aggregate-count">{answers.length} resposta{answers.length !== 1 ? 's' : ''}</p>
+								<div class="aggregate-answers">
+									{#each answers as item}
+										<div class="aggregate-row">
+											<span class="aggregate-value">{formatAnswer(item.value)}</span>
+											<span class="aggregate-submitter">{item.submitter}</span>
+										</div>
+									{/each}
+								</div>
+							</div>
+						{/if}
+					{/each}
+				</div>
+			{/if}
 		{/if}
 	</main>
 </div>
@@ -139,6 +266,12 @@
 		align-items: center;
 		gap: 1rem;
 		flex: 1;
+	}
+
+	.header-actions {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
 	}
 
 	.back-btn {
@@ -173,6 +306,42 @@
 		margin: 0;
 	}
 
+	/* View toggle */
+	.view-toggle {
+		display: flex;
+		border: 1px solid var(--border-color-default, #e5e7eb);
+		border-radius: 8px;
+		overflow: hidden;
+	}
+
+	.toggle-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+		padding: 0.5rem 0.875rem;
+		font-size: 0.8125rem;
+		font-family: inherit;
+		background: transparent;
+		color: var(--text-color-secondary, #6b7280);
+		border: none;
+		cursor: pointer;
+		transition: all 0.15s;
+		white-space: nowrap;
+	}
+
+	.toggle-btn:first-child {
+		border-right: 1px solid var(--border-color-default, #e5e7eb);
+	}
+
+	.toggle-btn.is-active {
+		background: var(--color-primary-500, #6366f1);
+		color: white;
+	}
+
+	.toggle-btn:hover:not(.is-active) {
+		background: var(--background-color-subtle, #f3f4f6);
+	}
+
 	.btn-secondary {
 		display: inline-flex;
 		align-items: center;
@@ -194,7 +363,59 @@
 	}
 
 	.content {
-		padding: 2rem 2.5rem;
+		padding: 1.5rem 2.5rem;
+	}
+
+	/* Toolbar */
+	.toolbar {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		margin-bottom: 1.5rem;
+		background: var(--background-color-card, #fff);
+		border: 1px solid var(--border-color-default, #e5e7eb);
+		border-radius: 10px;
+		padding: 0.75rem 1rem;
+	}
+
+	.search-wrap {
+		position: relative;
+		flex: 1;
+		max-width: 350px;
+	}
+
+	.search-icon {
+		position: absolute;
+		left: 0.75rem;
+		top: 50%;
+		transform: translateY(-50%);
+		color: var(--text-color-tertiary, #9ca3af);
+		pointer-events: none;
+	}
+
+	.search-wrap input {
+		width: 100%;
+		padding: 0.5rem 0.75rem 0.5rem 2.25rem;
+		border: 1px solid var(--border-color-default, #e5e7eb);
+		border-radius: 7px;
+		font-size: 0.875rem;
+		font-family: inherit;
+		color: var(--text-color-primary, #111827);
+		background: var(--background-color-card, #fff);
+		outline: none;
+		transition: border-color 0.15s;
+	}
+
+	.search-wrap input:focus {
+		border-color: var(--color-primary-500, #6366f1);
+		box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+	}
+
+	.results-count {
+		font-size: 0.8125rem;
+		color: var(--text-color-secondary, #6b7280);
+		white-space: nowrap;
 	}
 
 	.empty-state {
@@ -222,97 +443,198 @@
 		margin: 0;
 	}
 
-	.responses-container {
-		background: var(--background-color-card, #fff);
-		border-radius: 12px;
-		padding: 1.5rem;
-	}
-
-	.responses-count {
-		margin: 0 0 1.5rem;
-		font-size: 0.875rem;
-		color: var(--text-color-secondary, #6b7280);
-	}
-
+	/* Individual view */
 	.responses-list {
 		display: flex;
 		flex-direction: column;
-		gap: 1rem;
+		gap: 0.75rem;
 	}
 
 	.response-card {
+		background: var(--background-color-card, #fff);
 		border: 1px solid var(--border-color-default, #e5e7eb);
 		border-radius: 10px;
-		padding: 1.25rem;
-		transition: border-color 0.15s;
+		overflow: hidden;
+		transition: border-color 0.15s, box-shadow 0.15s;
 	}
 
 	.response-card:hover {
+		border-color: color-mix(in srgb, var(--color-primary-500, #6366f1) 40%, transparent);
+	}
+
+	.response-card.is-expanded {
 		border-color: var(--color-primary-500, #6366f1);
+		box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
 	}
 
 	.response-header {
 		display: flex;
-		align-items: flex-start;
+		align-items: center;
 		justify-content: space-between;
-		margin-bottom: 1rem;
-		padding-bottom: 1rem;
-		border-bottom: 1px solid var(--border-color-subtle, #f3f4f6);
+		padding: 1rem 1.25rem;
+		cursor: pointer;
+		user-select: none;
+	}
+
+	.response-info {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	.response-avatar {
+		width: 36px;
+		height: 36px;
+		border-radius: 50%;
+		background: color-mix(in srgb, var(--color-primary-500, #6366f1) 12%, transparent);
+		color: var(--color-primary-500, #6366f1);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-weight: 600;
+		font-size: 0.875rem;
+		flex-shrink: 0;
 	}
 
 	.response-header h3 {
-		margin: 0 0 0.25rem;
-		font-size: 1rem;
+		margin: 0 0 0.125rem;
+		font-size: 0.9375rem;
 		font-weight: 600;
 		color: var(--text-color-primary, #111827);
 	}
 
 	.response-email {
 		margin: 0;
-		font-size: 0.875rem;
+		font-size: 0.8125rem;
 		color: var(--text-color-secondary, #6b7280);
+	}
+
+	.response-meta {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
 	}
 
 	.response-date {
 		font-size: 0.8125rem;
 		color: var(--text-color-tertiary, #9ca3af);
 		white-space: nowrap;
-		margin-left: 1rem;
+	}
+
+	.chevron {
+		color: var(--text-color-tertiary, #9ca3af);
+		transition: transform 0.2s;
+	}
+
+	.is-expanded .chevron {
+		transform: rotate(180deg);
 	}
 
 	.response-answers {
+		padding: 0 1.25rem 1.25rem;
 		display: flex;
 		flex-direction: column;
-		gap: 0.75rem;
+		gap: 0.5rem;
+		border-top: 1px solid var(--border-color-subtle, #f3f4f6);
+		padding-top: 1rem;
 	}
 
 	.answer-item {
 		display: grid;
-		grid-template-columns: 150px 1fr;
+		grid-template-columns: 180px 1fr;
 		gap: 1rem;
 		align-items: baseline;
-		padding: 0.5rem 0;
+		padding: 0.4rem 0;
 	}
 
 	.answer-label {
 		font-weight: 500;
 		color: var(--text-color-primary, #111827);
-		font-size: 0.875rem;
+		font-size: 0.8125rem;
+		text-transform: uppercase;
+		letter-spacing: 0.03em;
 	}
 
 	.answer-value {
 		color: var(--text-color-secondary, #6b7280);
 		word-break: break-word;
+		font-size: 0.875rem;
+	}
+
+	/* Aggregate view */
+	.aggregate-list {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+	}
+
+	.aggregate-card {
+		background: var(--background-color-card, #fff);
+		border: 1px solid var(--border-color-default, #e5e7eb);
+		border-radius: 10px;
+		padding: 1.25rem;
+	}
+
+	.aggregate-question {
+		margin: 0 0 0.25rem;
+		font-size: 1rem;
+		font-weight: 600;
+		color: var(--text-color-primary, #111827);
+	}
+
+	.aggregate-count {
+		margin: 0 0 1rem;
+		font-size: 0.8125rem;
+		color: var(--text-color-tertiary, #9ca3af);
+	}
+
+	.aggregate-answers {
+		display: flex;
+		flex-direction: column;
+		gap: 0.375rem;
+	}
+
+	.aggregate-row {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 1rem;
+		padding: 0.5rem 0.75rem;
+		background: var(--background-color-subtle, #f8fafc);
+		border-radius: 6px;
+		font-size: 0.875rem;
+	}
+
+	.aggregate-value {
+		color: var(--text-color-primary, #111827);
+		word-break: break-word;
+	}
+
+	.aggregate-submitter {
+		color: var(--text-color-tertiary, #9ca3af);
+		font-size: 0.8125rem;
+		white-space: nowrap;
+		flex-shrink: 0;
 	}
 
 	@media (max-width: 768px) {
 		.page-header {
 			flex-direction: column;
 			align-items: flex-start;
+			padding: 1.5rem;
+		}
+
+		.header-actions {
+			width: 100%;
+			justify-content: space-between;
 		}
 
 		.header-nav {
 			width: 100%;
+		}
+
+		.content {
+			padding: 1rem;
 		}
 
 		.answer-item {
@@ -321,10 +643,8 @@
 		}
 
 		.answer-label {
-			font-weight: 500;
 			font-size: 0.75rem;
 			color: var(--text-color-tertiary, #9ca3af);
-			text-transform: uppercase;
 		}
 	}
 </style>

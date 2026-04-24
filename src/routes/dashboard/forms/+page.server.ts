@@ -1,6 +1,6 @@
 import { error } from '@sveltejs/kit';
 import { listFormsWithResponseCount, deleteForm, duplicateForm, getFormById } from '$lib/server/form-service';
-import { getSystemResendClient } from '$lib/server/resend';
+import { logAudit } from '$lib/server/middleware/audit';
 import type { PageServerLoad, Actions } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -40,7 +40,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 };
 
 export const actions: Actions = {
-	duplicateOne: async ({ request, locals }) => {
+	duplicateOne: async (event) => {
+		const { request, locals } = event;
 		if (!locals.user || !locals.orgDb) {
 			throw error(401, 'Não autorizado');
 		}
@@ -49,6 +50,7 @@ export const actions: Actions = {
 		const id = formData.get('id') as string;
 
 		console.log(`[dashboard/forms] duplicateOne: duplicando formulário id=${id}`);
+		const original = getFormById(locals.orgDb, id);
 		const duplicated = duplicateForm(locals.orgDb, id, locals.user.id, locals.user.name);
 
 		if (!duplicated) {
@@ -56,11 +58,19 @@ export const actions: Actions = {
 			throw error(404, 'Formulário não encontrado');
 		}
 
+		logAudit(event, {
+			whatTable: 'forms',
+			whatRecordId: duplicated.id,
+			how: 'CREATE',
+			why: `Formulário duplicado a partir de: ${original?.title || id}`
+		});
+
 		console.log(`[dashboard/forms] duplicateOne: sucesso - novo id=${duplicated.id}`);
 		return { success: true, id: duplicated.id };
 	},
 
-	deleteOne: async ({ request, locals }) => {
+	deleteOne: async (event) => {
+		const { request, locals } = event;
 		if (!locals.user || !locals.orgDb) {
 			throw error(401, 'Não autorizado');
 		}
@@ -68,6 +78,7 @@ export const actions: Actions = {
 		const formData = await request.formData();
 		const id = formData.get('id') as string;
 
+		const existing = getFormById(locals.orgDb, id);
 		console.log(`[dashboard/forms] deleteOne: deletando formulário id=${id}`);
 		const deleted = deleteForm(locals.orgDb, id);
 
@@ -76,11 +87,19 @@ export const actions: Actions = {
 			throw error(404, 'Formulário não encontrado');
 		}
 
+		logAudit(event, {
+			whatTable: 'forms',
+			whatRecordId: id,
+			how: 'DELETE',
+			why: `Formulário excluído: ${existing?.title || id}`
+		});
+
 		console.log(`[dashboard/forms] deleteOne: sucesso - formulário deletado`);
 		return { success: true };
 	},
 
-	bulkDuplicate: async ({ request, locals }) => {
+	bulkDuplicate: async (event) => {
+		const { request, locals } = event;
 		if (!locals.user || !locals.orgDb) {
 			throw error(401, 'Não autorizado');
 		}
@@ -96,11 +115,19 @@ export const actions: Actions = {
 			if (duplicated) results.push(duplicated);
 		}
 
+		logAudit(event, {
+			whatTable: 'forms',
+			how: 'CREATE',
+			why: `Duplicação em massa de formulários`,
+			howManyAffected: results.length
+		});
+
 		console.log(`[dashboard/forms] bulkDuplicate: sucesso - ${results.length} formulários duplicados`);
 		return { success: true, count: results.length };
 	},
 
-	bulkDelete: async ({ request, locals }) => {
+	bulkDelete: async (event) => {
+		const { request, locals } = event;
 		if (!locals.user || !locals.orgDb) {
 			throw error(401, 'Não autorizado');
 		}
@@ -115,11 +142,19 @@ export const actions: Actions = {
 			if (deleteForm(locals.orgDb, id)) count++;
 		}
 
+		logAudit(event, {
+			whatTable: 'forms',
+			how: 'DELETE',
+			why: `Exclusão em massa de formulários`,
+			howManyAffected: count
+		});
+
 		console.log(`[dashboard/forms] bulkDelete: sucesso - ${count} formulários deletados`);
 		return { success: true, count };
 	},
 
-	sendByEmail: async ({ request, locals }) => {
+	sendByEmail: async (event) => {
+		const { request, locals } = event;
 		if (!locals.user || !locals.orgDb) {
 			throw error(401, 'Não autorizado');
 		}
@@ -145,14 +180,18 @@ export const actions: Actions = {
 
 		try {
 			console.log(`[dashboard/forms] sendByEmail: enviando formulário ${form.slug}`);
-			
-			const resend = getSystemResendClient();
-			const formUrl = `${new URL(request.url).origin}/forms/${locals.organization.slug}/${form.slug}`;
-			const emailHtml = `
-				<h2>${form.title}</h2>
-				${form.description ? `<p>${form.description}</p>` : ''}
-				<p><a href="${formUrl}" style="background: #6366f1; color: white; padding: 10px 20px; text-decoration: none; border-radius: 8px; display: inline-block;">Responder Formulário</a></p>
-			`;
+
+			// Use publicToken for secure links when available, fallback to slug
+			const formPath = form.publicToken || form.slug;
+			const formUrl = `${new URL(request.url).origin}/forms/${locals.organization?.slug || 'org'}/${formPath}`;
+
+			// Get org email config for proper sender/branding
+			const { getOrgEmailConfig, sendFormInviteEmail } = await import('$lib/server/resend');
+			const orgEmailConfig = getOrgEmailConfig(
+				locals.orgDb,
+				locals.organization?.name || 'GEDUC',
+				locals.organization?.primaryColor
+			);
 
 			let recipients: string[] = [];
 
@@ -160,7 +199,6 @@ export const actions: Actions = {
 				const { participants } = await import('$lib/server/db/schema-org');
 				const { inArray } = await import('drizzle-orm');
 				
-				// Fetch only the selected participants' emails
 				const selectedParticipants = locals.orgDb
 					.select({ email: participants.email })
 					.from(participants)
@@ -176,22 +214,19 @@ export const actions: Actions = {
 				recipients = [recipientEmail];
 			}
 
-			// Resend API limit for batch sending or multiple emails in "to" field is up to 50 emails per request.
-			// Since this is a simple implementation, we'll send them one by one if there are many, or in small batches.
-			// For simplicity and avoiding rate limits during demo/local testing, let's just loop.
 			let sentCount = 0;
 			for (const email of recipients) {
-				try {
-					await resend.emails.send({
-						from: 'noreply@geduc.com',
-						to: email,
-						subject: `${locals.organization?.name} compartilhou um formulário: ${form.title}`,
-						html: emailHtml
-					});
-					sentCount++;
-				} catch (err) {
-					console.error(`Erro ao enviar para ${email}:`, err);
-				}
+				const result = await sendFormInviteEmail(
+					email,
+					form.title,
+					form.description,
+					formUrl,
+					locals.user.id,
+					locals.organization?.id,
+					orgEmailConfig
+				);
+				if (result.success) sentCount++;
+				else console.error(`Erro ao enviar para ${email}:`, result.error);
 			}
 
 			console.log(`[dashboard/forms] sendByEmail: sucesso, enviados ${sentCount} de ${recipients.length}`);

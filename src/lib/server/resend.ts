@@ -219,3 +219,50 @@ export async function sendTestEmail(
 ): Promise<{ success: boolean; error?: string }> {
 	return sendCertificateEmail(testEmail, participantName, pdfBuffer, filename, userId, orgId, orgEmailConfig);
 }
+
+export async function sendFormInviteEmail(
+	to: string,
+	formTitle: string,
+	formDescription: string | undefined,
+	formUrl: string,
+	userId?: string,
+	orgId?: string,
+	orgEmailConfig?: OrgEmailConfig
+): Promise<{ success: boolean; error?: string }> {
+	try {
+		const resend = getResendClient(userId, orgId);
+		const fromEmail = resolveFromEmail(orgEmailConfig);
+		const orgName = orgEmailConfig?.orgName || 'GEDUC';
+		const primaryColor = orgEmailConfig?.primaryColor || '#152db5';
+
+		await resend.emails.send({
+			from: fromEmail,
+			to,
+			subject: `${orgName} — Formulário: ${formTitle}`,
+			html: `
+				<div style="font-family: 'Poppins', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 32px;">
+					<h1 style="color: ${primaryColor}; font-size: 24px; margin-bottom: 16px;">${formTitle}</h1>
+					${formDescription ? `<p style="color: #2a2a2a; font-size: 16px; line-height: 1.6;">${formDescription}</p>` : ''}
+					<p style="color: #2a2a2a; font-size: 16px; line-height: 1.6;">
+						Você foi convidado(a) a responder este formulário da organização <strong>${orgName}</strong>.
+					</p>
+					<p style="margin: 24px 0;">
+						<a href="${formUrl}" style="display: inline-block; padding: 14px 28px; background: ${primaryColor}; color: white; text-decoration: none; border-radius: 8px; font-weight: 500; font-size: 16px;">Responder Formulário</a>
+					</p>
+					<p style="color: #2a2a2a; font-size: 14px;">Caso o botão não funcione, copie e cole o link abaixo no navegador:</p>
+					<p style="color: ${primaryColor}; font-size: 14px; word-wrap: break-word;">${formUrl}</p>
+					<hr style="border: none; border-top: 1px solid #e0e0e0; margin: 24px 0;" />
+					<p style="color: #757575; font-size: 12px;">
+						Este é um e-mail automático do sistema ${orgName}. Não responda a este e-mail.
+					</p>
+				</div>
+			`
+		});
+
+		return { success: true };
+	} catch (error) {
+		const message = error instanceof Error ? error.message : 'Erro desconhecido';
+		console.error('Erro ao enviar e-mail de convite de formulário:', message);
+		return { success: false, error: message };
+	}
+}

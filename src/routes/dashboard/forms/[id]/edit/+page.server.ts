@@ -1,5 +1,6 @@
 import { error, redirect } from '@sveltejs/kit';
 import { getFormById, updateForm } from '$lib/server/form-service';
+import { logAudit } from '$lib/server/middleware/audit';
 import type { PageServerLoad, Actions } from './$types';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
@@ -24,7 +25,8 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 };
 
 export const actions: Actions = {
-	update: async ({ request, locals, params }) => {
+	update: async (event) => {
+		const { request, locals, params } = event;
 		if (!locals.user || !locals.orgDb) {
 			throw error(401, 'Não autorizado');
 		}
@@ -69,19 +71,35 @@ export const actions: Actions = {
 
 		console.log(`[dashboard/forms/[id]/edit] update: sucesso - formulário atualizado`);
 
+		logAudit(event, {
+			whatTable: 'forms',
+			whatRecordId: params.id,
+			how: 'UPDATE',
+			why: `Formulário atualizado: ${title.trim()}`
+		});
+
 		throw redirect(302, `/dashboard/forms?updated=${params.id}`);
 	},
 
-	delete: async ({ locals, params }) => {
+	delete: async (event) => {
+		const { locals, params } = event;
 		if (!locals.user || !locals.orgDb) {
 			throw error(401, 'Não autorizado');
 		}
 
 		const { deleteForm } = await import('$lib/server/form-service');
+		const existing = getFormById(locals.orgDb, params.id);
 
 		console.log(`[dashboard/forms/[id]/edit] delete: deletando formulário id=${params.id}`);
 		deleteForm(locals.orgDb, params.id);
 		console.log(`[dashboard/forms/[id]/edit] delete: sucesso`);
+
+		logAudit(event, {
+			whatTable: 'forms',
+			whatRecordId: params.id,
+			how: 'DELETE',
+			why: `Formulário excluído: ${existing?.title || params.id}`
+		});
 
 		throw redirect(302, '/dashboard/forms');
 	}

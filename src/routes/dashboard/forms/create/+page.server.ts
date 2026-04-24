@@ -1,5 +1,6 @@
 import { error, redirect } from '@sveltejs/kit';
 import { createForm } from '$lib/server/form-service';
+import { logAudit } from '$lib/server/middleware/audit';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -13,7 +14,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 };
 
 export const actions: Actions = {
-	create: async ({ request, locals }) => {
+	create: async (event) => {
+		const { request, locals } = event;
 		console.log('[dashboard/forms/create] create: iniciando criação de novo formulário');
 		
 		if (!locals.user) {
@@ -68,6 +70,13 @@ export const actions: Actions = {
 			authorRole: locals.user.role
 		});
 		console.log(`[dashboard/forms/create] create: sucesso - formulário criado id=${form.id}`);
+
+		logAudit(event, {
+			whatTable: 'forms',
+			whatRecordId: form.id,
+			how: 'CREATE',
+			why: `Formulário criado: ${form.title}`
+		});
 
 		throw redirect(302, `/dashboard/forms?created=${form.id}`);
 	}

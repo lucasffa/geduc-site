@@ -9,6 +9,8 @@ export type FormFieldType =
 	| 'date'
 	| 'tel'
 	| 'url'
+	| 'file'
+	| 'rating'
 	| 'hidden'
 	| 'button';
 
@@ -59,10 +61,36 @@ export interface FormCondition {
 	};
 }
 
+export interface FormTheme {
+	primaryColor?: string;
+	backgroundColor?: string;
+	fontFamily?: string;
+	headerImage?: string;
+}
+
+export interface FormSectionRule {
+	id: string;
+	fieldId: string;
+	operator: FormConditionOperator;
+	value?: string | number | boolean | null;
+	targetSectionId: string;
+}
+
+export interface FormSection {
+	id: string;
+	title: string;
+	description?: string;
+	fields: FormFieldDefinition[];
+	order: number;
+	rules?: FormSectionRule[];
+}
+
 export interface FormDefinition {
 	fields: FormFieldDefinition[];
+	sections?: FormSection[];
 	rules?: FormCondition[];
 	layout?: Record<string, unknown>;
+	theme?: FormTheme;
 }
 
 export interface FormMetadataBase {
