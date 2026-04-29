@@ -138,6 +138,7 @@ export function getOrgDb(slug: string): OrgDb {
 			id TEXT PRIMARY KEY,
 			form_id TEXT NOT NULL REFERENCES forms(id) ON DELETE CASCADE,
 			submitted_at TEXT NOT NULL DEFAULT (datetime('now')),
+			participant_id TEXT REFERENCES participants(id) ON DELETE SET NULL,
 			submitter_id TEXT,
 			submitter_name TEXT,
 			submitter_email TEXT,
@@ -147,6 +148,11 @@ export function getOrgDb(slug: string): OrgDb {
 			metadata TEXT NOT NULL DEFAULT '{}'
 		);
 	`);
+	try {
+		sqlite.exec(`ALTER TABLE form_responses ADD COLUMN participant_id TEXT REFERENCES participants(id) ON DELETE SET NULL`);
+	} catch {
+		// Column already exists
+	}
 
 	const db = drizzle(sqlite, { schema: orgSchema });
 	orgDbPool.set(slug, db);
@@ -288,6 +294,7 @@ export function createOrgDb(slug: string): OrgDb {
 			id TEXT PRIMARY KEY,
 			form_id TEXT NOT NULL REFERENCES forms(id) ON DELETE CASCADE,
 			submitted_at TEXT NOT NULL DEFAULT (datetime('now')),
+			participant_id TEXT REFERENCES participants(id) ON DELETE SET NULL,
 			submitter_id TEXT,
 			submitter_name TEXT,
 			submitter_email TEXT,

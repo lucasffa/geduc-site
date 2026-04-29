@@ -1,6 +1,7 @@
 import { error, redirect } from '@sveltejs/kit';
 import { createForm } from '$lib/server/form-service';
 import { logAudit } from '$lib/server/middleware/audit';
+import { parseAndValidateFormDefinition } from '$lib/server/form-definition-schema';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -47,37 +48,37 @@ export const actions: Actions = {
 			};
 		}
 
-		let definition;
 		try {
-			definition = JSON.parse(definitionJson || '{"fields":[]}');
-			console.log(`[dashboard/forms/create] create: definição parseada com ${definition.fields?.length || 0} campos`);
+			const definition = parseAndValidateFormDefinition(definitionJson);
+			console.log(
+				`[dashboard/forms/create] create: definição validada com ${definition.fields?.length || 0} campos`
+			);
+			console.log('[dashboard/forms/create] create: chamando createForm()');
+			const form = createForm(locals.orgDb, {
+				title: title.trim(),
+				description: description?.trim(),
+				isPublic,
+				requiresAuth,
+				definition,
+				authorId: locals.user.id,
+				authorName: locals.user.name,
+				authorRole: locals.user.role
+			});
+			console.log(`[dashboard/forms/create] create: sucesso - formulário criado id=${form.id}`);
+
+			logAudit(event, {
+				whatTable: 'forms',
+				whatRecordId: form.id,
+				how: 'CREATE',
+				why: `Formulário criado: ${form.title}`
+			});
+
+			throw redirect(302, `/dashboard/forms?created=${form.id}`);
 		} catch (e) {
 			console.error('[dashboard/forms/create] create: ERRO ao fazer parse da definição', e);
 			return {
 				error: 'Definição do formulário inválida'
 			};
 		}
-
-		console.log('[dashboard/forms/create] create: chamando createForm()');
-		const form = createForm(locals.orgDb, {
-			title: title.trim(),
-			description: description?.trim(),
-			isPublic,
-			requiresAuth,
-			definition,
-			authorId: locals.user.id,
-			authorName: locals.user.name,
-			authorRole: locals.user.role
-		});
-		console.log(`[dashboard/forms/create] create: sucesso - formulário criado id=${form.id}`);
-
-		logAudit(event, {
-			whatTable: 'forms',
-			whatRecordId: form.id,
-			how: 'CREATE',
-			why: `Formulário criado: ${form.title}`
-		});
-
-		throw redirect(302, `/dashboard/forms?created=${form.id}`);
 	}
 };

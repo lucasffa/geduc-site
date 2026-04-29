@@ -1,7 +1,12 @@
 // src/routes/forms/[slug]/+page.server.ts
 import { error, redirect } from '@sveltejs/kit';
 import { getOrgDb } from '$lib/server/db';
-import { getFormBySlug, getFormByPublicToken, submitFormResponse } from '$lib/server/form-service';
+import {
+	getFormByPublicToken,
+	resolveParticipantIdByUserId,
+	submitFormResponse
+} from '$lib/server/form-service';
+import { logAudit } from '$lib/server/middleware/audit';
 import type { PageServerLoad, Actions } from './$types';
 
 export const load: PageServerLoad = async ({ params, url, locals }) => {
@@ -9,11 +14,8 @@ export const load: PageServerLoad = async ({ params, url, locals }) => {
 	const orgSlug = params.orgSlug;
 	const db = getOrgDb(orgSlug);
 
-	// Try slug first, then public token
-	let form = getFormBySlug(db, params.formSlug);
-	if (!form) {
-		form = getFormByPublicToken(db, params.formSlug);
-	}
+	// Public route resolution is token-only to avoid predictable identifiers.
+	const form = getFormByPublicToken(db, params.formSlug);
 
 	if (!form) {
 		throw error(404, 'Formulário não encontrado');
@@ -37,17 +39,15 @@ export const load: PageServerLoad = async ({ params, url, locals }) => {
 };
 
 export const actions: Actions = {
-	submit: async ({ request, params, url, locals, getClientAddress }) => {
-			console.log(`[forms/[formSlug]] submit: iniciando submissão - slug=${params.formSlug}`);
+	submit: async (event) => {
+			const { request, params, url, locals, getClientAddress } = event;
+			console.log(`[forms/[formSlug]] submit: iniciando submissão - token=${params.formSlug.slice(0, 8)}...`);
 			const orgSlug = params.orgSlug;
 			console.log(`[forms/[formSlug]] submit: orgSlug=${orgSlug}`);
 		const db = getOrgDb(orgSlug);
 
-		// Get form
-		let form = getFormBySlug(db, params.formSlug);
-		if (!form) {
-			form = getFormByPublicToken(db, params.formSlug);
-		}
+		// Resolve by secure token only.
+		const form = getFormByPublicToken(db, params.formSlug);
 
 		if (!form) {
 			console.error(`[forms/[formSlug]] submit: ERRO - formulário não encontrado slug=${params.formSlug}`);
@@ -78,6 +78,7 @@ export const actions: Actions = {
 		const response = submitFormResponse(db, {
 			formId: form.id,
 			answers,
+			participantId: resolveParticipantIdByUserId(db, locals.user?.id, locals.user?.email),
 			submitterId: locals.user?.id,
 			submitterName: locals.user?.name,
 			submitterEmail: locals.user?.email,
@@ -86,6 +87,14 @@ export const actions: Actions = {
 		});
 
 		console.log(`[forms/[slug]] submit: sucesso - responseId=${response.id}`);
+		if (locals.user) {
+			logAudit(event, {
+				whatTable: 'form_responses',
+				whatRecordId: response.id,
+				how: 'CREATE',
+				why: `Resposta enviada para formulário: ${form.title}`
+			});
+		}
 		return {
 			success: true,
 			responseId: response.id

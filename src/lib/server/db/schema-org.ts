@@ -159,6 +159,7 @@ export const formResponses = sqliteTable('form_responses', {
 		.notNull()
 		.references(() => forms.id, { onDelete: 'cascade' }),
 	submittedAt: text('submitted_at').notNull().default(sql`(datetime('now'))`),
+	participantId: text('participant_id').references(() => participants.id, { onDelete: 'set null' }),
 	submitterId: text('submitter_id'),
 	submitterName: text('submitter_name'),
 	submitterEmail: text('submitter_email'),

@@ -1,6 +1,7 @@
 import { error, redirect } from '@sveltejs/kit';
 import { getFormById, updateForm } from '$lib/server/form-service';
 import { logAudit } from '$lib/server/middleware/audit';
+import { parseAndValidateFormDefinition } from '$lib/server/form-definition-schema';
 import type { PageServerLoad, Actions } from './$types';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
@@ -50,7 +51,7 @@ export const actions: Actions = {
 		let definition;
 		if (definitionJson) {
 			try {
-				definition = JSON.parse(definitionJson);
+				definition = parseAndValidateFormDefinition(definitionJson);
 			} catch (e) {
 				return { error: 'Definição do formulário inválida' };
 			}

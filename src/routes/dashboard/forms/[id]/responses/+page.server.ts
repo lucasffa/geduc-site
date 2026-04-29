@@ -1,8 +1,10 @@
 import { error } from '@sveltejs/kit';
 import { getFormById, listFormResponses } from '$lib/server/form-service';
+import { logAudit } from '$lib/server/middleware/audit';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ locals, params }) => {
+export const load: PageServerLoad = async (event) => {
+	const { locals, params } = event;
 	if (!locals.user) {
 		throw error(401, 'Não autorizado');
 	}
@@ -19,6 +21,12 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 	}
 
 	const responses = listFormResponses(locals.orgDb, formId);
+	logAudit(event, {
+		whatTable: 'form_responses',
+		whatRecordId: formId,
+		how: 'READ',
+		why: `Consulta de respostas do formulário: ${form.title}`
+	});
 
 	return {
 		form,

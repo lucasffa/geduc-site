@@ -179,11 +179,12 @@ export const actions: Actions = {
 		}
 
 		try {
-			console.log(`[dashboard/forms] sendByEmail: enviando formulário ${form.slug}`);
+			console.log(`[dashboard/forms] sendByEmail: enviando formulário ${form.id}`);
 
-			// Use publicToken for secure links when available, fallback to slug
-			const formPath = form.publicToken || form.slug;
-			const formUrl = `${new URL(request.url).origin}/forms/${locals.organization?.slug || 'org'}/${formPath}`;
+			if (!form.publicToken) {
+				return { error: 'Este formulário não possui código seguro de acesso. Edite e salve o formulário novamente.' };
+			}
+			const formUrl = `${new URL(request.url).origin}/forms/${locals.organization?.slug || 'org'}/${form.publicToken}`;
 
 			// Get org email config for proper sender/branding
 			const { getOrgEmailConfig, sendFormInviteEmail } = await import('$lib/server/resend');
@@ -215,6 +216,7 @@ export const actions: Actions = {
 			}
 
 			let sentCount = 0;
+			const failed: string[] = [];
 			for (const email of recipients) {
 				const result = await sendFormInviteEmail(
 					email,
@@ -226,11 +228,21 @@ export const actions: Actions = {
 					orgEmailConfig
 				);
 				if (result.success) sentCount++;
-				else console.error(`Erro ao enviar para ${email}:`, result.error);
+				else {
+					console.error(`Erro ao enviar para ${email}:`, result.error);
+					failed.push(email);
+				}
 			}
 
 			console.log(`[dashboard/forms] sendByEmail: sucesso, enviados ${sentCount} de ${recipients.length}`);
-			return { success: true, count: sentCount };
+			logAudit(event, {
+				whatTable: 'forms',
+				whatRecordId: form.id,
+				how: 'UPDATE',
+				why: `Convites de formulário enviados (${sentCount}/${recipients.length})`,
+				howManyAffected: sentCount
+			});
+			return { success: true, count: sentCount, total: recipients.length, failed };
 		} catch (err) {
 			console.error(`[dashboard/forms] sendByEmail: erro global`, err);
 			return { error: 'Erro ao enviar email. Tente novamente.' };

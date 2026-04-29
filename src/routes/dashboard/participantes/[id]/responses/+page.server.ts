@@ -1,10 +1,12 @@
 import { error } from '@sveltejs/kit';
-import { listResponsesByParticipantEmail } from '$lib/server/form-service';
+import { listResponsesByParticipant } from '$lib/server/form-service';
 import { participants } from '$lib/server/db/schema-org';
+import { logAudit } from '$lib/server/middleware/audit';
 import { eq } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ locals, params }) => {
+export const load: PageServerLoad = async (event) => {
+	const { locals, params } = event;
 	if (!locals.user) {
 		throw error(401, 'Não autorizado');
 	}
@@ -24,7 +26,14 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 		throw error(404, 'Participante não encontrado');
 	}
 
-	const responses = listResponsesByParticipantEmail(locals.orgDb, participant.email);
+	const responses = listResponsesByParticipant(locals.orgDb, participant.id, participant.email);
+
+	logAudit(event, {
+		whatTable: 'form_responses',
+		whatRecordId: participant.id,
+		how: 'READ',
+		why: `Consulta de respostas por participante: ${participant.name}`
+	});
 
 	return {
 		participant: {

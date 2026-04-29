@@ -2,7 +2,7 @@
 import { randomUUID, randomBytes } from 'node:crypto';
 import { eq, ne, sql, desc } from 'drizzle-orm';
 import type { OrgDb } from '$lib/server/db';
-import { forms, formResponses } from '$lib/server/db/schema-org';
+import { forms, formResponses, participants } from '$lib/server/db/schema-org';
 import type {
 	CreateFormInput,
 	FormRecord,
@@ -98,6 +98,7 @@ function mapFormResponseRow(row: any): FormResponseRecord {
 		formId: row.formId ?? row.form_id,
 		submittedAt: row.submittedAt ?? row.submitted_at,
 		answers: JSON.parse(row.answers ?? '{}'),
+		participantId: row.participantId ?? row.participant_id,
 		submitterId: row.submitterId ?? row.submitter_id,
 		submitterName: row.submitterName ?? row.submitter_name,
 		submitterEmail: row.submitterEmail ?? row.submitter_email,
@@ -186,11 +187,8 @@ export function createForm(db: OrgDb, input: CreateFormInput): FormRecord {
 		console.log(`[form-service] createForm: id gerado=${id}`);
 		const slug = createFormSlug(db, input.slug ?? input.title);
 		console.log(`[form-service] createForm: slug gerado=${slug}`);
-		const publicToken =
-			input.isPublic ? (input.publicToken ?? createPublicToken(db)) : undefined;
-		if (input.isPublic) {
-			console.log(`[form-service] createForm: formulário público com token=${publicToken?.slice(0, 8)}...`);
-		}
+		const publicToken = input.publicToken ?? createPublicToken(db);
+		console.log(`[form-service] createForm: token de acesso gerado=${publicToken.slice(0, 8)}...`);
 		const now = new Date().toISOString();
 
 		db.insert(forms)
@@ -242,18 +240,8 @@ export function updateForm(db: OrgDb, id: string, input: UpdateFormInput): FormR
 	// FIX: pass `id` as excludeId so the form's own slug is not flagged as a collision
 	const slug = input.slug ? createFormSlug(db, input.slug, id) : existing.slug;
 
-	// Simplified public-token logic:
-	// - Explicitly setting isPublic=false  → clear token
-	// - Otherwise keep or generate a token when public
-	let publicToken: string | undefined;
-	if (input.isPublic === false) {
-		publicToken = undefined;
-	} else if (input.isPublic === true) {
-		publicToken = existing.publicToken ?? createPublicToken(db);
-	} else {
-		// isPublic unchanged — keep whatever the existing state dictates
-		publicToken = existing.isPublic ? existing.publicToken : undefined;
-	}
+	// Keep a stable access token. Generate only when missing.
+	const publicToken = existing.publicToken ?? createPublicToken(db);
 
 	const now = new Date().toISOString();
 
@@ -338,6 +326,7 @@ export function submitFormResponse(
 		.values({
 			id,
 			formId: input.formId,
+			participantId: input.participantId,
 			submitterId: input.submitterId,
 			submitterName: input.submitterName,
 			submitterEmail: input.submitterEmail,
@@ -354,6 +343,7 @@ export function submitFormResponse(
 		formId: input.formId,
 		submittedAt,
 		answers: input.answers,
+		participantId: input.participantId,
 		submitterId: input.submitterId,
 		submitterName: input.submitterName,
 		submitterEmail: input.submitterEmail,
@@ -387,4 +377,53 @@ export function listResponsesByParticipantEmail(
 			formSlug: form?.slug || ''
 		};
 	});
+}
+
+export function listResponsesByParticipant(
+	db: OrgDb,
+	participantId: string,
+	email: string
+): (FormResponseRecord & { formTitle: string; formSlug: string })[] {
+	const byParticipant = db
+		.select()
+		.from(formResponses)
+		.where(eq(formResponses.participantId, participantId))
+		.orderBy(desc(formResponses.submittedAt))
+		.all()
+		.map(mapFormResponseRow);
+
+	if (byParticipant.length > 0) {
+		return byParticipant.map((r) => {
+			const form = getFormById(db, r.formId);
+			return {
+				...r,
+				formTitle: form?.title || 'Formulário removido',
+				formSlug: form?.slug || ''
+			};
+		});
+	}
+
+	return listResponsesByParticipantEmail(db, email);
+}
+
+export function resolveParticipantIdByUserId(db: OrgDb, submitterId?: string, submitterEmail?: string) {
+	if (submitterEmail) {
+		const participant = db
+			.select({ id: participants.id })
+			.from(participants)
+			.where(eq(participants.email, submitterEmail))
+			.get();
+		if (participant?.id) return participant.id;
+	}
+
+	if (submitterId) {
+		const participant = db
+			.select({ id: participants.id })
+			.from(participants)
+			.where(eq(participants.id, submitterId))
+			.get();
+		if (participant?.id) return participant.id;
+	}
+
+	return undefined;
 }

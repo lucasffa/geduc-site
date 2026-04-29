@@ -11,6 +11,7 @@ export type FormFieldType =
 	| 'url'
 	| 'file'
 	| 'rating'
+	| 'map'
 	| 'hidden'
 	| 'button';
 
@@ -119,6 +120,7 @@ export interface FormRecord extends FormMetadataBase {
 
 export interface FormResponseData {
 	answers: Record<string, unknown>;
+	participantId?: string;
 	submitterId?: string;
 	submitterName?: string;
 	submitterEmail?: string;

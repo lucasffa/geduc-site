@@ -123,7 +123,7 @@
 
 	.page-wrapper {
 		min-height: 100vh;
-		background: var(--bg-secondary, #f8fafc);
+		background: var(--background-color-page, #f8fafc);
 		display: flex;
 		align-items: flex-start;
 		justify-content: center;
@@ -138,17 +138,17 @@
 
 	/* ── Header card ── */
 	.form-header {
-		background: var(--background-color-card);
+		background: var(--background-color-card, #fff);
 		border-radius: var(--border-radius-md) var(--border-radius-md) 0 0;
 		overflow: hidden;
-		border: 1px solid var(--border-color-default);
+		border: 1px solid var(--border-color-default, #e5e7eb);
 		border-bottom: none;
-		box-shadow: 0 1px 3px rgba(0,0,0,.06);
+		box-shadow: 0 1px 2px rgba(60, 64, 67, 0.15);
 	}
 
 	.form-header-accent {
-		height: 6px;
-		background: var(--color-primary-500);
+		height: 10px;
+		background: var(--color-primary-700, #324acb);
 	}
 
 	.form-header-body {
@@ -182,11 +182,11 @@
 
 	/* ── Body card ── */
 	.form-body {
-		background: var(--background-color-card);
-		border: 1px solid var(--border-color-default);
+		background: var(--background-color-card, #fff);
+		border: 1px solid var(--border-color-default, #e5e7eb);
 		border-top: none;
 		padding: 2.25rem;
-		box-shadow: 0 1px 3px rgba(0,0,0,.06);
+		box-shadow: 0 1px 2px rgba(60, 64, 67, 0.15);
 	}
 
 	/* ── Actions ── */
@@ -200,7 +200,7 @@
 		display: inline-flex;
 		align-items: center;
 		gap: var(--spacing-sm);
-		background: var(--color-primary-500);
+		background: var(--color-primary-700, #324acb);
 		color: var(--text-color-white);
 		border: none;
 		padding: var(--spacing-md) var(--spacing-xl);
@@ -214,9 +214,9 @@
 	}
 
 	.submit-button:hover:not(:disabled) {
-		background: var(--color-primary-600);
+		background: var(--color-primary-800, #2439a7);
 		transform: translateY(-1px);
-		box-shadow: 0 4px 14px color-mix(in srgb, var(--color-primary-500) 35%, transparent);
+		box-shadow: 0 4px 14px color-mix(in srgb, var(--color-primary-700, #324acb) 35%, transparent);
 	}
 
 	.submit-button:active:not(:disabled) {
@@ -243,14 +243,14 @@
 
 	/* ── Footer ── */
 	.form-footer {
-		background: var(--background-color-card);
-		border: 1px solid var(--border-color-default);
-		border-top: 1px solid var(--border-color-default);
+		background: var(--background-color-card, #fff);
+		border: 1px solid var(--border-color-default, #e5e7eb);
+		border-top: 1px solid var(--border-color-default, #e5e7eb);
 		border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
 		padding: var(--spacing-md) 2.25rem;
 		font-size: var(--caption-text-font-size);
 		color: var(--text-color-tertiary);
-		box-shadow: 0 2px 8px rgba(0,0,0,.06);
+		box-shadow: 0 1px 2px rgba(60, 64, 67, 0.15);
 	}
 
 	.req-symbol {

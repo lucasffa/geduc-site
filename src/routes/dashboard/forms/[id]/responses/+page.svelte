@@ -93,6 +93,7 @@
 			(r.submitterEmail || '').toLowerCase().includes(q)
 		);
 	});
+	$: aggregateFieldCount = getAllFieldIds().length;
 </script>
 
 <svelte:head>
@@ -178,15 +179,17 @@
 					<strong>{filteredResponses.length}</strong> de {data.responses.length} resposta{data.responses.length !== 1 ? 's' : ''}
 				</span>
 			</div>
+			<div class="responses-kpis">
+				<span class="kpi-chip"><strong>{data.responses.length}</strong> envios</span>
+				<span class="kpi-chip"><strong>{aggregateFieldCount}</strong> perguntas com resposta</span>
+			</div>
 
 			{#if viewMode === 'individual'}
 				<!-- Individual view -->
 				<div class="responses-list">
 					{#each filteredResponses as response (response.id)}
 						<div class="response-card" class:is-expanded={expandedResponseId === response.id}>
-							<!-- svelte-ignore a11y-click-events-have-key-events -->
-							<!-- svelte-ignore a11y-no-static-element-interactions -->
-							<div class="response-header" on:click={() => expandedResponseId = expandedResponseId === response.id ? null : response.id}>
+							<button class="response-header" type="button" aria-expanded={expandedResponseId === response.id} on:click={() => expandedResponseId = expandedResponseId === response.id ? null : response.id}>
 								<div class="response-info">
 									<div class="response-avatar">
 										{(response.submitterName || 'A')[0].toUpperCase()}
@@ -204,7 +207,7 @@
 										<path d="M6 9l6 6 6-6"/>
 									</svg>
 								</div>
-							</div>
+							</button>
 
 							{#if expandedResponseId === response.id}
 								<div class="response-answers">
@@ -418,6 +421,25 @@
 		white-space: nowrap;
 	}
 
+	.responses-kpis {
+		display: flex;
+		gap: 0.5rem;
+		margin-bottom: 1rem;
+		flex-wrap: wrap;
+	}
+
+	.kpi-chip {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.3rem;
+		padding: 0.28rem 0.68rem;
+		border-radius: 999px;
+		font-size: 0.78rem;
+		background: var(--background-color-card, #fff);
+		border: 1px solid var(--border-color-default, #e5e7eb);
+		color: var(--text-color-secondary, #6b7280);
+	}
+
 	.empty-state {
 		text-align: center;
 		padding: 3rem 2rem;
@@ -474,6 +496,10 @@
 		padding: 1rem 1.25rem;
 		cursor: pointer;
 		user-select: none;
+		width: 100%;
+		border: none;
+		background: transparent;
+		text-align: left;
 	}
 
 	.response-info {

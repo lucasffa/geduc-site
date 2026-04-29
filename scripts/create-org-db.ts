@@ -161,6 +161,7 @@ try {
 			id TEXT PRIMARY KEY,
 			form_id TEXT NOT NULL REFERENCES forms(id) ON DELETE CASCADE,
 			submitted_at TEXT NOT NULL DEFAULT (datetime('now')),
+			participant_id TEXT REFERENCES participants(id) ON DELETE SET NULL,
 			submitter_id TEXT,
 			submitter_name TEXT,
 			submitter_email TEXT,

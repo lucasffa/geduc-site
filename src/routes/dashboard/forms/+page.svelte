@@ -28,7 +28,7 @@
 		if (createdId) {
 			setTimeout(() => {
 				const form = formsWithCount.find(f => f.id === createdId);
-				if (form) openShareModal(form.id, form.title, form.slug, form.isPublic);
+				if (form) openShareModal(form.id, form.title, form.publicToken, form.isPublic);
 			}, 100);
 		}
 		// Clean up the URL parameter
@@ -42,7 +42,7 @@
 		if (updatedId && updatedId !== 'true') {
 			setTimeout(() => {
 				const form = formsWithCount.find(f => f.id === updatedId);
-				if (form) openShareModal(form.id, form.title, form.slug, form.isPublic);
+				if (form) openShareModal(form.id, form.title, form.publicToken, form.isPublic);
 			}, 100);
 		}
 		// Clean up the URL parameter
@@ -91,9 +91,9 @@
 	}
 
 	function copyPublicLink(form: any) {
-		if (form.slug) {
+		if (form.publicToken) {
 			const orgSlug = $page.data.organization?.slug || 'org';
-			const url = `${window.location.origin}/forms/${orgSlug}/${form.slug}`;
+			const url = `${window.location.origin}/forms/${orgSlug}/${form.publicToken}`;
 			navigator.clipboard.writeText(url).then(() => addToast('Link copiado!', 'success'));
 		}
 	}
@@ -101,17 +101,17 @@
 	let shareModalOpen = false;
 	let shareModalFormId = '';
 	let shareModalFormTitle = '';
-	let shareModalFormSlug = '';
+	let shareModalFormAccessCode = '';
 	let shareModalFormIsPublic = false;
 	let shareEmail = '';
 	let shareLoading = false;
 	let shareTab: 'link' | 'email' | 'participants' = 'link';
 	let selectedParticipants: string[] = [];
 
-	function openShareModal(formId: string, formTitle: string, formSlug: string, isPublic: boolean = true) {
+	function openShareModal(formId: string, formTitle: string, formAccessCode: string | undefined, isPublic: boolean = true) {
 		shareModalFormId = formId;
 		shareModalFormTitle = formTitle;
-		shareModalFormSlug = formSlug;
+		shareModalFormAccessCode = formAccessCode || '';
 		shareModalFormIsPublic = isPublic;
 		shareEmail = '';
 		selectedParticipants = [];
@@ -219,6 +219,8 @@
 			form.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
 			form.description?.toLowerCase().includes(searchQuery.toLowerCase())
 	);
+	$: totalResponses = formsWithCount.reduce((acc, form: any) => acc + (form.responseCount || 0), 0);
+	$: activeFormsCount = formsWithCount.filter((form: any) => form.isActive).length;
 </script>
 
 <svelte:head>
@@ -302,6 +304,12 @@
 				</form>
 			</div>
 		{/if}
+	</div>
+
+	<div class="forms-kpis">
+		<span class="kpi-chip"><strong>{formsWithCount.length}</strong> formulários</span>
+		<span class="kpi-chip"><strong>{activeFormsCount}</strong> ativos</span>
+		<span class="kpi-chip"><strong>{totalResponses}</strong> respostas</span>
 	</div>
 
 	<!-- ── Content ── -->
@@ -413,7 +421,7 @@
 									<path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
 								</svg>
 							</button>
-							<button class="icon-btn" title="Compartilhar" on:click={() => openShareModal(form.id, form.title, form.slug, form.isPublic)}>
+							<button class="icon-btn" title="Compartilhar" on:click={() => openShareModal(form.id, form.title, form.publicToken, form.isPublic)}>
 								<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 									<path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
 									<polyline points="16 6 12 2 8 6" />
@@ -537,10 +545,10 @@
 							type="text" 
 							readonly 
 							class="modal-input link-input" 
-							value="{window.location.origin}/forms/{$page.data.organization?.slug || 'org'}/{shareModalFormSlug}"
+							value="{window.location.origin}/forms/{$page.data.organization?.slug || 'org'}/{shareModalFormAccessCode}"
 							on:focus={(e) => e.currentTarget.select()}
 						/>
-						<button class="btn-ghost" on:click={() => copyPublicLink({slug: shareModalFormSlug})}>
+						<button class="btn-ghost" disabled={!shareModalFormAccessCode} on:click={() => copyPublicLink({publicToken: shareModalFormAccessCode})}>
 							Copiar
 						</button>
 					</div>
@@ -850,6 +858,25 @@
 		font-weight: 500;
 		color: var(--primary, #6366f1);
 		white-space: nowrap;
+	}
+
+	.forms-kpis {
+		display: flex;
+		gap: 0.5rem;
+		padding: 0.75rem 2.5rem 0;
+		flex-wrap: wrap;
+	}
+
+	.kpi-chip {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.3rem;
+		padding: 0.3rem 0.7rem;
+		border-radius: 999px;
+		font-size: 0.78rem;
+		background: var(--bg-primary, #fff);
+		border: 1px solid var(--border, #e5e7eb);
+		color: var(--text-secondary, #6b7280);
 	}
 
 	/* ── Content area ── */
@@ -1243,7 +1270,7 @@
 
 	/* ── Responsive ── */
 	@media (max-width: 768px) {
-		.page-header, .toolbar, .content { padding-left: 1.25rem; padding-right: 1.25rem; }
+		.page-header, .toolbar, .content, .forms-kpis { padding-left: 1.25rem; padding-right: 1.25rem; }
 		.row-meta, .row-date { display: none; }
 		.row-actions { gap: 0; }
 	}
