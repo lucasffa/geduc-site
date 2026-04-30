@@ -1,4 +1,4 @@
-// src/routes/forms/[slug]/+page.server.ts
+// src/routes/forms/[orgSlug]/[formSlug]/+page.server.ts
 import { error, redirect } from '@sveltejs/kit';
 import { getOrgDb } from '$lib/server/db';
 import {

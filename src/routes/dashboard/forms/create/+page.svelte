@@ -1,6 +1,7 @@
+<!-- src/routes/dashboard/forms/create/+page.svelte -->
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import FormBuilder from '$lib/components/forms/FormBuilder.svelte';
+	import FormBuilder from '$lib/components/organisms/dashboard/FormBuilder.svelte';
 	import type { ActionData } from './$types';
 
 	export let form: ActionData;

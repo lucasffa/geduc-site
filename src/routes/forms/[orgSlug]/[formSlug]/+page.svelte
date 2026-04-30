@@ -1,8 +1,8 @@
-<!-- src/routes/forms/[slug]/+page.svelte -->
+<!-- src/routes/forms/[orgSlug]/[formSlug]/+page.svelte -->
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import type { PageData, ActionData } from './$types';
-	import FormRenderer from '$lib/components/forms/FormRenderer.svelte';
+	import FormRenderer from '$lib/components/organisms/dashboard/FormRenderer.svelte';
 
 	export let data: PageData;
 	// SvelteKit ActionData — note: must NOT be named "form" to avoid collision

@@ -1,3 +1,4 @@
+// src/hooks.server.ts
 import type { Handle } from '@sveltejs/kit';
 import { redirect } from '@sveltejs/kit';
 import { validateSession } from '$lib/server/auth';
@@ -60,7 +61,7 @@ export const handle: Handle = ({ event, resolve }) => {
 					event.locals.organization = orgInfo;
 
 					try {
-						event.locals.orgDb = getOrgDb(org.slug);
+						event.locals.orgDb = getOrgDb(org.id);
 						console.log(`[hooks] handle: database da organização carregado`);
 					} catch (error) {
 						console.error(`[hooks] handle: ERRO ao carregar database da organização`, error);

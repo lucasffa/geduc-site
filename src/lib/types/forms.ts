@@ -1,3 +1,4 @@
+// src/lib/types/forms.ts
 export type FormFieldType =
 	| 'text'
 	| 'email'

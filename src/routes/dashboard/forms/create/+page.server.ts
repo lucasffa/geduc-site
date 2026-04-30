@@ -1,3 +1,4 @@
+// src/routes/dashboard/forms/create/+page.server.ts
 import { error, redirect } from '@sveltejs/kit';
 import { createForm } from '$lib/server/form-service';
 import { logAudit } from '$lib/server/middleware/audit';
@@ -27,6 +28,11 @@ export const actions: Actions = {
 
 		if (!locals.organization || !locals.orgDb) {
 			console.error('[dashboard/forms/create] create: ERRO - usuário sem organização');
+			console.log('locals:', {
+				user: locals.user,
+				organization: locals.organization,
+				orgDb: !!locals.orgDb
+			});
 			return {
 				error: 'Você precisa pertencer a uma organização para criar formulários'
 			};

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import FormBuilder from '$lib/components/forms/FormBuilder.svelte';
+	import FormBuilder from '$lib/components/organisms/dashboard/FormBuilder.svelte';
 	import type { ActionData, PageData } from './$types';
 
 	export let data: PageData;
