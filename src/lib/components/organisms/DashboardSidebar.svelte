@@ -19,6 +19,7 @@
 		{ href: '/dashboard', label: 'Visão Geral', icon: 'grid', flag: 'canViewDashboard' },
 		{ href: '/dashboard/participantes', label: 'Participantes', icon: 'users', flag: 'canViewDashboard' },
 		{ href: '/dashboard/certificados', label: 'Certificados', icon: 'file-text', flag: 'canViewDashboard' },
+		{ href: '/dashboard/forms', label: 'Formulários', icon: 'clipboard', flag: 'canViewDashboard' },
 		{ href: '/dashboard/usuarios', label: 'Usuários', icon: 'user-plus', flag: 'canManageUsers' },
 		{ href: '/dashboard/workgroups', label: 'Grupos de Trabalho', icon: 'briefcase', flag: 'canManageWorkgroups' },
 		{ href: '/dashboard/configuracoes', label: 'Configurações', icon: 'settings', flag: 'canManageOrganization' },
