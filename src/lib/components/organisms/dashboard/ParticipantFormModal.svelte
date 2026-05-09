@@ -26,22 +26,24 @@
 	$: allRoles = [...(customRoles?.voluntario || []), ...(customRoles?.mentorado || [])];
 
 	let prevIsOpen = false;
-	$: if (isOpen && !prevIsOpen) {
-		if (mode === 'edit' && participant) {
-			name = participant.name || '';
-			email = participant.email || '';
-			role = participant.role || '';
-			notes = participant.notes || '';
-			workloadHours = participant.workloadHours || 0;
-		} else if (mode === 'create') {
-			name = '';
-			email = '';
-			role = allRoles[0] || '';
-			notes = '';
-			workloadHours = 0;
+	$: {
+		if (isOpen && !prevIsOpen) {
+			if (mode === 'edit' && participant) {
+				name = participant.name || '';
+				email = participant.email || '';
+				role = participant.role || '';
+				notes = participant.notes || '';
+				workloadHours = participant.workloadHours || 0;
+			} else if (mode === 'create') {
+				name = '';
+				email = '';
+				role = allRoles[0] || '';
+				notes = '';
+				workloadHours = 0;
+			}
 		}
+		prevIsOpen = isOpen;
 	}
-	$: prevIsOpen = isOpen;
 
 	$: title = mode === 'create' ? 'Novo Participante' : 'Editar Participante';
 	$: submitLabel = mode === 'create' ? 'Criar' : 'Salvar';

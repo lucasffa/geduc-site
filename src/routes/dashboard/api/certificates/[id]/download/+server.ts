@@ -1,6 +1,7 @@
 import type { RequestHandler } from './$types';
 import { error } from '@sveltejs/kit';
 import { requirePermission } from '$lib/server/middleware/auth';
+import { logAudit } from '$lib/server/middleware/audit';
 import { certificates } from '$lib/server/db/schema-org';
 import { getCertificatesDir } from '$lib/server/certificate-generator';
 import { eq } from 'drizzle-orm';
@@ -30,6 +31,13 @@ export const GET: RequestHandler = (event) => {
 	if (!fs.existsSync(filePath)) throw error(404, 'Arquivo PDF não encontrado');
 
 	const pdfBuffer = fs.readFileSync(filePath);
+
+	logAudit(event, {
+		whatTable: 'certificates',
+		whatRecordId: cert.id,
+		how: 'READ',
+		why: `Download do certificado (${cert.pdfPath})`
+	});
 
 	return new Response(pdfBuffer, {
 		headers: {

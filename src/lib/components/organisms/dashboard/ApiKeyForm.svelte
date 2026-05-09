@@ -9,18 +9,22 @@
 	const dispatch = createEventDispatcher();
 
 	let apiKey = '';
+	let password = '';
 
 	function handleSubmit() {
-		if (!apiKey.trim()) return;
-		dispatch('save', { key: apiKey });
+		if (!apiKey.trim() || !password) return;
+		dispatch('save', { key: apiKey, password });
 		apiKey = '';
+		password = '';
 	}
 </script>
 
 <section class="config-section">
-	<h2>Chave API Resend (Organização)</h2>
+	<h2>Registrar Chave API Resend (Organização)</h2>
 	<p class="config-desc">
-		Esta chave será usada para envios de email da organização. Criptografada com a senha do admin.
+		A chave é encriptada com sua senha (AES-256-GCM + PBKDF2). Para usá-la, você precisa
+		<strong>ativá-la</strong> na seção abaixo — ela fica em RAM e fica disponível para todos
+		os membros da organização até você desativar ou o servidor reiniciar.
 	</p>
 	<form on:submit|preventDefault={handleSubmit}>
 		<FormField label="Chave Resend" id="api-key">
@@ -29,6 +33,17 @@
 				type="password"
 				bind:value={apiKey}
 				placeholder="re_..."
+				autocomplete="off"
+			/>
+		</FormField>
+
+		<FormField label="Sua senha (para encriptar)" id="api-key-password">
+			<input
+				id="api-key-password"
+				type="password"
+				bind:value={password}
+				placeholder="••••••••"
+				autocomplete="current-password"
 			/>
 		</FormField>
 
