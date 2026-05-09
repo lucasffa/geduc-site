@@ -8,7 +8,7 @@ export const participantSchema = z.object({
 	status: z.enum(PARTICIPANT_STATUSES).default('inscrito'),
 	enrollmentDate: z.string().nullable().optional(),
 	cycleEndDate: z.string().nullable().optional(),
-	workloadHours: z.number().int().positive().nullable().optional(),
+	workloadHours: z.number().int().nonnegative().nullable().optional(),
 	notes: z.string().nullable().optional()
 });
 

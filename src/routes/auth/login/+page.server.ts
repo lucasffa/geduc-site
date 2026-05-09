@@ -9,8 +9,7 @@ import {
 	createSession,
 	setSessionCookie,
 	updateLastLogin,
-	cacheUserApiKey,
-	cacheOrgApiKey
+	cacheUserApiKey
 } from '$lib/server/auth';
 import { logAudit } from '$lib/server/middleware/audit';
 
@@ -69,11 +68,9 @@ export const actions: Actions = {
 		setSessionCookie(event, token, expiresAt);
 		updateLastLogin(user.id);
 
-		// Cache API keys on login
+		// Cache user's own API key on login (uses their password).
+		// Org API key requires explicit activation via /dashboard/configuracoes.
 		cacheUserApiKey(user.id, parsed.data.password);
-		if (user.organizationId && user.role === 'admin') {
-			cacheOrgApiKey(user.organizationId, parsed.data.password);
-		}
 
 		// Audit: login
 		logAudit(event, {

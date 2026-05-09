@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { requirePermission } from '$lib/server/middleware/auth';
+import { logAudit } from '$lib/server/middleware/audit';
 import { certificates, participants } from '$lib/server/db/schema-org';
 import { eq, and, gte, lte, desc, inArray } from 'drizzle-orm';
 import { getCertificatesDir } from '$lib/server/certificate-generator';
@@ -84,6 +85,15 @@ export const DELETE: RequestHandler = async (event) => {
 
 		// Remove do banco
 		orgDb.delete(certificates).where(inArray(certificates.id, ids)).run();
+
+		for (const row of rows) {
+			logAudit(event, {
+				whatTable: 'certificates',
+				whatRecordId: row.id,
+				how: 'DELETE',
+				why: `Certificado apagado (PDF: ${row.pdfPath || '—'})`
+			});
+		}
 
 		// Remove os arquivos do disco
 		const certDir = getCertificatesDir(slug);

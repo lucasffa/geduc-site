@@ -12,6 +12,7 @@ services:
       - /app/node_modules
     environment:
       - NODE_ENV=development
+      - BODY_SIZE_LIMIT=10485760
     restart: unless-stopped
     networks:
       - geduc-network

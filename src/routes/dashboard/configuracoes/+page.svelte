@@ -1,8 +1,10 @@
 <script>
 	import { onMount } from 'svelte';
+	import { invalidateAll } from '$app/navigation';
 	import PageHeader from '$lib/components/molecules/PageHeader.svelte';
 	import OrgSettingsForm from '$lib/components/organisms/dashboard/OrgSettingsForm.svelte';
 	import ApiKeyForm from '$lib/components/organisms/dashboard/ApiKeyForm.svelte';
+	import ApiKeyActivation from '$lib/components/organisms/dashboard/ApiKeyActivation.svelte';
 	import FontManager from '$lib/components/organisms/dashboard/FontManager.svelte';
 	import Button from '$lib/components/atoms/Button.svelte';
 	import { addToast } from '$lib/stores/dashboard';
@@ -152,6 +154,7 @@
 				body: JSON.stringify(e.detail)
 			});
 			if (!res.ok) throw new Error('Erro ao salvar');
+			await invalidateAll();
 			addToast('Configurações salvas', 'success');
 		} catch (err) {
 			addToast(err.message, 'error');
@@ -159,6 +162,8 @@
 			savingOrg = false;
 		}
 	}
+
+	let activationRef;
 
 	async function handleSaveKey(e) {
 		savingKey = true;
@@ -168,12 +173,14 @@
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					key: e.detail.key,
+					password: e.detail.password,
 					ownerType: 'organization',
 					label: 'Resend Key da Organização'
 				})
 			});
 			if (!res.ok) throw new Error((await res.json()).error || 'Erro');
-			addToast('Chave API salva com sucesso', 'success');
+			addToast('Chave API salva e ativada', 'success');
+			activationRef?.refresh?.();
 		} catch (err) {
 			addToast(err.message, 'error');
 		} finally {
@@ -208,6 +215,8 @@
 	/>
 
 	<ApiKeyForm saving={savingKey} on:save={handleSaveKey} />
+
+	<ApiKeyActivation bind:this={activationRef} />
 
 	<section class="settings-section">
 		<h3 class="section-title">Configurações de E-mail</h3>
@@ -426,7 +435,7 @@
 		align-items: center;
 		gap: 4px;
 		padding: 4px 8px;
-		background: var(--color-primary-50, rgba(50, 74, 203, 0.08));
+		background: var(--color-primary-100);
 		color: var(--color-primary-700);
 		border-radius: var(--border-radius-full);
 		font-size: var(--font-size-xs);

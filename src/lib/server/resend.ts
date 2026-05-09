@@ -4,6 +4,9 @@ import { cache, CacheKeys } from '$lib/server/cache';
 import { orgSettings } from '$lib/server/db/schema-org';
 import { eq } from 'drizzle-orm';
 import type { OrgDb } from '$lib/server/db';
+import { logger } from '$lib/utils/logger';
+
+const COMPONENT = 'resend';
 
 /**
  * Tri-mode Resend client:
@@ -61,13 +64,20 @@ export function getOrgResendClient(orgId: string): Resend | null {
  */
 export function getResendClientForCertificates(userId: string, orgId?: string): Resend {
 	const userClient = getUserResendClient(userId);
-	if (userClient) return userClient;
+	if (userClient) {
+		logger.debug('Using USER Resend key', { userId }, COMPONENT);
+		return userClient;
+	}
 
 	if (orgId) {
 		const orgClient = getOrgResendClient(orgId);
-		if (orgClient) return orgClient;
+		if (orgClient) {
+			logger.debug('Using ORG Resend key', { orgId }, COMPONENT);
+			return orgClient;
+		}
 	}
 
+	logger.debug('Using SYSTEM Resend key (env RESEND_API_KEY)', { userId, orgId }, COMPONENT);
 	return getSystemResendClient();
 }
 
@@ -129,7 +139,8 @@ export async function sendCertificateEmail(
 		const orgName = orgEmailConfig?.orgName || 'GEDUC';
 		const primaryColor = orgEmailConfig?.primaryColor || '#152db5';
 
-		await resend.emails.send({
+		logger.info('Sending certificate email via Resend', { to, from: fromEmail, orgName, attachmentBytes: pdfBuffer.byteLength }, COMPONENT);
+		const sendResult = await resend.emails.send({
 			from: fromEmail,
 			to,
 			subject: `Seu certificado ${orgName} - ${participantName}`,
@@ -159,10 +170,15 @@ export async function sendCertificateEmail(
 			]
 		});
 
+		if (sendResult.error) {
+			logger.error('Resend returned error', { to, from: fromEmail, error: sendResult.error }, COMPONENT);
+			return { success: false, error: typeof sendResult.error === 'string' ? sendResult.error : JSON.stringify(sendResult.error) };
+		}
+		logger.info('Resend accepted email', { to, from: fromEmail, providerId: sendResult.data?.id ?? null }, COMPONENT);
 		return { success: true };
 	} catch (error) {
 		const message = error instanceof Error ? error.message : 'Erro desconhecido';
-		console.error('Erro ao enviar e-mail:', message);
+		logger.error('Exception while sending email', error, COMPONENT);
 		return { success: false, error: message };
 	}
 }

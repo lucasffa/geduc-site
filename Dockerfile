@@ -54,6 +54,8 @@ USER nodejs
 
 EXPOSE 3001
 
+ENV BODY_SIZE_LIMIT=10485760
+
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3001/', (res) => { process.exit(res.statusCode === 200 ? 0 : 1); })"

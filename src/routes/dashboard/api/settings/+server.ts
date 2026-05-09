@@ -2,6 +2,7 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { orgSettings } from '$lib/server/db/schema-org';
 import { requirePermission } from '$lib/server/middleware/auth';
+import { logAudit } from '$lib/server/middleware/audit';
 import { eq } from 'drizzle-orm';
 
 export const GET: RequestHandler = (event) => {
@@ -33,6 +34,7 @@ export const PATCH: RequestHandler = async (event) => {
 	}
 
 	const existing = orgDb.select().from(orgSettings).where(eq(orgSettings.key, key)).get();
+	const previousValue = existing?.value ?? null;
 	if (existing) {
 		orgDb.update(orgSettings)
 			.set({ value, updatedAt: new Date().toISOString() })
@@ -41,6 +43,13 @@ export const PATCH: RequestHandler = async (event) => {
 	} else {
 		orgDb.insert(orgSettings).values({ key, value }).run();
 	}
+
+	logAudit(event, {
+		whatTable: 'org_settings',
+		whatRecordId: key,
+		how: existing ? 'UPDATE' : 'CREATE',
+		why: `Configuração "${key}" ${existing ? 'atualizada' : 'criada'}: "${previousValue ?? '(vazio)'}" → "${value}"`
+	});
 
 	return json({ success: true });
 };
