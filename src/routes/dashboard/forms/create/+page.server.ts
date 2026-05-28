@@ -81,6 +81,10 @@ export const actions: Actions = {
 
 			throw redirect(302, `/dashboard/forms?created=${form.id}`);
 		} catch (e) {
+			// Re-throw SvelteKit redirects — they are not errors
+			if (e && typeof e === 'object' && 'status' in e && 'location' in e) {
+				throw e;
+			}
 			console.error('[dashboard/forms/create] create: ERRO ao fazer parse da definição', e);
 			return {
 				error: 'Definição do formulário inválida'
