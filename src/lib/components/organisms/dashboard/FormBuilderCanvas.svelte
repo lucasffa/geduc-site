@@ -31,14 +31,10 @@
 		{ type: 'email', label: 'E-mail' },
 		{ type: 'number', label: 'Número' },
 		{ type: 'tel', label: 'Telefone' },
-		{ type: 'url', label: 'URL' },
 		{ type: 'date', label: 'Data' },
-		{ type: 'select', label: 'Lista suspensa' },
 		{ type: 'radio', label: 'Múltipla escolha' },
 		{ type: 'checkbox', label: 'Caixas de seleção' },
-		{ type: 'file', label: 'Arquivo' },
-		{ type: 'rating', label: 'Classificação' },
-		{ type: 'map', label: 'Mapa' }
+		{ type: 'file', label: 'Arquivo' }
 	];
 
 	const dispatch = createEventDispatcher<{

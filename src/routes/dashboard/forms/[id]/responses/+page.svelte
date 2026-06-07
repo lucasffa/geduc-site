@@ -41,7 +41,28 @@
 		data.responses.forEach((r: any) => {
 			Object.keys(r.answers || {}).forEach(k => ids.add(k));
 		});
-		return Array.from(ids);
+		return Array.from(ids).sort();
+	}
+
+	// Get all fields including those with empty answers
+	function getAllFieldAnswersCount(): { [fieldId: string]: number } {
+		const counts: { [fieldId: string]: number } = {};
+		const allFieldIds = getAllFieldIds();
+		
+		allFieldIds.forEach(fieldId => {
+			counts[fieldId] = 0;
+		});
+		
+		data.responses.forEach((r: any) => {
+			allFieldIds.forEach(fieldId => {
+				const value = r.answers?.[fieldId];
+				if (value !== undefined && value !== '' && value !== null) {
+					counts[fieldId]++;
+				}
+			});
+		});
+		
+		return counts;
 	}
 
 	// Aggregate view: get all answers for a specific field
@@ -94,6 +115,7 @@
 		);
 	});
 	$: aggregateFieldCount = getAllFieldIds().length;
+	$: fieldAnswerCounts = getAllFieldAnswersCount();
 </script>
 
 <svelte:head>
@@ -181,7 +203,7 @@
 			</div>
 			<div class="responses-kpis">
 				<span class="kpi-chip"><strong>{data.responses.length}</strong> envios</span>
-				<span class="kpi-chip"><strong>{aggregateFieldCount}</strong> perguntas com resposta</span>
+				<span class="kpi-chip"><strong>{aggregateFieldCount}</strong> perguntas no formulário</span>
 			</div>
 
 			{#if viewMode === 'individual'}

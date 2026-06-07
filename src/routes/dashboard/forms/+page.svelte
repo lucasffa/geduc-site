@@ -3,6 +3,7 @@
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
+	import { browser } from '$app/environment';
 	import Modal from '$lib/components/organisms/Modal.svelte';
 	import { addToast } from '$lib/stores/dashboard';
 	import type { PageData } from './$types';
@@ -22,7 +23,7 @@
 	let pendingDeleteForm: HTMLFormElement | null = null;
 
 	// Show success toast if form was just created
-	$: if ($page.url.searchParams.has('created')) {
+	$: if (browser && $page.url.searchParams.has('created')) {
 		const createdId = $page.url.searchParams.get('created');
 		addToast('Formulário criado com sucesso!', 'success');
 		if (createdId) {
@@ -36,7 +37,7 @@
 	}
 
 	// Show success toast if form was just updated
-	$: if ($page.url.searchParams.has('updated')) {
+	$: if (browser && $page.url.searchParams.has('updated')) {
 		const updatedId = $page.url.searchParams.get('updated');
 		addToast('Formulário atualizado com sucesso!', 'success');
 		if (updatedId && updatedId !== 'true') {
@@ -91,7 +92,7 @@
 	}
 
 	function copyPublicLink(form: any) {
-		if (form.publicToken) {
+		if (browser && form.publicToken) {
 			const orgSlug = $page.data.organization?.slug || 'org';
 			const url = `${window.location.origin}/forms/${orgSlug}/${form.publicToken}`;
 			navigator.clipboard.writeText(url).then(() => addToast('Link copiado!', 'success'));
@@ -107,6 +108,10 @@
 	let shareLoading = false;
 	let shareTab: 'link' | 'email' | 'participants' = 'link';
 	let selectedParticipants: string[] = [];
+
+	$: shareModalPublicUrl = browser && shareModalFormAccessCode && $page.data.organization
+		? `${window.location.origin}/forms/${$page.data.organization.slug}/${shareModalFormAccessCode}`
+		: '';
 
 	function openShareModal(formId: string, formTitle: string, formAccessCode: string | undefined, isPublic: boolean = true) {
 		shareModalFormId = formId;
@@ -545,7 +550,7 @@
 							type="text" 
 							readonly 
 							class="modal-input link-input" 
-							value="{window.location.origin}/forms/{$page.data.organization?.slug || 'org'}/{shareModalFormAccessCode}"
+							value={shareModalPublicUrl}
 							on:focus={(e) => e.currentTarget.select()}
 						/>
 						<button class="btn-ghost" disabled={!shareModalFormAccessCode} on:click={() => copyPublicLink({publicToken: shareModalFormAccessCode})}>

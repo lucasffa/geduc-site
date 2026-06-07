@@ -63,21 +63,6 @@
 				on:input={handleInput}
 			>{strValue}</textarea>
 
-		{:else if field.type === 'select'}
-			<select
-				id="field_{field.id}"
-				name="field_{field.id}"
-				{disabled}
-				aria-invalid={error ? 'true' : 'false'}
-				aria-describedby={error ? `error_${field.id}` : undefined}
-				on:change={handleInput}
-			>
-				<option value="">Selecione…</option>
-				{#each field.options ?? [] as option}
-					<option value={option.value} selected={strValue === option.value}>{option.label}</option>
-				{/each}
-			</select>
-
 		{:else if field.type === 'radio'}
 			<fieldset
 				class="choice-group"
@@ -119,36 +104,23 @@
 				{/each}
 			</fieldset>
 
-		{:else if field.type === 'rating'}
-			<div class="rating" role="group" aria-label="Classificação de 1 a 5">
-				{#each [1, 2, 3, 4, 5] as star}
-					<button
-						type="button"
-						class="star-btn"
-						class:selected={Number(value) >= star}
-						aria-label={`Dar nota ${star}`}
-						on:click={() => emit(star)}
-						{disabled}
-					>★</button>
-				{/each}
-			</div>
-			<input type="hidden" name="field_{field.id}" value={strValue} />
-
-		{:else if field.type === 'map'}
+		{:else if field.type === 'file'}
 			<input
-				type="text"
+				type="file"
 				id="field_{field.id}"
 				name="field_{field.id}"
-				placeholder={field.placeholder ?? 'Latitude,Longitude ou endereço'}
-				value={strValue}
 				{disabled}
-				on:input={handleInput}
+				aria-invalid={error ? 'true' : 'false'}
+				aria-describedby={error ? `error_${field.id}` : undefined}
+				on:change={handleInput}
 			/>
-			<small class="field-hint">Informe coordenadas (lat,lng) ou endereço.</small>
+			{#if value}
+				<div class="file-preview">📎 {value}</div>
+			{/if}
 
 		{:else}
 			<input
-				type={field.type === 'file' ? 'text' : field.type}
+				type={field.type}
 				id="field_{field.id}"
 				name="field_{field.id}"
 				placeholder={field.placeholder ?? ''}
@@ -260,35 +232,13 @@
 		accent-color: var(--theme-primary, var(--color-primary-500, #324acb));
 	}
 
-	.rating {
+	.file-preview {
+		font-size: 0.9rem;
+		color: var(--text-color-secondary, #6b7280);
+		padding: 0.35rem 0;
 		display: flex;
-		gap: 0.25rem;
-	}
-
-	.star-btn {
-		border: none;
-		background: transparent;
-		color: var(--color-neutral-300, #d1d5db);
-		font-size: 1.5rem;
-		padding: 0.1rem;
-		cursor: pointer;
-		transition: color 0.1s, transform 0.1s;
-		line-height: 1;
-		border-radius: 4px;
-	}
-
-	.star-btn.selected {
-		color: var(--theme-primary, var(--color-primary-500, #324acb));
-	}
-
-	.star-btn:hover:not(:disabled) {
-		transform: scale(1.2);
-		color: var(--theme-primary, var(--color-primary-500, #324acb));
-	}
-
-	.star-btn:disabled {
-		cursor: not-allowed;
-		opacity: 0.6;
+		align-items: center;
+		gap: 0.3rem;
 	}
 
 	.field-error {

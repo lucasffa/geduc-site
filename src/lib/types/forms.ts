@@ -3,16 +3,12 @@ export type FormFieldType =
 	| 'text'
 	| 'email'
 	| 'textarea'
-	| 'select'
 	| 'radio'
 	| 'checkbox'
 	| 'number'
 	| 'date'
 	| 'tel'
-	| 'url'
 	| 'file'
-	| 'rating'
-	| 'map'
 	| 'hidden'
 	| 'button';
 
