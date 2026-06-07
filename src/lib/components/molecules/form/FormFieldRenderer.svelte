@@ -55,7 +55,7 @@
 		{#if field.type === 'textarea'}
 			<textarea
 				id="field_{field.id}"
-				name="field_{field.id}"
+				name="{field.id}"
 				rows={4}
 				{disabled}
 				aria-invalid={error ? 'true' : 'false'}
@@ -73,7 +73,7 @@
 					<label class="choice-item">
 						<input
 							type="radio"
-							name="field_{field.id}"
+							name="{field.id}"
 							value={option.value}
 							checked={strValue === option.value}
 							{disabled}
@@ -108,7 +108,7 @@
 			<input
 				type="file"
 				id="field_{field.id}"
-				name="field_{field.id}"
+				name="{field.id}"
 				{disabled}
 				aria-invalid={error ? 'true' : 'false'}
 				aria-describedby={error ? `error_${field.id}` : undefined}
@@ -122,7 +122,7 @@
 			<input
 				type={field.type}
 				id="field_{field.id}"
-				name="field_{field.id}"
+				name="{field.id}"
 				placeholder={field.placeholder ?? ''}
 				value={strValue}
 				{disabled}

@@ -133,19 +133,23 @@ describe('Forms API', () => {
 	describe('POST /forms/[orgSlug]/[formSlug]?/submit', () => {
 		it('should correctly parse and save all form responses', () => {
 			// Simulate form data submission
+			// Field names are the field IDs directly (e.g., "field_1", "field_2")
 			const formData = new FormData();
-			formData.append('field_field_1', 'yes');
-			formData.append('field_field_5', 'item1');
-			formData.append('field_field_5', 'item3');
-			formData.append('field_field_6', '42');
-			formData.append('field_field_7', '2026-06-07');
-			formData.append('field_field_8', 'documento.pdf');
+			formData.append('field_1', 'João Paulo');
+			formData.append('field_2', 'joao@example.com');
+			formData.append('field_3', 'Uma descrição muito legal');
+			formData.append('field_4', 'yes');
+			formData.append('field_5', 'item1');
+			formData.append('field_5', 'item3');
+			formData.append('field_6', '42');
+			formData.append('field_7', '2026-06-07');
+			formData.append('field_8', 'documento.pdf');
 
 			// Simulate parsing logic from +page.server.ts
 			const answers: Record<string, unknown> = {};
 			for (const [key, value] of formData.entries()) {
 				if (key.startsWith('field_')) {
-					const fieldId = key.replace('field_', '');
+					const fieldId = key;  // Use key directly, it's already the field ID
 					if (answers[fieldId] && Array.isArray(answers[fieldId])) {
 						(answers[fieldId] as unknown[]).push(value);
 					} else if (answers[fieldId]) {
@@ -179,7 +183,7 @@ describe('Forms API', () => {
 			const answers: Record<string, unknown> = {};
 			for (const [key, value] of formData.entries()) {
 				if (key.startsWith('field_')) {
-					const fieldId = key.replace('field_', '');
+					const fieldId = key;  // Use key directly
 					if (answers[fieldId] && Array.isArray(answers[fieldId])) {
 						(answers[fieldId] as unknown[]).push(value);
 					} else if (answers[fieldId]) {
@@ -190,7 +194,7 @@ describe('Forms API', () => {
 				}
 			}
 
-			expect(answers['checkboxes']).toEqual(['opt1', 'opt2', 'opt3']);
+			expect(answers['field_checkboxes']).toEqual(['opt1', 'opt2', 'opt3']);
 		});
 
 		it('should serialize answers as JSON correctly', () => {

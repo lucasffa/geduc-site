@@ -60,8 +60,9 @@ export const actions: Actions = {
 		const answers: Record<string, unknown> = {};
 
 		for (const [key, value] of formData.entries()) {
+			// Field names are the field IDs directly (e.g., "field_1", "field_2")
 			if (key.startsWith('field_')) {
-				const fieldId = key.replace('field_', '');
+				const fieldId = key;  // Use key directly, it's already the field ID
 				// Handle multiple values (checkboxes)
 				if (answers[fieldId] && Array.isArray(answers[fieldId])) {
 					(answers[fieldId] as unknown[]).push(value);

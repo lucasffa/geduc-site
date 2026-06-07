@@ -71,9 +71,30 @@
 				<form
 					method="POST"
 					action="?/submit"
-					use:enhance={() => {
+					use:enhance={({ formData: submitFormData }) => {
 						isSubmitting = true;
 						fieldErrors = {};
+
+						// Remove any field_ keys automatically generated from DOM elements
+						// to prevent conflicts/duplicates.
+						for (const key of Array.from(submitFormData.keys())) {
+							if (key.startsWith('field_')) {
+								submitFormData.delete(key);
+							}
+						}
+
+						// Append all answers from Svelte state `formData` to the form submission payload
+						for (const [key, value] of Object.entries(formData)) {
+							if (key.startsWith('field_')) {
+								if (Array.isArray(value)) {
+									value.forEach((val) => {
+										submitFormData.append(key, String(val ?? ''));
+									});
+								} else {
+									submitFormData.append(key, String(value ?? ''));
+								}
+							}
+						}
 
 						return async ({ result, update }) => {
 							isSubmitting = false;
