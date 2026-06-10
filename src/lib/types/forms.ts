@@ -105,9 +105,9 @@ export interface FormMetadataBase {
 	definition: FormDefinition;
 }
 
-export interface CreateFormInput extends FormMetadataBase {}
+export interface CreateFormInput extends FormMetadataBase { }
 
-export interface UpdateFormInput extends Partial<FormMetadataBase> {}
+export interface UpdateFormInput extends Partial<FormMetadataBase> { }
 
 export interface FormRecord extends FormMetadataBase {
 	id: string;

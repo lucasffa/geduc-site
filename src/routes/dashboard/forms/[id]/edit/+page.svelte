@@ -1,3 +1,4 @@
+<!-- src/routes/dashboard/forms/[id]/edit/+page.svelte -->
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import FormBuilder from '$lib/components/organisms/dashboard/FormBuilder.svelte';

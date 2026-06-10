@@ -254,38 +254,66 @@
 		border: 1px solid var(--border-color-default, #e5e7eb);
 		border-radius: 12px;
 		background: var(--background-color-card, #fff);
+
 		display: flex;
 		flex-direction: column;
+
 		position: sticky;
 		top: 4.5rem;
-		max-height: calc(100vh - 6rem);
+
+		width: 300px;
+		max-height: calc(100vh - 5rem);
+
 		overflow-y: auto;
-		scrollbar-width: thin;
-		scrollbar-color: var(--border-color-default, #e5e7eb) transparent;
+		scrollbar-width: none;
 	}
 
-	.sidebar-section { padding: 0.875rem 1rem; display: grid; gap: 0.6rem; }
+	.sidebar::-webkit-scrollbar {
+		display: none;
+	}
+
+	.sidebar-section {
+		padding: 1rem;
+		display: grid;
+		gap: 0.75rem;
+	}
 
 	.sidebar-heading {
 		margin: 0;
-		font-size: 0.68rem;
+
+		font-size: 0.75rem;
 		font-weight: 700;
+
 		color: var(--text-color-secondary, #9ca3af);
+
 		text-transform: uppercase;
-		letter-spacing: 0.1em;
+		letter-spacing: 0.08em;
 	}
 
-	.divider { border: none; border-top: 1px solid var(--border-color-default, #f3f4f6); margin: 0; }
+	.divider {
+		border: none;
+		border-top: 1px solid var(--border-color-default, #f3f4f6);
+		margin: 0;
+	}
 
 	/* Radio cards */
-	.radio-group { display: grid; gap: 0.35rem; }
+	.radio-group {
+		display: grid;
+		gap: 0.5rem;
+	}
+
 	.radio-card {
-		display: flex; align-items: center; gap: 0.6rem;
-		padding: 0.55rem 0.7rem;
-		border: 1.5px solid var(--border-color-default, #e5e7eb);
-		border-radius: 9px; cursor: pointer;
-		transition: border-color 0.12s, background 0.12s;
-		user-select: none;
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+
+		padding: 0.75rem;
+
+		border: 1px solid var(--border-color-default, #e5e7eb);
+		border-radius: 10px;
+
+		cursor: pointer;
+		transition: all 0.15s ease;
 	}
 	.radio-card:hover { border-color: color-mix(in srgb, var(--builder-primary, #324acb) 45%, transparent); }
 	.radio-card.is-selected {
@@ -368,15 +396,28 @@
 	.img-remove-btn:hover { background: rgba(0,0,0,.8); }
 
 	.upload-btn {
-		display: flex; align-items: center; justify-content: center; gap: 0.45rem;
+		width: 100%;
+
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+
+		padding: 0.75rem;
+
 		border: 1.5px dashed var(--border-color-default, #d1d5db);
-		border-radius: 8px; padding: 0.65rem;
-		font-size: 0.83rem; font-family: inherit;
-		color: var(--text-color-secondary, #6b7280);
+		border-radius: 10px;
+
 		background: var(--background-color-subtle, #f9fafb);
-		cursor: pointer; width: 100%;
-		transition: border-color 0.12s, color 0.12s, background 0.12s;
+		color: var(--text-color-secondary, #6b7280);
+
+		font-size: 0.83rem; font-family: inherit;
+
+		cursor: pointer;
+
+		transition: all 0.15s ease;
 	}
+
 	.upload-btn:hover:not(.is-loading) {
 		border-color: var(--builder-primary, #324acb);
 		color: var(--builder-primary, #324acb);
@@ -402,14 +443,31 @@
 		color: var(--builder-primary, #324acb);
 		font-size: 0.7rem; font-weight: 700; border-radius: 999px;
 	}
-	.pages-list { display: grid; gap: 0.35rem; }
+	.pages-list {
+		display: grid;
+		gap: 0.35rem;
+		width: 100%;
+
+	}
 	.page-card {
 		border: 1px solid var(--border-color-default, #e5e7eb);
-		border-radius: 8px; padding: 0.5rem 0.6rem;
+		border-radius: 8px;
+		padding: 0.4rem 0.5rem;
 		background: var(--background-color-subtle, #f9fafb);
-		display: grid; gap: 0.25rem;
+		display: grid;
+		gap: 0.25rem;
+
+		width: 100%;
+		box-sizing: border-box;
 	}
-	.page-card-top { display: flex; align-items: center; gap: 0.35rem; }
+	.page-card-top { 
+		display: flex; 
+		align-items: center; 
+		gap: 0.35rem; 
+		width: 100%;
+		max-width: 100%;
+		overflow: hidden;
+	}
 	.page-num {
 		font-size: 0.68rem; font-weight: 700;
 		color: var(--builder-primary, #324acb);
@@ -424,6 +482,11 @@
 		background: transparent; color: var(--text-color-primary, #111827);
 		outline: none; font-weight: 500;
 		transition: border-color 0.12s, background 0.12s;
+		width: 100%;
+		max-width: 100%;
+		box-sizing: border-box;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 	.page-title-input:focus {
 		border-color: var(--builder-primary, #324acb);
@@ -436,6 +499,8 @@
 		color: var(--text-color-secondary, #9ca3af);
 		border-radius: 4px; cursor: pointer; flex-shrink: 0;
 		transition: background 0.1s, color 0.1s;
+		margin-left: auto;
+		margin-right: -0.2rem;
 	}
 	.page-remove-btn:hover {
 		background: color-mix(in srgb, var(--color-error, #ef4444) 10%, transparent);
