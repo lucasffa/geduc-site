@@ -1,4 +1,14 @@
 import { describe, it, expect } from 'vitest';
+import Database from 'better-sqlite3';
+import { drizzle } from 'drizzle-orm/better-sqlite3';
+import * as orgSchema from '$lib/server/db/schema-org';
+import type { OrgDb } from '$lib/server/db';
+import {
+	createForm,
+	createFormInvitations,
+	getFormInvitationByToken,
+	markFormInvitationUsed
+} from './form-service';
 
 /**
  * Unit Tests for Form Service
@@ -295,5 +305,120 @@ describe('Form Service - Response Handling', () => {
 				expect(Object.keys(r.answers)).toHaveLength(8);
 			});
 		});
+	});
+});
+
+
+describe('Form Service - Invitations', () => {
+	function createTestDb(): OrgDb {
+		const sqlite = new Database(':memory:');
+		sqlite.pragma('foreign_keys = ON');
+		sqlite.exec(`
+			CREATE TABLE participants (
+				id TEXT PRIMARY KEY,
+				name TEXT NOT NULL,
+				email TEXT NOT NULL,
+				role TEXT NOT NULL,
+				status TEXT NOT NULL DEFAULT 'inscrito',
+				enrollment_date TEXT,
+				cycle_end_date TEXT,
+				workload_hours INTEGER,
+				notes TEXT,
+				is_active INTEGER NOT NULL DEFAULT 1,
+				deleted_at TEXT,
+				deleted_by TEXT,
+				created_at TEXT NOT NULL DEFAULT (datetime('now')),
+				updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+			);
+
+			CREATE TABLE forms (
+				id TEXT PRIMARY KEY,
+				title TEXT NOT NULL,
+				slug TEXT NOT NULL UNIQUE,
+				description TEXT,
+				is_active INTEGER NOT NULL DEFAULT 1,
+				is_public INTEGER NOT NULL DEFAULT 0,
+				requires_auth INTEGER NOT NULL DEFAULT 0,
+				public_token TEXT UNIQUE,
+				author_id TEXT,
+				author_name TEXT,
+				author_role TEXT,
+				definition TEXT NOT NULL DEFAULT '{}',
+				created_at TEXT NOT NULL DEFAULT (datetime('now')),
+				updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+			);
+
+			CREATE TABLE form_responses (
+				id TEXT PRIMARY KEY,
+				form_id TEXT NOT NULL REFERENCES forms(id) ON DELETE CASCADE,
+				submitted_at TEXT NOT NULL DEFAULT (datetime('now')),
+				participant_id TEXT REFERENCES participants(id) ON DELETE SET NULL,
+				submitter_id TEXT,
+				submitter_name TEXT,
+				submitter_email TEXT,
+				source_ip TEXT,
+				source_user_agent TEXT,
+				answers TEXT NOT NULL DEFAULT '{}',
+				metadata TEXT NOT NULL DEFAULT '{}'
+			);
+
+			CREATE TABLE form_invitations (
+				id TEXT PRIMARY KEY,
+				form_id TEXT NOT NULL REFERENCES forms(id) ON DELETE CASCADE,
+				email TEXT NOT NULL,
+				token TEXT NOT NULL UNIQUE,
+				used INTEGER NOT NULL DEFAULT 0,
+				used_at TEXT,
+				created_by TEXT,
+				created_at TEXT NOT NULL DEFAULT (datetime('now'))
+			);
+			CREATE UNIQUE INDEX form_invitations_form_email_unique ON form_invitations(form_id, email);
+		`);
+		return drizzle(sqlite, { schema: orgSchema }) as OrgDb;
+	}
+
+	it('creates invitations and skips duplicate emails for the same form', () => {
+		const db = createTestDb();
+		const form = createForm(db, { title: 'Inscricao', definition: { fields: [] } });
+
+		const first = createFormInvitations(db, {
+			formId: form.id,
+			emails: ['maria@example.com', 'MARIA@example.com', 'joao@example.com']
+		});
+		const second = createFormInvitations(db, {
+			formId: form.id,
+			emails: ['maria@example.com']
+		});
+
+		expect(first.created).toHaveLength(2);
+		expect(first.skipped).toHaveLength(0);
+		expect(second.created).toHaveLength(0);
+		expect(second.skipped).toHaveLength(1);
+		expect(second.skipped[0].email).toBe('maria@example.com');
+	});
+
+	it('allows the same email on different forms', () => {
+		const db = createTestDb();
+		const formA = createForm(db, { title: 'Formulario A', definition: { fields: [] } });
+		const formB = createForm(db, { title: 'Formulario B', definition: { fields: [] } });
+
+		const first = createFormInvitations(db, { formId: formA.id, emails: ['maria@example.com'] });
+		const second = createFormInvitations(db, { formId: formB.id, emails: ['maria@example.com'] });
+
+		expect(first.created).toHaveLength(1);
+		expect(second.created).toHaveLength(1);
+		expect(first.created[0].formId).not.toBe(second.created[0].formId);
+	});
+
+	it('finds invitations by token and marks them used only once', () => {
+		const db = createTestDb();
+		const form = createForm(db, { title: 'Formulario', definition: { fields: [] } });
+		const result = createFormInvitations(db, { formId: form.id, emails: ['maria@example.com'] });
+		const invitation = result.created[0];
+
+		expect(getFormInvitationByToken(db, invitation.token)?.email).toBe('maria@example.com');
+		expect(markFormInvitationUsed(db, invitation.id)).toBe(true);
+		expect(markFormInvitationUsed(db, invitation.id)).toBe(false);
+		expect(getFormInvitationByToken(db, invitation.token)?.used).toBe(true);
 	});
 });

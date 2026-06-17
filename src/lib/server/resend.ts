@@ -111,7 +111,7 @@ export function getOrgEmailConfig(
 function resolveFromEmail(config?: OrgEmailConfig): string {
 	if (config?.emailFrom) return config.emailFrom;
 	if (config?.emailDomain) return `contato@${config.emailDomain}`;
-	return env.RESEND_FROM_EMAIL || 'certificados@geduc.org';
+	return env.RESEND_FROM_EMAIL || 'certificados@planctonsko.com';
 }
 
 export async function sendCertificateEmail(
@@ -176,7 +176,7 @@ export async function sendInviteEmail(
 ): Promise<{ success: boolean; error?: string }> {
 	try {
 		const resend = getResendClient(userId, orgId);
-		const fromEmail = env.RESEND_FROM_EMAIL || 'contato@geduc.org';
+		const fromEmail = env.RESEND_FROM_EMAIL || 'contato@planctonsko.com';
 
 		await resend.emails.send({
 			from: fromEmail,
@@ -227,7 +227,8 @@ export async function sendFormInviteEmail(
 	formUrl: string,
 	userId?: string,
 	orgId?: string,
-	orgEmailConfig?: OrgEmailConfig
+	orgEmailConfig?: OrgEmailConfig,
+	customMessage?: string
 ): Promise<{ success: boolean; error?: string }> {
 	try {
 		const resend = getResendClient(userId, orgId);
@@ -243,6 +244,11 @@ export async function sendFormInviteEmail(
 				<div style="font-family: 'Poppins', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 32px;">
 					<h1 style="color: ${primaryColor}; font-size: 24px; margin-bottom: 16px;">${formTitle}</h1>
 					${formDescription ? `<p style="color: #2a2a2a; font-size: 16px; line-height: 1.6;">${formDescription}</p>` : ''}
+					${customMessage ? `
+						<div style="background: #f8fafc; border-left: 4px solid ${primaryColor}; padding: 16px; margin: 24px 0; border-radius: 4px;">
+							<p style="color: #475569; font-size: 15px; margin: 0; line-height: 1.6;">${customMessage.replace(/\n/g, '<br/>')}</p>
+						</div>
+					` : ''}
 					<p style="color: #2a2a2a; font-size: 16px; line-height: 1.6;">
 						Você foi convidado(a) a responder este formulário da organização <strong>${orgName}</strong>.
 					</p>

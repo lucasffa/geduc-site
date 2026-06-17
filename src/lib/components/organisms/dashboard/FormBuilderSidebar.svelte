@@ -3,14 +3,14 @@
 	import { createEventDispatcher } from 'svelte';
 	import type { FormTheme, FormSection } from '$lib/types/forms';
 
-	export let accessType: 'public' | 'private';
+	export let accessType: 'public' | 'private' | 'invitation';
 	export let isActive: boolean;
 	export let mode: 'create' | 'edit';
 	export let theme: FormTheme;
 	export let sections: FormSection[];
 
 	const dispatch = createEventDispatcher<{
-		accessTypeChange: { value: 'public' | 'private' };
+		accessTypeChange: { value: 'public' | 'private' | 'invitation' };
 		isActiveChange: { value: boolean };
 		themeChange: { theme: FormTheme };
 		addSection: void;
@@ -115,6 +115,23 @@
 				<span class="radio-text">
 					<strong>Privado</strong>
 					<small>Exige autenticação</small>
+				</span>
+			</label>
+			<label class="radio-card" class:is-selected={accessType === 'invitation'}>
+				<input type="radio" name="accessTypeGroup" value="invitation"
+					checked={accessType === 'invitation'}
+					on:change={() => dispatch('accessTypeChange', { value: 'invitation' })} />
+				<span class="radio-icon">
+					<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+						<circle cx="9" cy="7" r="4"></circle>
+						<path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+						<path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+					</svg>
+				</span>
+				<span class="radio-text">
+					<strong>Participantes</strong>
+					<small>Por convite (Email)</small>
 				</span>
 			</label>
 		</div>

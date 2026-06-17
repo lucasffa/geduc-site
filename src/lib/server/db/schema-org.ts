@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, primaryKey } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, primaryKey, uniqueIndex } from 'drizzle-orm/sqlite-core';
 import { sql } from 'drizzle-orm';
 
 // ============================================================
@@ -168,3 +168,23 @@ export const formResponses = sqliteTable('form_responses', {
 	answers: text('answers').notNull().default('{}'),
 	metadata: text('metadata').notNull().default('{}')
 });
+
+// ============================================================
+// FORM INVITATIONS
+// ============================================================
+export const formInvitations = sqliteTable(
+	'form_invitations',
+	{
+		id: text('id').primaryKey(),
+		formId: text('form_id')
+			.notNull()
+			.references(() => forms.id, { onDelete: 'cascade' }),
+		email: text('email').notNull(),
+		token: text('token').notNull().unique(),
+		used: integer('used', { mode: 'boolean' }).notNull().default(false),
+		usedAt: text('used_at'),
+		createdBy: text('created_by'),
+		createdAt: text('created_at').notNull().default(sql`(datetime('now'))`)
+	},
+	(table) => [uniqueIndex('form_invitations_form_email_unique').on(table.formId, table.email)]
+);

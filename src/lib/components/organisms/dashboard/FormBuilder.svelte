@@ -49,7 +49,7 @@
 	// ── State ────────────────────────────────────────────────────────────────────
 	let title = initialData.title ?? '';
 	let description = initialData.description ?? '';
-	let accessType: 'public' | 'private' = initialData.isPublic ? 'public' : 'private';
+	let accessType: 'public' | 'private' | 'invitation' = (!initialData.isPublic && !initialData.requiresAuth && initialData.title) ? 'invitation' : (initialData.isPublic ? 'public' : 'private');
 	let isActive = initialData.isActive ?? true;
 
 	let fields: FormFieldDefinition[] = initialData.definition?.fields?.length

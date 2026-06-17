@@ -1,14 +1,15 @@
 // src/lib/server/form-service.ts
 import { randomUUID, randomBytes } from 'node:crypto';
-import { eq, ne, sql, desc } from 'drizzle-orm';
+import { and, eq, desc } from 'drizzle-orm';
 import type { OrgDb } from '$lib/server/db';
-import { forms, formResponses, participants } from '$lib/server/db/schema-org';
+import { formInvitations, forms, formResponses, participants } from '$lib/server/db/schema-org';
 import type {
 	CreateFormInput,
 	FormRecord,
 	FormResponseRecord,
-	FormResponseData,
 	FormDefinition,
+	CreateFormInvitationsResult,
+	FormInvitationRecord,
 	SubmitFormResponseInput,
 	UpdateFormInput
 } from '$lib/types/forms';
@@ -25,6 +26,10 @@ function normalizeSlug(value: string): string {
 
 function generatePublicToken(): string {
 	return randomBytes(32).toString('hex');
+}
+
+function generateInvitationToken(): string {
+	return randomBytes(24).toString('base64url');
 }
 
 // FIX: accepts optional `excludeId` so an existing form's own slug doesn't
@@ -106,6 +111,27 @@ function mapFormResponseRow(row: any): FormResponseRecord {
 		sourceUserAgent: row.sourceUserAgent ?? row.source_user_agent,
 		metadata: JSON.parse(row.metadata ?? '{}')
 	};
+}
+
+function mapFormInvitationRow(row: any): FormInvitationRecord {
+	return {
+		id: row.id,
+		formId: row.formId ?? row.form_id,
+		email: row.email,
+		token: row.token,
+		used: Boolean(row.used),
+		usedAt: row.usedAt ?? row.used_at ?? undefined,
+		createdBy: row.createdBy ?? row.created_by ?? undefined,
+		createdAt: row.createdAt ?? row.created_at
+	};
+}
+
+function createUniqueInvitationToken(db: OrgDb): string {
+	let token = generateInvitationToken();
+	while (db.select().from(formInvitations).where(eq(formInvitations.token, token)).get()) {
+		token = generateInvitationToken();
+	}
+	return token;
 }
 
 export function listForms(db: OrgDb): FormRecord[] {
@@ -279,6 +305,7 @@ export function deleteForm(db: OrgDb, id: string): boolean {
 
 	// Cascade-delete all responses first (SQLite may not enforce FK cascades)
 	db.delete(formResponses).where(eq(formResponses.formId, id)).run();
+	db.delete(formInvitations).where(eq(formInvitations.formId, id)).run();
 	db.delete(forms).where(eq(forms.id, id)).run();
 	return true;
 }
@@ -308,6 +335,95 @@ export function listFormResponses(db: OrgDb, formId: string): FormResponseRecord
 		.orderBy(desc(formResponses.submittedAt))
 		.all()
 		.map(mapFormResponseRow);
+}
+
+export function listFormInvitations(db: OrgDb, formId: string): FormInvitationRecord[] {
+	return db
+		.select()
+		.from(formInvitations)
+		.where(eq(formInvitations.formId, formId))
+		.orderBy(desc(formInvitations.createdAt))
+		.all()
+		.map(mapFormInvitationRow);
+}
+
+export function createFormInvitations(
+	db: OrgDb,
+	input: { formId: string; emails: string[]; createdBy?: string }
+): CreateFormInvitationsResult {
+	const now = new Date().toISOString();
+	const normalizedEmails = Array.from(
+		new Set(input.emails.map((email) => email.trim().toLowerCase()).filter(Boolean))
+	);
+	const created: FormInvitationRecord[] = [];
+	const skipped: FormInvitationRecord[] = [];
+
+	for (const email of normalizedEmails) {
+		const existing = db
+			.select()
+			.from(formInvitations)
+			.where(and(eq(formInvitations.formId, input.formId), eq(formInvitations.email, email)))
+			.get();
+
+		if (existing) {
+			skipped.push(mapFormInvitationRow(existing));
+			continue;
+		}
+
+		const id = randomUUID();
+		const token = createUniqueInvitationToken(db);
+
+		try {
+			db.insert(formInvitations)
+				.values({
+					id,
+					formId: input.formId,
+					email,
+					token,
+					used: false,
+					createdBy: input.createdBy,
+					createdAt: now
+				})
+				.run();
+		} catch (err) {
+			const duplicate = db
+				.select()
+				.from(formInvitations)
+				.where(and(eq(formInvitations.formId, input.formId), eq(formInvitations.email, email)))
+				.get();
+			if (duplicate) {
+				skipped.push(mapFormInvitationRow(duplicate));
+				continue;
+			}
+			throw err;
+		}
+
+		created.push({
+			id,
+			formId: input.formId,
+			email,
+			token,
+			used: false,
+			createdBy: input.createdBy,
+			createdAt: now
+		});
+	}
+
+	return { created, skipped };
+}
+
+export function getFormInvitationByToken(db: OrgDb, token: string): FormInvitationRecord | null {
+	const row = db.select().from(formInvitations).where(eq(formInvitations.token, token)).get();
+	return row ? mapFormInvitationRow(row) : null;
+}
+
+export function markFormInvitationUsed(db: OrgDb, id: string): boolean {
+	const result = db.update(formInvitations)
+		.set({ used: true, usedAt: new Date().toISOString() })
+		.where(and(eq(formInvitations.id, id), eq(formInvitations.used, false)))
+		.run() as { changes?: number };
+
+	return Number(result.changes ?? 0) > 0;
 }
 
 export function getFormResponseById(db: OrgDb, id: string): FormResponseRecord | null {

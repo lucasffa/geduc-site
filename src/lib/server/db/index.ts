@@ -149,6 +149,25 @@ export function getOrgDb(slug: string): OrgDb {
 			metadata TEXT NOT NULL DEFAULT '{}'
 		);
 	`);
+	sqlite.exec(`
+		CREATE TABLE IF NOT EXISTS form_invitations (
+			id TEXT PRIMARY KEY,
+			form_id TEXT NOT NULL REFERENCES forms(id) ON DELETE CASCADE,
+			email TEXT NOT NULL,
+			token TEXT NOT NULL UNIQUE,
+			used INTEGER NOT NULL DEFAULT 0,
+			used_at TEXT,
+			created_by TEXT,
+			created_at TEXT NOT NULL DEFAULT (datetime('now'))
+		);
+		CREATE INDEX IF NOT EXISTS form_invitations_form_id_idx ON form_invitations(form_id);
+		CREATE INDEX IF NOT EXISTS form_invitations_token_idx ON form_invitations(token);
+	`);
+	try {
+		sqlite.exec(`CREATE UNIQUE INDEX IF NOT EXISTS form_invitations_form_email_unique ON form_invitations(form_id, email)`);
+	} catch (error) {
+		console.warn('[db] form_invitations unique index not created; duplicate legacy invitations may exist', error);
+	}
 	try {
 		sqlite.exec(`ALTER TABLE form_responses ADD COLUMN participant_id TEXT REFERENCES participants(id) ON DELETE SET NULL`);
 	} catch {
@@ -305,6 +324,25 @@ export function createOrgDb(slug: string): OrgDb {
 			metadata TEXT NOT NULL DEFAULT '{}'
 		);
 	`);
+	sqlite.exec(`
+		CREATE TABLE IF NOT EXISTS form_invitations (
+			id TEXT PRIMARY KEY,
+			form_id TEXT NOT NULL REFERENCES forms(id) ON DELETE CASCADE,
+			email TEXT NOT NULL,
+			token TEXT NOT NULL UNIQUE,
+			used INTEGER NOT NULL DEFAULT 0,
+			used_at TEXT,
+			created_by TEXT,
+			created_at TEXT NOT NULL DEFAULT (datetime('now'))
+		);
+		CREATE INDEX IF NOT EXISTS form_invitations_form_id_idx ON form_invitations(form_id);
+		CREATE INDEX IF NOT EXISTS form_invitations_token_idx ON form_invitations(token);
+	`);
+	try {
+		sqlite.exec(`CREATE UNIQUE INDEX IF NOT EXISTS form_invitations_form_email_unique ON form_invitations(form_id, email)`);
+	} catch (error) {
+		console.warn('[db] form_invitations unique index not created; duplicate legacy invitations may exist', error);
+	}
 
 	const db = drizzle(sqlite, { schema: orgSchema });
 	orgDbPool.set(slug, db);

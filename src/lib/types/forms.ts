@@ -135,3 +135,20 @@ export interface FormResponseRecord extends FormResponseData {
 export interface SubmitFormResponseInput extends FormResponseData {
 	formId: string;
 }
+
+export interface FormInvitationRecord {
+	id: string;
+	formId: string;
+	email: string;
+	token: string;
+	used: boolean;
+	usedAt?: string;
+	createdBy?: string;
+	createdAt: string;
+	link?: string;
+}
+
+export interface CreateFormInvitationsResult {
+	created: FormInvitationRecord[];
+	skipped: FormInvitationRecord[];
+}

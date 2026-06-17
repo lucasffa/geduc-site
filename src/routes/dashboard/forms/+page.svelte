@@ -25,11 +25,17 @@
 	// Show success toast if form was just created
 	$: if (browser && $page.url.searchParams.has('created')) {
 		const createdId = $page.url.searchParams.get('created');
+		const mode = $page.url.searchParams.get('mode');
 		addToast('Formulário criado com sucesso!', 'success');
 		if (createdId) {
 			setTimeout(() => {
 				const form = formsWithCount.find(f => f.id === createdId);
-				if (form) openShareModal(form.id, form.title, form.publicToken, form.isPublic);
+				if (form) {
+					openShareModal(form.id, form.title, form.publicToken, form.isPublic);
+					if (mode === 'invitation') {
+						shareTab = 'participants';
+					}
+				}
 			}, 100);
 		}
 		// Clean up the URL parameter
@@ -108,6 +114,19 @@
 	let shareLoading = false;
 	let shareTab: 'link' | 'email' | 'participants' = 'link';
 	let selectedParticipants: string[] = [];
+	let shareCustomMessage = '';
+	
+	let filterRole = '';
+	let filterStatus = '';
+	
+	$: uniqueRoles = Array.from(new Set((data.participants || []).map(p => p.role).filter(Boolean)));
+	$: uniqueStatuses = Array.from(new Set((data.participants || []).map(p => p.status).filter(Boolean)));
+
+	$: filteredParticipants = (data.participants || []).filter(p => {
+		if (filterRole && p.role !== filterRole) return false;
+		if (filterStatus && p.status !== filterStatus) return false;
+		return true;
+	});
 
 	$: shareModalPublicUrl = browser && shareModalFormAccessCode && $page.data.organization
 		? `${window.location.origin}/forms/${$page.data.organization.slug}/${shareModalFormAccessCode}`
@@ -140,10 +159,14 @@
 	}
 
 	function toggleAllParticipants() {
-		if (selectedParticipants.length === data.participants?.length) {
-			selectedParticipants = [];
+		const filteredIds = filteredParticipants.map(p => p.id);
+		const allSelected = filteredIds.every(id => selectedParticipants.includes(id));
+		
+		if (allSelected && filteredIds.length > 0) {
+			selectedParticipants = selectedParticipants.filter(id => !filteredIds.includes(id));
 		} else {
-			selectedParticipants = (data.participants || []).map(p => p.id);
+			const newSelections = new Set([...selectedParticipants, ...filteredIds]);
+			selectedParticipants = Array.from(newSelections);
 		}
 	}
 
@@ -169,6 +192,9 @@
 			}
 			formData.append('type', 'participants');
 			selectedParticipants.forEach(id => formData.append('participantIds', id));
+			if (shareCustomMessage) {
+				formData.append('customMessage', shareCustomMessage);
+			}
 		} else {
 			shareLoading = false;
 			return;
@@ -572,22 +598,38 @@
 				<div class="tab-pane">
 					<p class="tab-pane-title">Enviar para participantes da organização</p>
 					
+					<div class="filter-bar">
+						<select class="filter-select" bind:value={filterRole}>
+							<option value="">Todas as funções</option>
+							{#each uniqueRoles as role}
+								<option value={role}>{role}</option>
+							{/each}
+						</select>
+						
+						<select class="filter-select" bind:value={filterStatus}>
+							<option value="">Todas as situações</option>
+							{#each uniqueStatuses as status}
+								<option value={status}>{status}</option>
+							{/each}
+						</select>
+					</div>
+					
 					<div class="participants-list-wrap">
 						<div class="participants-header">
 							<label class="select-all-label">
 								<input 
 									type="checkbox" 
-									checked={selectedParticipants.length === (data.participants?.length || 0) && (data.participants?.length || 0) > 0}
-									indeterminate={selectedParticipants.length > 0 && selectedParticipants.length < (data.participants?.length || 0)}
+									checked={filteredParticipants.length > 0 && filteredParticipants.every(p => selectedParticipants.includes(p.id))}
+									indeterminate={filteredParticipants.some(p => selectedParticipants.includes(p.id)) && !filteredParticipants.every(p => selectedParticipants.includes(p.id))}
 									on:change={toggleAllParticipants}
 								/>
-								<span>Selecionar Todos ({data.participants?.length || 0})</span>
+								<span>Selecionar Filtrados ({filteredParticipants.length})</span>
 							</label>
-							<span class="selected-count">{selectedParticipants.length} selecionado(s)</span>
+							<span class="selected-count">{selectedParticipants.length} total selecionado(s)</span>
 						</div>
 						
 						<ul class="participants-list">
-							{#each data.participants || [] as p}
+							{#each filteredParticipants as p (p.id)}
 								<li>
 									<label class="participant-row">
 										<input 
@@ -599,10 +641,27 @@
 											<span class="p-name">{p.name}</span>
 											<span class="p-email">{p.email}</span>
 										</div>
+										<div class="participant-meta">
+											{#if p.role}<span class="p-role">{p.role}</span>{/if}
+										</div>
 									</label>
 								</li>
 							{/each}
+							{#if filteredParticipants.length === 0}
+								<div class="p-empty">Nenhum participante encontrado com os filtros atuais.</div>
+							{/if}
 						</ul>
+					</div>
+					
+					<div class="message-wrap">
+						<label class="message-label" for="customMessage">Mensagem Personalizada (Opcional)</label>
+						<textarea 
+							id="customMessage"
+							class="modal-input modal-textarea" 
+							placeholder="Escreva uma mensagem que será enviada no corpo do e-mail..."
+							bind:value={shareCustomMessage}
+							rows="3"
+						></textarea>
 					</div>
 				</div>
 			{/if}

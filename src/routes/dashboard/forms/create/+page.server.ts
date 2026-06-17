@@ -79,7 +79,8 @@ export const actions: Actions = {
 				why: `Formulário criado: ${form.title}`
 			});
 
-			throw redirect(302, `/dashboard/forms?created=${form.id}`);
+			const mode = (!isPublic && !requiresAuth) ? 'invitation' : (isPublic ? 'public' : 'private');
+			throw redirect(302, `/dashboard/forms?created=${form.id}&mode=${mode}`);
 		} catch (e) {
 			// Re-throw SvelteKit redirects — they are not errors
 			if (e && typeof e === 'object' && 'status' in e && 'location' in e) {

@@ -28,7 +28,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 	const { eq, isNull, and } = await import('drizzle-orm');
 	
 	const activeParticipants = locals.orgDb
-		.select({ id: participants.id, name: participants.name, email: participants.email })
+		.select({ id: participants.id, name: participants.name, email: participants.email, role: participants.role, status: participants.status })
 		.from(participants)
 		.where(and(eq(participants.isActive, true), isNull(participants.deletedAt)))
 		.all();
@@ -174,6 +174,8 @@ export const actions: Actions = {
 			return { error: 'Nenhum participante selecionado' };
 		}
 
+		const customMessage = formData.get('customMessage') as string | undefined;
+
 		const form = getFormById(locals.orgDb, formId);
 		if (!form) {
 			throw error(404, 'Formulário não encontrado');
@@ -182,10 +184,14 @@ export const actions: Actions = {
 		try {
 			console.log(`[dashboard/forms] sendByEmail: enviando formulário ${form.id}`);
 
-			if (!form.publicToken) {
+			// Check if form is of type 'invitation'
+			const isInvitationForm = !form.isPublic && !form.requiresAuth;
+
+			if (!isInvitationForm && !form.publicToken) {
 				return { error: 'Este formulário não possui código seguro de acesso. Edite e salve o formulário novamente.' };
 			}
-			const formUrl = `${new URL(request.url).origin}/forms/${locals.organization?.slug || 'org'}/${form.publicToken}`;
+			
+			const basePublicUrl = `${new URL(request.url).origin}/forms/${locals.organization?.slug || 'org'}/${form.publicToken}`;
 
 			// Get org email config for proper sender/branding
 			const { getOrgEmailConfig, sendFormInviteEmail } = await import('$lib/server/resend');
@@ -218,20 +224,54 @@ export const actions: Actions = {
 
 			let sentCount = 0;
 			const failed: string[] = [];
-			for (const email of recipients) {
-				const result = await sendFormInviteEmail(
-					email,
-					form.title,
-					form.description,
-					formUrl,
-					locals.user.id,
-					locals.organization?.id,
-					orgEmailConfig
-				);
-				if (result.success) sentCount++;
-				else {
-					console.error(`Erro ao enviar para ${email}:`, result.error);
-					failed.push(email);
+			
+			if (isInvitationForm) {
+				// Generate unique invitation tokens
+				const { createFormInvitations } = await import('$lib/server/form-service');
+				const invitationResult = createFormInvitations(locals.orgDb, {
+					formId: form.id,
+					emails: recipients,
+					createdBy: locals.user.id
+				});
+				
+				const allInvitations = [...invitationResult.created, ...invitationResult.skipped];
+				
+				for (const inv of allInvitations) {
+					const uniqueUrl = `${new URL(request.url).origin}/forms/${inv.token}`;
+					const result = await sendFormInviteEmail(
+						inv.email,
+						form.title,
+						form.description,
+						uniqueUrl,
+						locals.user.id,
+						locals.organization?.id,
+						orgEmailConfig,
+						customMessage
+					);
+					if (result.success) sentCount++;
+					else {
+						console.error(`Erro ao enviar para ${inv.email}:`, result.error);
+						failed.push(inv.email);
+					}
+				}
+			} else {
+				// Public or Private form uses the same public link
+				for (const email of recipients) {
+					const result = await sendFormInviteEmail(
+						email,
+						form.title,
+						form.description,
+						basePublicUrl,
+						locals.user.id,
+						locals.organization?.id,
+						orgEmailConfig,
+						customMessage
+					);
+					if (result.success) sentCount++;
+					else {
+						console.error(`Erro ao enviar para ${email}:`, result.error);
+						failed.push(email);
+					}
 				}
 			}
 

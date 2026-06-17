@@ -1,11 +1,11 @@
 // src/routes/dashboard/forms/[id]/edit/+page.server.ts
 import { error, redirect } from '@sveltejs/kit';
-import { getFormById, updateForm } from '$lib/server/form-service';
+import { createFormInvitations, getFormById, listFormInvitations, updateForm } from '$lib/server/form-service';
 import { logAudit } from '$lib/server/middleware/audit';
 import { parseAndValidateFormDefinition } from '$lib/server/form-definition-schema';
 import type { PageServerLoad, Actions } from './$types';
 
-export const load: PageServerLoad = async ({ locals, params }) => {
+export const load: PageServerLoad = async ({ locals, params, url }) => {
 	if (!locals.user) {
 		throw error(401, 'Não autorizado');
 	}
@@ -21,8 +21,14 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 		throw error(404, 'Formulário não encontrado');
 	}
 
+	const invitations = listFormInvitations(locals.orgDb, formId).map((invitation) => ({
+		...invitation,
+		link: `${url.origin}/forms/${invitation.token}`
+	}));
+
 	return {
-		form
+		form,
+		invitations
 	};
 };
 
@@ -81,6 +87,66 @@ export const actions: Actions = {
 		});
 
 		throw redirect(302, `/dashboard/forms?updated=${params.id}`);
+	},
+
+	createInvitations: async (event) => {
+		const { request, locals, params, url } = event;
+		if (!locals.user || !locals.orgDb) {
+			throw error(401, 'Não autorizado');
+		}
+
+		const existing = getFormById(locals.orgDb, params.id);
+		if (!existing) {
+			throw error(404, 'Formulário não encontrado');
+		}
+
+		const formData = await request.formData();
+		const rawEmails = String(formData.get('emails') ?? '');
+		const emails = rawEmails
+			.split(/[\s,;]+/)
+			.map((email) => email.trim().toLowerCase())
+			.filter(Boolean);
+		const invalidEmails = emails.filter((email) => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
+
+		if (emails.length === 0) {
+			return { invitationError: 'Informe ao menos um email.' };
+		}
+
+		if (invalidEmails.length > 0) {
+			return { invitationError: `Email inválido: ${invalidEmails[0]}` };
+		}
+
+		const result = createFormInvitations(locals.orgDb, {
+			formId: params.id,
+			emails,
+			createdBy: locals.user.id
+		});
+		const withLink = (invitation: typeof result.created[number]) => ({
+			...invitation,
+			link: `${url.origin}/forms/${invitation.token}`
+		});
+		const created = result.created.map(withLink);
+		const skipped = result.skipped.map(withLink);
+
+		if (created.length > 0) {
+			logAudit(event, {
+				whatTable: 'form_invitations',
+				whatRecordId: params.id,
+				how: 'CREATE',
+				why: `Convites criados para formulário: ${existing.title}`,
+				howManyAffected: created.length
+			});
+		}
+
+		const messageParts = [];
+		if (created.length > 0) messageParts.push(`${created.length} convite(s) gerado(s)`);
+		if (skipped.length > 0) messageParts.push(`${skipped.length} email(s) já tinham convite`);
+
+		return {
+			invitationSuccess: `${messageParts.join('; ')}.`,
+			createdInvitations: created,
+			skippedInvitations: skipped
+		};
 	},
 
 	delete: async (event) => {
