@@ -1,6 +1,6 @@
 <!-- src/routes/dashboard/forms/+page.svelte -->
 <script lang="ts">
-	import { enhance } from '$app/forms';
+	import { enhance, deserialize } from '$app/forms';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { browser } from '$app/environment';
@@ -207,11 +207,20 @@
 				headers: { 'x-sveltekit-action': 'true' }
 			});
 			
-			const actionResult = await actionResponse.json();
+			const actionResultStr = await actionResponse.text();
+			const actionResult = import.meta.env.SSR ? JSON.parse(actionResultStr) : deserialize(actionResultStr);
+			
 			const resultData = actionResult.data || {};
 			
-			if (actionResult.type === 'failure' || resultData.error) {
+			if (actionResult.type === 'error') {
+				addToast(actionResult.error?.message || 'Erro inesperado no servidor', 'error');
+			} else if (actionResult.type === 'failure' || resultData.error) {
 				addToast(resultData.error || 'Erro ao enviar', 'error');
+			} else if (resultData.count === 0 && resultData.failed && resultData.failed.length > 0) {
+				addToast(`Erro ao enviar para ${resultData.failed.length} destinatário(s). Verifique as configurações de e-mail.`, 'error');
+			} else if (resultData.failed && resultData.failed.length > 0) {
+				addToast(`Enviado parcialmente (${resultData.count} com sucesso, ${resultData.failed.length} falhas).`, 'warning');
+				closeShareModal();
 			} else {
 				addToast(shareTab === 'participants' ? `Enviado para ${resultData.count} participante(s)!` : 'Formulário compartilhado por email!', 'success');
 				closeShareModal();

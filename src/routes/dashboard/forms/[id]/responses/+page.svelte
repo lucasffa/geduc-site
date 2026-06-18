@@ -34,12 +34,14 @@
 	function getAllFieldIds(): string[] {
 		const fields = data.form.definition?.fields || [];
 		if (fields.length > 0) {
-			return fields.filter((f: any) => f.type !== 'hidden' && f.type !== 'button').map((f: any) => f.id);
+			return fields
+				.filter((f: any) => f.type !== 'hidden' && f.type !== 'button')
+				.map((f: any) => f.id);
 		}
 		// Fallback: collect from answers
 		const ids = new Set<string>();
 		data.responses.forEach((r: any) => {
-			Object.keys(r.answers || {}).forEach(k => ids.add(k));
+			Object.keys(r.answers || {}).forEach((k) => ids.add(k));
 		});
 		return Array.from(ids).sort();
 	}
@@ -48,20 +50,20 @@
 	function getAllFieldAnswersCount(): { [fieldId: string]: number } {
 		const counts: { [fieldId: string]: number } = {};
 		const allFieldIds = getAllFieldIds();
-		
-		allFieldIds.forEach(fieldId => {
+
+		allFieldIds.forEach((fieldId) => {
 			counts[fieldId] = 0;
 		});
-		
+
 		data.responses.forEach((r: any) => {
-			allFieldIds.forEach(fieldId => {
+			allFieldIds.forEach((fieldId) => {
 				const value = r.answers?.[fieldId];
 				if (value !== undefined && value !== '' && value !== null) {
 					counts[fieldId]++;
 				}
 			});
 		});
-		
+
 		return counts;
 	}
 
@@ -89,7 +91,7 @@
 			formatDate(res.submittedAt),
 			res.submitterName || '-',
 			res.submitterEmail || '-',
-			...fieldIds.map(id => formatAnswer(res.answers?.[id]))
+			...fieldIds.map((id) => formatAnswer(res.answers?.[id]))
 		]);
 
 		const csv = [
@@ -127,8 +129,15 @@
 	<header class="page-header">
 		<div class="header-nav">
 			<button class="back-btn" on:click={goBack} title="Voltar">
-				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-					<path d="M19 12H5M12 19l-7-7 7-7"/>
+				<svg
+					width="20"
+					height="20"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+				>
+					<path d="M19 12H5M12 19l-7-7 7-7" />
 				</svg>
 			</button>
 			<div class="header-info">
@@ -140,33 +149,54 @@
 		<div class="header-actions">
 			{#if data.responses.length > 0}
 				<div class="view-toggle">
-					<button 
-						class="toggle-btn" 
+					<button
+						class="toggle-btn"
 						class:is-active={viewMode === 'individual'}
-						on:click={() => viewMode = 'individual'}
+						on:click={() => (viewMode = 'individual')}
 					>
-						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-							<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-							<circle cx="9" cy="7" r="4"/>
+						<svg
+							width="14"
+							height="14"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+						>
+							<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+							<circle cx="9" cy="7" r="4" />
 						</svg>
 						Individual
 					</button>
-					<button 
-						class="toggle-btn" 
+					<button
+						class="toggle-btn"
 						class:is-active={viewMode === 'aggregate'}
-						on:click={() => viewMode = 'aggregate'}
+						on:click={() => (viewMode = 'aggregate')}
 					>
-						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-							<path d="M18 20V10M12 20V4M6 20v-6"/>
+						<svg
+							width="14"
+							height="14"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+						>
+							<path d="M18 20V10M12 20V4M6 20v-6" />
 						</svg>
 						Por Pergunta
 					</button>
 				</div>
 				<button class="btn-secondary" on:click={downloadAsCSV}>
-					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-						<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-						<polyline points="7 10 12 15 17 10"/>
-						<line x1="12" y1="15" x2="12" y2="3"/>
+					<svg
+						width="16"
+						height="16"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+					>
+						<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+						<polyline points="7 10 12 15 17 10" />
+						<line x1="12" y1="15" x2="12" y2="3" />
 					</svg>
 					Baixar CSV
 				</button>
@@ -186,9 +216,17 @@
 			<!-- Search bar -->
 			<div class="toolbar">
 				<div class="search-wrap">
-					<svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-						<circle cx="11" cy="11" r="8"/>
-						<path d="m21 21-4.35-4.35"/>
+					<svg
+						class="search-icon"
+						width="15"
+						height="15"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+					>
+						<circle cx="11" cy="11" r="8" />
+						<path d="m21 21-4.35-4.35" />
 					</svg>
 					<input
 						type="search"
@@ -198,7 +236,10 @@
 					/>
 				</div>
 				<span class="results-count">
-					<strong>{filteredResponses.length}</strong> de {data.responses.length} resposta{data.responses.length !== 1 ? 's' : ''}
+					<strong>{filteredResponses.length}</strong> de {data.responses.length} resposta{data
+						.responses.length !== 1
+						? 's'
+						: ''}
 				</span>
 			</div>
 			<div class="responses-kpis">
@@ -211,7 +252,13 @@
 				<div class="responses-list">
 					{#each filteredResponses as response (response.id)}
 						<div class="response-card" class:is-expanded={expandedResponseId === response.id}>
-							<button class="response-header" type="button" aria-expanded={expandedResponseId === response.id} on:click={() => expandedResponseId = expandedResponseId === response.id ? null : response.id}>
+							<button
+								class="response-header"
+								type="button"
+								aria-expanded={expandedResponseId === response.id}
+								on:click={() =>
+									(expandedResponseId = expandedResponseId === response.id ? null : response.id)}
+							>
 								<div class="response-info">
 									<div class="response-avatar">
 										{(response.submitterName || 'A')[0].toUpperCase()}
@@ -225,8 +272,16 @@
 								</div>
 								<div class="response-meta">
 									<span class="response-date">{formatDate(response.submittedAt)}</span>
-									<svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-										<path d="M6 9l6 6 6-6"/>
+									<svg
+										class="chevron"
+										width="16"
+										height="16"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="2"
+									>
+										<path d="M6 9l6 6 6-6" />
 									</svg>
 								</div>
 							</button>
@@ -252,7 +307,9 @@
 						{#if answers.length > 0}
 							<div class="aggregate-card">
 								<h3 class="aggregate-question">{getFieldLabel(fieldId)}</h3>
-								<p class="aggregate-count">{answers.length} resposta{answers.length !== 1 ? 's' : ''}</p>
+								<p class="aggregate-count">
+									{answers.length} resposta{answers.length !== 1 ? 's' : ''}
+								</p>
 								<div class="aggregate-answers">
 									{#each answers as item}
 										<div class="aggregate-row">
@@ -499,7 +556,9 @@
 		border: 1px solid var(--border-color-default, #e5e7eb);
 		border-radius: 10px;
 		overflow: hidden;
-		transition: border-color 0.15s, box-shadow 0.15s;
+		transition:
+			border-color 0.15s,
+			box-shadow 0.15s;
 	}
 
 	.response-card:hover {

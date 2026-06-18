@@ -28,6 +28,19 @@ export const load: PageServerLoad = async (event) => {
 
 	const responses = listResponsesByParticipant(locals.orgDb, participant.id, participant.email);
 
+	// Build a map of form definitions so the frontend can order answers properly
+	const formDefinitions: Record<string, FormDefinition> = {};
+	const seenFormIds = new Set<string>();
+	for (const r of responses) {
+		if (!seenFormIds.has(r.formId)) {
+			seenFormIds.add(r.formId);
+			const form = getFormById(locals.orgDb, r.formId);
+			if (form) {
+				formDefinitions[r.formId] = form.definition;
+			}
+		}
+	}
+
 	logAudit(event, {
 		whatTable: 'form_responses',
 		whatRecordId: participant.id,
@@ -43,6 +56,7 @@ export const load: PageServerLoad = async (event) => {
 			role: participant.role,
 			status: participant.status
 		},
-		responses
+		responses,
+		formDefinitions
 	};
 };

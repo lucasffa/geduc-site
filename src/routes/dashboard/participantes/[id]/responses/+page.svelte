@@ -40,8 +40,15 @@
 	<header class="page-header">
 		<div class="header-nav">
 			<button class="back-btn" on:click={goBack} title="Voltar">
-				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-					<path d="M19 12H5M12 19l-7-7 7-7"/>
+				<svg
+					width="20"
+					height="20"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+				>
+					<path d="M19 12H5M12 19l-7-7 7-7" />
 				</svg>
 			</button>
 			<div class="header-info">
@@ -60,7 +67,10 @@
 			</div>
 		{:else}
 			<p class="responses-summary">
-				<strong>{data.responses.length}</strong> formulário{data.responses.length !== 1 ? 's' : ''} respondido{data.responses.length !== 1 ? 's' : ''}
+				<strong>{data.responses.length}</strong> formulário{data.responses.length !== 1 ? 's' : ''} respondido{data
+					.responses.length !== 1
+					? 's'
+					: ''}
 			</p>
 
 			<div class="responses-list">
@@ -68,14 +78,25 @@
 					<div class="response-card" class:is-expanded={expandedResponseId === response.id}>
 						<!-- svelte-ignore a11y-click-events-have-key-events -->
 						<!-- svelte-ignore a11y-no-static-element-interactions -->
-						<div class="response-header" on:click={() => expandedResponseId = expandedResponseId === response.id ? null : response.id}>
+						<div
+							class="response-header"
+							on:click={() =>
+								(expandedResponseId = expandedResponseId === response.id ? null : response.id)}
+						>
 							<div class="response-info">
 								<div class="form-icon">
-									<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-										<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-										<polyline points="14 2 14 8 20 8"/>
-										<line x1="16" y1="13" x2="8" y2="13"/>
-										<line x1="16" y1="17" x2="8" y2="17"/>
+									<svg
+										width="18"
+										height="18"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="1.75"
+									>
+										<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+										<polyline points="14 2 14 8 20 8" />
+										<line x1="16" y1="13" x2="8" y2="13" />
+										<line x1="16" y1="17" x2="8" y2="17" />
 									</svg>
 								</div>
 								<div>
@@ -84,19 +105,34 @@
 								</div>
 							</div>
 							<div class="response-actions">
-								<button 
-									class="icon-btn" 
+								<button
+									class="icon-btn"
 									title="Ver todas as respostas deste formulário"
 									on:click|stopPropagation={() => viewFormResponses(response.formId)}
 								>
-									<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-										<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-										<polyline points="15 3 21 3 21 9"/>
-										<line x1="10" y1="14" x2="21" y2="3"/>
+									<svg
+										width="15"
+										height="15"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="2"
+									>
+										<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+										<polyline points="15 3 21 3 21 9" />
+										<line x1="10" y1="14" x2="21" y2="3" />
 									</svg>
 								</button>
-								<svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-									<path d="M6 9l6 6 6-6"/>
+								<svg
+									class="chevron"
+									width="16"
+									height="16"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+								>
+									<path d="M6 9l6 6 6-6" />
 								</svg>
 							</div>
 						</div>
@@ -188,9 +224,19 @@
 		border-radius: 12px;
 	}
 
-	.empty-icon { font-size: 3rem; margin-bottom: 1rem; }
-	.empty-state h2 { font-size: 1.25rem; font-weight: 600; margin: 0 0 0.5rem; }
-	.empty-state p { color: var(--text-color-secondary, #6b7280); margin: 0; }
+	.empty-icon {
+		font-size: 3rem;
+		margin-bottom: 1rem;
+	}
+	.empty-state h2 {
+		font-size: 1.25rem;
+		font-weight: 600;
+		margin: 0 0 0.5rem;
+	}
+	.empty-state p {
+		color: var(--text-color-secondary, #6b7280);
+		margin: 0;
+	}
 
 	.responses-list {
 		display: flex;
@@ -203,7 +249,9 @@
 		border: 1px solid var(--border-color-default, #e5e7eb);
 		border-radius: 10px;
 		overflow: hidden;
-		transition: border-color 0.15s, box-shadow 0.15s;
+		transition:
+			border-color 0.15s,
+			box-shadow 0.15s;
 	}
 
 	.response-card:hover {
@@ -321,8 +369,15 @@
 	}
 
 	@media (max-width: 768px) {
-		.page-header { padding: 1.5rem; }
-		.content { padding: 1rem; }
-		.answer-item { grid-template-columns: 1fr; gap: 0.25rem; }
+		.page-header {
+			padding: 1.5rem;
+		}
+		.content {
+			padding: 1rem;
+		}
+		.answer-item {
+			grid-template-columns: 1fr;
+			gap: 0.25rem;
+		}
 	}
 </style>
