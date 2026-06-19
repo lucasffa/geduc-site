@@ -32,24 +32,44 @@
 
 	// Get all unique field IDs across all responses
 	function getAllFieldIds(): string[] {
-		const fields = data.form.definition?.fields || [];
-		if (fields.length > 0) {
-			return fields
+		const def = data.form.definition;
+		let ids: string[] = [];
+
+		if (def?.sections && def.sections.length > 0) {
+			const sortedSections = [...def.sections].sort((a: any, b: any) => (a.order || 0) - (b.order || 0));
+			for (const section of sortedSections) {
+				for (const f of section.fields || []) {
+					if (f.type !== 'hidden' && f.type !== 'button') {
+						ids.push(f.id);
+					}
+				}
+			}
+			const sectionFieldIds = new Set(ids);
+			const additionalFields = (def.fields || [])
+				.filter((f: any) => f.type !== 'hidden' && f.type !== 'button' && !sectionFieldIds.has(f.id))
+				.map((f: any) => f.id);
+			ids = [...ids, ...additionalFields];
+		} else if (def?.fields && def.fields.length > 0) {
+			ids = def.fields
 				.filter((f: any) => f.type !== 'hidden' && f.type !== 'button')
 				.map((f: any) => f.id);
+		} else {
+			// Fallback: collect from answers
+			const fallbackIds = new Set<string>();
+			data.responses.forEach((r: any) => {
+				Object.keys(r.answers || {}).forEach((k) => fallbackIds.add(k));
+			});
+			ids = Array.from(fallbackIds).sort();
 		}
-		// Fallback: collect from answers
-		const ids = new Set<string>();
-		data.responses.forEach((r: any) => {
-			Object.keys(r.answers || {}).forEach((k) => ids.add(k));
-		});
-		return Array.from(ids).sort();
+		return ids;
 	}
+
+	$: orderedFieldIds = getAllFieldIds();
 
 	// Get all fields including those with empty answers
 	function getAllFieldAnswersCount(): { [fieldId: string]: number } {
 		const counts: { [fieldId: string]: number } = {};
-		const allFieldIds = getAllFieldIds();
+		const allFieldIds = orderedFieldIds;
 
 		allFieldIds.forEach((fieldId) => {
 			counts[fieldId] = 0;
@@ -85,7 +105,7 @@
 	}
 
 	function downloadAsCSV() {
-		const fieldIds = getAllFieldIds();
+		const fieldIds = orderedFieldIds;
 		const headers = ['Data Submissão', 'Nome', 'Email', ...fieldIds.map(getFieldLabel)];
 		const rows = data.responses.map((res: any) => [
 			formatDate(res.submittedAt),
@@ -116,7 +136,7 @@
 			(r.submitterEmail || '').toLowerCase().includes(q)
 		);
 	});
-	$: aggregateFieldCount = getAllFieldIds().length;
+	$: aggregateFieldCount = orderedFieldIds.length;
 	$: fieldAnswerCounts = getAllFieldAnswersCount();
 </script>
 
@@ -288,11 +308,22 @@
 
 							{#if expandedResponseId === response.id}
 								<div class="response-answers">
-									{#each Object.entries(response.answers || {}) as [fieldId, answer]}
-										<div class="answer-item">
-											<span class="answer-label">{getFieldLabel(fieldId)}</span>
-											<span class="answer-value">{formatAnswer(answer)}</span>
-										</div>
+									{#each orderedFieldIds as fieldId}
+										{#if response.answers && fieldId in response.answers && response.answers[fieldId] !== undefined && response.answers[fieldId] !== null && response.answers[fieldId] !== '' && (Array.isArray(response.answers[fieldId]) ? response.answers[fieldId].length > 0 : true)}
+											<div class="answer-item">
+												<span class="answer-label">{getFieldLabel(fieldId)}</span>
+												<span class="answer-value">{formatAnswer(response.answers[fieldId])}</span>
+											</div>
+										{/if}
+									{/each}
+									<!-- Fallback for fields that are in answers but missing from form definition -->
+									{#each Object.keys(response.answers || {}).filter(k => !orderedFieldIds.includes(k)) as fieldId}
+										{#if response.answers && response.answers[fieldId] !== undefined && response.answers[fieldId] !== null && response.answers[fieldId] !== '' && (Array.isArray(response.answers[fieldId]) ? response.answers[fieldId].length > 0 : true)}
+											<div class="answer-item">
+												<span class="answer-label">{getFieldLabel(fieldId)}</span>
+												<span class="answer-value">{formatAnswer(response.answers[fieldId])}</span>
+											</div>
+										{/if}
 									{/each}
 								</div>
 							{/if}
@@ -302,7 +333,7 @@
 			{:else}
 				<!-- Aggregate view -->
 				<div class="aggregate-list">
-					{#each getAllFieldIds() as fieldId}
+					{#each orderedFieldIds as fieldId}
 						{@const answers = getFieldAnswers(fieldId)}
 						{#if answers.length > 0}
 							<div class="aggregate-card">
