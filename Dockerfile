@@ -5,7 +5,7 @@ FROM node:22-alpine AS base
 RUN apk add --no-cache libc6-compat python3 make g++
 
 # Habilitar corepack para pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@10 --activate
 
 WORKDIR /app
 
@@ -53,6 +53,8 @@ RUN addgroup -g 1001 -S nodejs && \
 USER nodejs
 
 EXPOSE 3001
+
+ENV BODY_SIZE_LIMIT=10485760
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
